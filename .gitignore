@@ -1,0 +1,53 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Node modules (if any future automation added)
+node_modules/
+
+# Python (if any future automation added)
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv/
+venv/
+
+# Large binary files that shouldn't be in git
+# Uncomment if you want to exclude the knowledgebase PDFs
+# project_knowledgebase/
+
+# Output data (generated reports)
+# Keep .gitkeep files but ignore actual report data
+data/daily/*.md
+data/weekly/*.md
+data/monthly/*.md
+data/quarterly/*.md
+data/annual/*.md
+!data/**/.gitkeep
+
+# Secrets (if any API keys added later)
+.env
+.env.local
+secrets/
