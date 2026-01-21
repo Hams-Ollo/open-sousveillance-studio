@@ -9,7 +9,7 @@
 
 ## 🎯 Mission
 
-This prompt library empowers citizens to monitor, understand, and participate in their democratic institutions through AI-assisted research, analysis, and communication.
+This agent prompt library empowers citizens to monitor, understand, and participate in their democratic institutions through AI-assisted research, analysis, and communication.
 
 Grounded in universal reverence for life and environmental stewardship—not partisan divisions—this system transforms publicly available government data into accessible, actionable intelligence for community members.
 
