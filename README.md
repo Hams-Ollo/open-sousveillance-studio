@@ -1,13 +1,13 @@
-# Alachua Civic Intelligence System
+# 🏛️ Alachua Civic Intelligence System
 
 **Version:** 1.0  
-**Date:** January 2026  
-**Location:** City of Alachua, Alachua County, Florida, USA  
-**Primary Use Case:** Environmental Protection & Democratic Accountability Monitoring
+**Date:** 📅 January 2026  
+**Location:** 📍 City of Alachua, Alachua County, Florida, USA  
+**Primary Use Case:** 🌳 Environmental Protection & Democratic Accountability Monitoring
 
 ---
 
-## Mission
+## 🎯 Mission
 
 This prompt library empowers citizens to monitor, understand, and participate in their democratic institutions through AI-assisted research, analysis, and communication.
 
@@ -17,20 +17,20 @@ Grounded in universal reverence for life and environmental stewardship—not par
 
 ---
 
-## Overview
+## 📋 Overview
 
 The Alachua Civic Intelligence System is a collection of structured AI prompts designed to:
 
-1. **Scout** — Continuously scan government sources for new information, meetings, permits, and decisions
-2. **Analyze** — Process raw data into meaningful insights, patterns, and compliance assessments
-3. **Synthesize** — Generate accessible reports, public education content, and strategic campaign plans
-4. **Act** — Empower citizens with specific next steps, deadlines, and participation opportunities
+1. **🔍 Scout** — Continuously scan government sources for new information, meetings, permits, and decisions
+2. **🧠 Analyze** — Process raw data into meaningful insights, patterns, and compliance assessments
+3. **📊 Synthesize** — Generate accessible reports, public education content, and strategic campaign plans
+4. **⚡ Act** — Empower citizens with specific next steps, deadlines, and participation opportunities
 
 Inspired by the Mill Creek Sink / Tara development case, this system enables citizens to detect threats early, document violations systematically, and coordinate effective advocacy campaigns.
 
 ---
 
-## System Architecture
+## 🏗️ System Architecture
 
 ### Three-Layer Agent Framework
 
@@ -52,7 +52,7 @@ Inspired by the Mill Creek Sink / Tara development case, this system enables cit
 
 ---
 
-## Folder Structure
+## 📁 Folder Structure
 
 ```
 alachua-civic-intelligence/
@@ -95,9 +95,9 @@ alachua-civic-intelligence/
 
 ---
 
-## The Prompts
+## 💬 The Prompts
 
-### Layer 1: Scouts (Data Collection)
+### 🔍 Layer 1: Scouts (Data Collection)
 
 | Prompt | Purpose | Schedule | Key Sources |
 |--------|---------|----------|-------------|
@@ -106,14 +106,14 @@ alachua-civic-intelligence/
 | **A3: Legislative & Code Monitor** | Track changes to laws, codes, comprehensive plans | Weekly or when ordinances proposed | Municipal codes, state legislature, comp plan amendments |
 | **A4: Entity & Relationship Mapper** | Document connections between developers, officials, consultants | Weekly or as needed | Campaign finance, Sunbiz, property records, LinkedIn |
 
-### Layer 2: Analysts (Strategic Intelligence)
+### 🧠 Layer 2: Analysts (Strategic Intelligence)
 
 | Prompt | Purpose | Schedule | Input |
 |--------|---------|----------|-------|
 | **B1: Impact Assessment Analyst** | Synthesize cumulative environmental and community impacts | Weekly (Monday) | All scout reports from previous week |
 | **B2: Procedural Integrity Analyst** | Monitor democratic processes, transparency, Sunshine Law compliance | Weekly | Meeting records, procedural documentation |
 
-### Layer 3: Synthesizers (Public Output & Strategy)
+### 📊 Layer 3: Synthesizers (Public Output & Strategy)
 
 | Prompt | Purpose | Schedule | Output |
 |--------|---------|----------|--------|
@@ -124,20 +124,20 @@ alachua-civic-intelligence/
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Step 1: Choose Your Entry Point
 
-**Minimum Viable Monitoring (30 min/day):**
+**⚡ Minimum Viable Monitoring (30 min/day):**
 - Run A1 (meetings) and A2 (permits) daily
 - Flag urgent items for immediate attention
 
-**Standard Monitoring (5-8 hrs/week):**
+**📈 Standard Monitoring (5-8 hrs/week):**
 - Daily: A1 + A2
 - Weekly: A3 + A4 + B1 + B2
 - Monthly: C1 + C2
 
-**Full System (10-15 hrs/week):**
+**🎯 Full System (10-15 hrs/week):**
 - All of the above, plus quarterly C3 and annual C4
 - Active content publishing and campaign execution
 
@@ -176,9 +176,9 @@ outputs/
 
 ---
 
-## Implementation Workflow
+## 🔄 Implementation Workflow
 
-### Daily Routine (15-30 minutes)
+### ☀️ Daily Routine (15-30 minutes)
 
 | Time | Action |
 |------|--------|
@@ -186,7 +186,7 @@ outputs/
 | Review | Flag urgent items requiring immediate attention |
 | Alert | Notify team if critical hearing/deadline detected |
 
-### Weekly Routine (3-4 hours total)
+### 📅 Weekly Routine (3-4 hours total)
 
 | Day | Action |
 |-----|--------|
@@ -195,7 +195,7 @@ outputs/
 | Friday | Run B1 (impact) and B2 (procedural) |
 | Friday PM | Review analysis, identify priorities, brief coalition |
 
-### Monthly Routine (4-6 hours)
+### 📆 Monthly Routine (4-6 hours)
 
 | Week | Action |
 |------|--------|
@@ -204,14 +204,14 @@ outputs/
 | Week 1 (new month) | Publish newsletter, launch social content, brief volunteers |
 | Week 1 | Conduct retrospective on previous month's effectiveness |
 
-### Quarterly Routine (2-3 hours)
+### 📊 Quarterly Routine (2-3 hours)
 
 - Run C3 (Democratic Health Scorecard)
 - Assess cumulative trends across all domains
 - Adjust strategy based on scorecard findings
 - Share key metrics with coalition and public
 
-### Annual Routine (4-6 hours)
+### 🗓️ Annual Routine (4-6 hours)
 
 - Run C4 (Annual Review & Forecast)
 - Full synthesis of year's findings
@@ -221,7 +221,7 @@ outputs/
 
 ---
 
-## Output Pipeline
+## 🔄 Output Pipeline
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────────┐
@@ -252,35 +252,35 @@ outputs/
 
 ---
 
-## Key Data Sources
+## 📚 Key Data Sources
 
-### City of Alachua
+### 🏛️ City of Alachua
 - City Commission agendas and minutes
 - Planning & Zoning Board materials
 - City ordinances and comprehensive plan
 - Permit applications and staff reports
 - Public records portal
 
-### Alachua County
+### 🏢 Alachua County
 - Board of County Commissioners agendas/minutes
 - Environmental Protection Department
 - Growth Management Department
 - County code and comprehensive plan
 - Development review applications
 
-### State of Florida
+### 🌴 State of Florida
 - Department of Environmental Protection (DEP)
 - Water Management Districts (SRWMD, SJRWMD)
 - Florida Legislature bill tracking
 - Administrative hearing records (DOAH)
 - Sunbiz corporate registry
 
-### Federal
+### 🦅 Federal
 - EPA Region 4 actions
 - Army Corps of Engineers permits
 - USGS water monitoring data
 
-### Other
+### 🔗 Other
 - Local news (Gainesville Sun, Alachua County Today)
 - Campaign finance records
 - Property appraiser records
@@ -290,18 +290,18 @@ outputs/
 
 ---
 
-## Primary Use Case: Mill Creek Sink & Tara Development
+## 🌊 Primary Use Case: Mill Creek Sink & Tara Development
 
 This system was developed in response to the proposed Tara development—a 1,000+ home project on ~580 acres of karst terrain directly connected to Mill Creek Sink and the Floridan Aquifer.
 
-### Why This Matters
+### ❗ Why This Matters
 
 - Water entering Mill Creek Sink reaches Hornsby Spring in **12 days**
 - Contamination risks are immediate, not theoretical
 - Procedural irregularities and potential conflicts of interest have been documented
 - Whistleblower allegations from resigned city planner raise serious accountability questions
 
-### What This System Enables
+### 💪 What This System Enables
 
 **Immediate:** Monitor all Tara-related hearings, permits, and regulatory actions
 
@@ -313,63 +313,63 @@ This system was developed in response to the proposed Tara development—a 1,000
 
 ---
 
-## Core Principles
+## ⚖️ Core Principles
 
-### 1. Evidence-Based Analysis
+### 1. 📖 Evidence-Based Analysis
 All claims traceable to documented sources. Acknowledge uncertainty. Never overstate conclusions.
 
-### 2. Earth as Compass
+### 2. 🌍 Earth as Compass
 Frame issues around shared values—clean water, public safety, environmental stewardship—not partisan divisions. Left/right framing divides; water unites.
 
-### 3. Accessibility
+### 3. ♿ Accessibility
 Transform technical, legal, and regulatory language into plain language any community member can understand and act upon.
 
-### 4. Actionability
+### 4. 🎬 Actionability
 Every report answers: *"What can a concerned citizen do with this information?"* Include specific actions, deadlines, and participation opportunities.
 
-### 5. Transparency About Process
+### 5. 🔍 Transparency About Process
 Be clear about what AI analysis can and cannot do. Augments human judgment—does not replace community engagement.
 
-### 6. Respect for Democratic Processes
+### 6. 🗳️ Respect for Democratic Processes
 The goal is to make democracy work better, not to circumvent it. Strengthen public participation, don't undermine legitimate institutions.
 
 ---
 
-## Best Practices
+## ✅ Best Practices
 
-### Consistency is Key
+### 🔄 Consistency is Key
 - Set a regular schedule and maintain it
 - Daily scouts catch things weekly scouts miss
 - Cumulative data reveals patterns individual snapshots don't
 
-### Verify Before Acting
+### ✔️ Verify Before Acting
 - Always check AI outputs against primary sources
 - Cite documents, not AI summaries
 - When in doubt, file a public records request
 
-### Build Institutional Knowledge
+### 🏛️ Build Institutional Knowledge
 - Save all outputs in organized folders
 - Tag for easy retrieval
 - Build entity profiles over time (developers, officials, consultants)
 
-### Share Intelligently
+### 📢 Share Intelligently
 - Raw intelligence reports → internal only
 - Public content (from C1) → share widely
 - Procedural violations → may need legal review first
 
-### Protect Privacy
+### 🔒 Protect Privacy
 - Track only public figures acting in public capacity
 - No doxxing of private citizens
 - Focus on decisions and processes, not personal attacks
 
-### Iterate and Improve
+### 🔧 Iterate and Improve
 - Note what works and what doesn't
 - Adjust prompts based on results
 - Share improvements with the community
 
 ---
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
@@ -382,43 +382,43 @@ The goal is to make democracy work better, not to circumvent it. Strengthen publ
 
 ---
 
-## Customization for Other Communities
+## 🌐 Customization for Other Communities
 
 This system can be adapted for any community:
 
-### 1. Update Data Sources
+### 1. 🔄 Update Data Sources
 Replace Alachua URLs with your jurisdiction's websites in `config/source-registry.md`
 
-### 2. Customize Keywords
+### 2. 🔑 Customize Keywords
 - Replace "Mill Creek Sink" with your local environmental features
 - Update "Tara April" with your current development threat
 - Adjust priorities (karst → coastal → wetlands, etc.)
 
-### 3. Adjust Legal Framework
+### 3. ⚖️ Adjust Legal Framework
 - Verify state/local procedural requirements
 - Update Sunshine Law citations if different state
 - Add local charter requirements
 
-### 4. Tailor Messaging
+### 4. 💬 Tailor Messaging
 - Reflect your community's values and culture
 - Adjust tone for local political climate
 
 ---
 
-## Technical Requirements
+## 💻 Technical Requirements
 
-### AI System
+### 🤖 AI System
 - Works with any AI accepting long-form prompts
 - **Recommended:** Claude Sonnet or Opus for best results
 - Can use API or chat interface
 
-### Skills Needed
+### 🛠️ Skills Needed
 - Basic markdown editing
 - Web research (following links, reading documents)
 - Copy/paste and file organization
 - No coding required
 
-### Time Commitment
+### ⏰ Time Commitment
 | Level | Hours/Week |
 |-------|------------|
 | Minimum | 2-3 hrs (daily scouts only) |
@@ -427,28 +427,28 @@ Replace Alachua URLs with your jurisdiction's websites in `config/source-registr
 
 ---
 
-## Legal & Ethical Notes
+## ⚖️ Legal & Ethical Notes
 
-### This System is Legal
+### ✅ This System is Legal
 - Uses only publicly available information
 - Exercises First Amendment rights to monitor government
 - Public records requests are a protected legal right
 
-### Use Responsibly
+### 🤝 Use Responsibly
 - Stick to facts, cite sources
 - Distinguish facts from opinions/interpretations
 - Avoid defamation (don't make false claims)
 - Recognize that people can have multiple roles without impropriety
 - Goal is transparency and accountability, not personal attacks
 
-### When in Doubt
+### ❓ When in Doubt
 - Consult an attorney before publishing allegations of wrongdoing
 - Have experts review technical claims
 - Use "according to documents" language
 
 ---
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 This system stands on the shoulders of those who came before:
 
@@ -462,7 +462,7 @@ This system stands on the shoulders of those who came before:
 
 ---
 
-## Version History
+## 📜 Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
@@ -470,7 +470,7 @@ This system stands on the shoulders of those who came before:
 
 ---
 
-## Contact
+## 📧 Contact
 
 **Project Lead:** Hans  
 **Coalition:** Our Alachua Water  
