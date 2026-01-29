@@ -6,6 +6,7 @@
 [![LangGraph](https://img.shields.io/badge/orchestration-LangGraph-orange.svg)](https://langchain-ai.github.io/langgraph/)
 [![Supabase](https://img.shields.io/badge/database-Supabase-green.svg)](https://supabase.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Firecrawl](https://img.shields.io/badge/scraping-Firecrawl-red.svg)](https://firecrawl.dev/)
 
 **Version:** 2.0  
 **Status:** 🚧 Active Development  
@@ -43,8 +44,8 @@ flowchart TB
     end
 
     subgraph Monitor["👁️ Change Detection"]
-        CD[Playwright + Firecrawl<br/>SPA Scraping]
-        PDF[PDF Processor<br/>pdfplumber + Gemini]
+        FC[Firecrawl API<br/>LLM-ready Markdown]
+        PDF[PDF Processor<br/>Firecrawl + Gemini]
     end
 
     subgraph Agents["🤖 LangGraph Agent Orchestration"]
@@ -124,10 +125,11 @@ graph LR
         STORE[(Supabase Storage<br/>PDF Archive)]
     end
 
-    subgraph Scraping["🕷️ Scraping"]
-        PW[Playwright<br/>SPA Rendering]
-        FC[Firecrawl<br/>LLM-ready Markdown]
-        PP[pdfplumber<br/>PDF Extraction]
+    subgraph Scraping["🕷️ Web Scraping (Firecrawl)"]
+        SCRAPE[Scrape<br/>Single URL → Markdown]
+        MAP[Map<br/>Discover All URLs]
+        BATCH[Batch Scrape<br/>Multiple URLs]
+        ACTIONS[Actions<br/>Click/Scroll/Wait]
     end
 
     FAST --> LG
@@ -148,7 +150,7 @@ graph LR
 | **Database** | Supabase (PostgreSQL) | Structured data, JSONB, pgvector |
 | **Document Storage** | Supabase Storage | PDF archive with full traceability |
 | **Validation** | Pydantic v2 | Strict schemas for all data |
-| **Scraping** | Playwright + Firecrawl | JavaScript rendering, PDF processing |
+| **Scraping** | Firecrawl | LLM-ready markdown, JS rendering, PDF parsing, batch operations |
 
 ---
 
@@ -167,8 +169,8 @@ sequenceDiagram
     participant EMAIL as 📧 Newsletter
 
     CRON->>SCOUT: Daily trigger (6 AM)
-    SCOUT->>SRC: Fetch meeting list (Playwright)
-    SRC-->>SCOUT: JSON + PDF links
+    SCOUT->>SRC: Fetch meeting list (Firecrawl)
+    SRC-->>SCOUT: Markdown + PDF links
     SCOUT->>PDF: Download agenda packets
     PDF-->>SCOUT: Extracted text + tables
     SCOUT->>DB: Store ScoutReport + embeddings
@@ -190,7 +192,90 @@ sequenceDiagram
 
 ---
 
-## 📁 Project Structure
+## � Firecrawl Integration
+
+Open Sousveillance Studio uses **[Firecrawl](https://firecrawl.dev)** as its primary web scraping engine. Firecrawl handles the complexity of modern government portals (JavaScript SPAs, anti-bot measures, dynamic content) and returns clean, LLM-ready data.
+
+### Why Firecrawl?
+
+| Challenge | Firecrawl Solution |
+|:----------|:-------------------|
+| **React/Angular SPAs** | Full JavaScript rendering with configurable wait times |
+| **Dynamic content** | Actions API: click, scroll, wait before scraping |
+| **PDF documents** | Native PDF text extraction (staff reports, agendas) |
+| **Rate limiting** | Built-in caching (2-day default), batch operations |
+| **Anti-bot measures** | Managed proxies and stealth mode |
+| **LLM integration** | Returns markdown optimized for AI processing |
+
+### Key Features We Use
+
+```python
+from firecrawl import Firecrawl
+
+firecrawl = Firecrawl(api_key="fc-YOUR-API-KEY")
+
+# 1. SCRAPE: Get a single meeting page as markdown
+doc = firecrawl.scrape(
+    "https://alachuafl.portal.civicclerk.com/event/849/overview",
+    formats=["markdown", "links"],
+    actions=[
+        {"type": "wait", "milliseconds": 2000},  # Wait for React to render
+        {"type": "scroll", "direction": "down"}   # Load lazy content
+    ]
+)
+
+# 2. MAP: Discover all meeting URLs on the portal
+urls = firecrawl.map(
+    url="https://alachuafl.portal.civicclerk.com",
+    search="meeting",  # Filter to meeting-related pages
+    limit=100
+)
+
+# 3. BATCH SCRAPE: Fetch multiple meetings efficiently
+results = firecrawl.batch_scrape(
+    urls=["https://...meeting1", "https://...meeting2"],
+    formats=["markdown"]
+)
+
+# 4. STRUCTURED EXTRACTION: Get typed data with Pydantic schemas
+from pydantic import BaseModel
+
+class AgendaItem(BaseModel):
+    item_number: str
+    title: str
+    applicant: str | None
+    parcel_number: str | None
+
+result = firecrawl.scrape(
+    "https://alachuafl.portal.civicclerk.com/event/849/overview",
+    formats=[{"type": "json", "schema": AgendaItem.model_json_schema()}]
+)
+```
+
+### Scraping Strategy by Source
+
+| Source | Method | Actions Required | Output |
+|:-------|:-------|:-----------------|:-------|
+| **CivicClerk** (City of Alachua) | `scrape` + actions | `wait` 2s, `scroll` down | Markdown + links |
+| **Florida Public Notices** | `scrape` | None (static) | Markdown |
+| **eScribe** (County) | `scrape` + actions | `wait` for selector | Markdown + PDF links |
+| **PDF Agendas** | `scrape` with `parsers=["pdf"]` | None | Extracted text |
+
+### Cost Estimation
+
+| Plan | Credits/Month | Cost | Sufficient For |
+|:-----|:--------------|:-----|:---------------|
+| **Free** | 500 | $0 | Testing, ~16 scrapes/day |
+| **Hobby** | 3,000 | $16/mo | Production monitoring (~100/day) |
+| **Standard** | 100,000 | $99/mo | Multi-jurisdiction deployment |
+
+**Estimated usage for single-jurisdiction monitoring:** ~1,500 scrapes/month (Hobby plan)
+
+> **Note:** We use `scrape` with `formats=["json"]` instead of the `/extract` endpoint to avoid the separate token-based billing ($89+/mo). Our own LLM handles analysis.
+
+---
+
+## �📁 Project Structure
 
 ```
 alachua-civic-intelligence-reporting-studio/
@@ -223,8 +308,9 @@ alachua-civic-intelligence-reporting-studio/
 │   │       └── streaming.py        # SSE for real-time updates
 │   │
 │   ├── tools/
-│   │   ├── civicclerk_scraper.py   # CivicClerk SPA scraper
-│   │   ├── pdf_processor.py        # pdfplumber + Gemini hybrid
+│   │   ├── firecrawl_client.py     # Firecrawl wrapper with retry logic
+│   │   ├── civicclerk_scraper.py   # CivicClerk-specific scraping patterns
+│   │   ├── pdf_processor.py        # Firecrawl PDF + Gemini hybrid
 │   │   └── document_storage.py     # Supabase file management
 │   │
 │   └── scheduler/
@@ -417,7 +503,11 @@ Full registry: [`prompt_library/config/source-registry.md`](prompt_library/confi
 
 - Python 3.10+
 - Docker (optional, for local Supabase)
-- API keys: Google AI (Gemini), Tavily, Firecrawl, Supabase
+- API keys:
+  - **Firecrawl** - Web scraping ([get key](https://firecrawl.dev)) - Free tier: 500 credits
+  - **Google AI (Gemini)** - LLM analysis ([get key](https://aistudio.google.com))
+  - **Tavily** - Deep research ([get key](https://tavily.com))
+  - **Supabase** - Database ([get project](https://supabase.com))
 
 ### Installation
 
@@ -489,8 +579,10 @@ curl -X POST "http://localhost:8000/approvals/{thread_id}/decide" \
 - [x] Source registry documentation
 
 ### Phase 2: Scout Layer (Current) 🚧
-- [ ] CivicClerk scraper with Playwright
-- [ ] PDF processing pipeline (pdfplumber + Gemini)
+- [ ] Firecrawl client wrapper with retry logic
+- [ ] CivicClerk scraper (Firecrawl + actions)
+- [ ] Florida Public Notices scraper
+- [ ] PDF processing pipeline (Firecrawl + Gemini)
 - [ ] Document storage with Supabase
 - [ ] Change detection and deduplication
 
@@ -565,11 +657,11 @@ Open Sousveillance Studio is designed to be forked and adapted for **any US muni
 
 | Platform | Common In | Scraping Method |
 |:---------|:----------|:----------------|
-| **CivicClerk** | Small/mid cities | Playwright (React SPA) |
-| **eScribe** | Counties, larger cities | Playwright + PDF download |
+| **CivicClerk** | Small/mid cities | Firecrawl (React SPA) |
+| **eScribe** | Counties, larger cities | Firecrawl + PDF download |
 | **Granicus** | Large cities | BeautifulSoup or API |
 | **Legistar** | Major metros | REST API |
-| **BoardDocs** | School boards | Playwright |
+| **BoardDocs** | School boards | Firecrawl |
 
 ### Example Configurations
 
