@@ -36,95 +36,105 @@ This specification covers:
 
 ### 2.1 High-Level Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           CLIENT LAYER                                  │
-├─────────────────────────────────────────────────────────────────────────┤
-│  REST API Clients  │  CLI Tools  │  Future: Web Dashboard               │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           API LAYER                                     │
-├─────────────────────────────────────────────────────────────────────────┤
-│  FastAPI Application                                                    │
-│  ├── /run          - Start agent runs                                   │
-│  ├── /status       - Check run status                                   │
-│  ├── /approvals    - Human-in-the-loop                                  │
-│  └── /stream       - SSE real-time updates                              │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        ORCHESTRATION LAYER                              │
-├─────────────────────────────────────────────────────────────────────────┤
-│  Celery + Beat          │  LangGraph Workflows                          │
-│  ├── Scout tasks        │  ├── Scout workflow                           │
-│  ├── Analyst tasks      │  ├── Analyst workflow                         │
-│  └── Synthesizer tasks  │  └── State checkpointing                      │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          AGENT LAYER                                    │
-├─────────────────────────────────────────────────────────────────────────┤
-│  Scout Agents (A1-A4)   │  Analyst Agents (B1-B2)  │  Synthesizers(C1-C4)
-│  ├── Meeting Scout      │  ├── Impact Analyst      │  ├── Newsletter    │
-│  ├── Permit Scout       │  └── Procedural Analyst  │  ├── Social Media  │
-│  ├── Code Monitor       │                          │  └── Alert Digest  │
-│  └── Entity Mapper      │                          │                    │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         TOOLS LAYER                                     │
-├─────────────────────────────────────────────────────────────────────────┤
-│  Firecrawl (Scraping)  │  Docling (PDF)  │  Tavily (Research)  │  Gemini│
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          DATA LAYER                                     │
-├─────────────────────────────────────────────────────────────────────────┤
-│  Supabase PostgreSQL   │  Supabase Storage  │  Redis (Celery)           │
-│  ├── Reports table     │  ├── PDF archive   │  ├── Task queue           │
-│  ├── Alerts table      │  └── Documents     │  └── Result backend       │
-│  └── pgvector          │                    │                           │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Client["🖥️ Client Layer"]
+        API_CLIENT[REST API Clients]
+        CLI[CLI Tools]
+        DASH[Future: Web Dashboard]
+    end
+
+    subgraph API["🌐 API Layer - FastAPI"]
+        RUN["/run - Start agent runs"]
+        STATUS["/status - Check run status"]
+        APPROVALS["/approvals - Human-in-the-loop"]
+        STREAM["/stream - SSE real-time"]
+    end
+
+    subgraph Orchestration["🔀 Orchestration Layer"]
+        subgraph Celery["Celery + Beat"]
+            SCOUT_TASK[Scout Tasks]
+            ANALYST_TASK[Analyst Tasks]
+            SYNTH_TASK[Synthesizer Tasks]
+        end
+        subgraph LangGraph["LangGraph Workflows"]
+            SCOUT_WF[Scout Workflow]
+            ANALYST_WF[Analyst Workflow]
+            CHECKPOINT[State Checkpointing]
+        end
+    end
+
+    subgraph Agents["🤖 Agent Layer"]
+        subgraph Scouts["Scouts A1-A4"]
+            A1[Meeting Scout]
+            A2[Permit Scout]
+            A3[Code Monitor]
+            A4[Entity Mapper]
+        end
+        subgraph Analysts["Analysts B1-B2"]
+            B1[Impact Analyst]
+            B2[Procedural Analyst]
+        end
+        subgraph Synthesizers["Synthesizers C1-C4"]
+            C1[Newsletter]
+            C2[Social Media]
+            C3[Alert Digest]
+        end
+    end
+
+    subgraph Tools["🔧 Tools Layer"]
+        FIRECRAWL[Firecrawl<br/>Scraping]
+        DOCLING[Docling<br/>PDF Processing]
+        TAVILY[Tavily<br/>Research]
+        GEMINI[Gemini<br/>LLM]
+    end
+
+    subgraph Data["💾 Data Layer"]
+        subgraph Supabase["Supabase"]
+            PG[(PostgreSQL<br/>+ pgvector)]
+            STORAGE[(Storage<br/>PDF Archive)]
+        end
+        REDIS[(Redis<br/>Task Queue)]
+    end
+
+    Client --> API
+    API --> Orchestration
+    Orchestration --> Agents
+    Agents --> Tools
+    Tools --> Data
 ```
 
 ### 2.2 Component Diagram
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                    Open Sousveillance Studio                     │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐               │
-│  │   FastAPI   │  │   Celery    │  │  LangGraph  │               │
-│  │   Server    │  │   Worker    │  │  Workflows  │               │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘               │
-│         │                │                │                      │
-│         └────────────────┼────────────────┘                      │
-│                          │                                       │
-│                          ▼                                       │
-│  ┌───────────────────────────────────────────────────────────┐   │
-│  │                     Agent Framework                       │   │
-│  │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐       │   │
-│  │  │ Scout   │  │ Scout   │  │ Analyst │  │ Synth   │       │   │
-│  │  │   A1    │  │   A2    │  │   B1    │  │   C1    │       │   │
-│  │  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘       │   │ 
-│  │       │            │            │            │            │   │
-│  │       └────────────┴────────────┴────────────┘            │   │
-│  │                          │                                │   │
-│  │                          ▼                                │   │
-│  │  ┌───────────────────────────────────────────────────┐    │   │
-│  │  │                   Tool Layer                      │    │   │
-│  │  │  Firecrawl │ Docling │ Tavily │ Gemini │ Supabase │    │   │
-│  │  └───────────────────────────────────────────────────┘    │   │
-│  └───────────────────────────────────────────────────────────┘   │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph OSS["Open Sousveillance Studio"]
+        subgraph Services["Core Services"]
+            FASTAPI[FastAPI Server]
+            CELERY[Celery Worker]
+            LANGGRAPH[LangGraph Workflows]
+        end
+
+        subgraph AgentFramework["Agent Framework"]
+            A1[Scout A1]
+            A2[Scout A2]
+            B1[Analyst B1]
+            C1[Synth C1]
+        end
+
+        subgraph ToolLayer["Tool Layer"]
+            FC[Firecrawl]
+            DOC[Docling]
+            TAV[Tavily]
+            GEM[Gemini]
+            SUP[Supabase]
+        end
+    end
+
+    FASTAPI --> AgentFramework
+    CELERY --> AgentFramework
+    LANGGRAPH --> AgentFramework
+    AgentFramework --> ToolLayer
 ```
 
 ---
@@ -175,6 +185,7 @@ This specification covers:
 ### 4.1 Core Schemas
 
 #### UrgencyLevel (Enum)
+
 ```python
 class UrgencyLevel(str, Enum):
     RED = "RED"       # Immediate action required
@@ -183,6 +194,7 @@ class UrgencyLevel(str, Enum):
 ```
 
 #### UrgencyAlert
+
 ```python
 class UrgencyAlert(BaseModel):
     level: UrgencyLevel
@@ -192,6 +204,7 @@ class UrgencyAlert(BaseModel):
 ```
 
 #### MeetingItem
+
 ```python
 class MeetingItem(BaseModel):
     agenda_id: Optional[str]
@@ -201,6 +214,7 @@ class MeetingItem(BaseModel):
 ```
 
 #### ScoutReport
+
 ```python
 class ScoutReport(BaseModel):
     report_id: str
@@ -215,6 +229,7 @@ class ScoutReport(BaseModel):
 ### 4.2 Configuration Schemas
 
 #### SourceConfig
+
 ```python
 class SourceConfig(BaseModel):
     id: str
@@ -231,6 +246,7 @@ class SourceConfig(BaseModel):
 ```
 
 #### ProjectEntity
+
 ```python
 class ProjectEntity(BaseModel):
     id: str
@@ -248,6 +264,7 @@ class ProjectEntity(BaseModel):
 ### 4.3 Database Schema
 
 #### reports table
+
 ```sql
 CREATE TABLE reports (
     id UUID PRIMARY KEY,
@@ -263,6 +280,7 @@ CREATE INDEX idx_reports_created ON reports(created_at DESC);
 ```
 
 #### alerts table
+
 ```sql
 CREATE TABLE alerts (
     id UUID PRIMARY KEY,
@@ -284,6 +302,7 @@ CREATE INDEX idx_alerts_deadline ON alerts(deadline);
 ## 5. API Specification
 
 ### 5.1 Base URL
+
 ```
 http://localhost:8000
 ```
@@ -291,12 +310,14 @@ http://localhost:8000
 ### 5.2 Endpoints
 
 #### Health Check
+
 ```
 GET /health
 Response: { "status": "healthy" }
 ```
 
 #### Instance Info
+
 ```
 GET /info
 Response: {
@@ -306,6 +327,7 @@ Response: {
 ```
 
 #### Start Agent Run
+
 ```
 POST /run
 Request: {
@@ -323,6 +345,7 @@ Response: {
 ```
 
 #### Check Run Status
+
 ```
 GET /status/{run_id}
 Response: {
@@ -337,6 +360,7 @@ Response: {
 ```
 
 #### List Pending Approvals
+
 ```
 GET /approvals/pending
 Response: {
@@ -354,6 +378,7 @@ Response: {
 ```
 
 #### Approve/Reject
+
 ```
 POST /approvals/{id}/decide
 Request: {
@@ -369,6 +394,7 @@ Response: {
 ```
 
 #### SSE Stream
+
 ```
 GET /stream/{run_id}
 Response: Server-Sent Events stream
@@ -390,28 +416,19 @@ data: {"run_id": "...", "status": "running", ...}
 | Entity Relationship | A4 | Map connections | Weekly | Multiple |
 
 #### Scout Workflow
-```
-Input: URL
-  │
-  ▼
-┌─────────────────┐
-│  Fetch Content  │ ← Firecrawl
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Extract + Parse │ ← Docling (if PDF)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Analyze + Alert │ ← Gemini
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Save Report    │ → Supabase
-└─────────────────┘
+
+```mermaid
+flowchart TD
+    INPUT[/"URL Input"/]
+    FETCH["Fetch Content<br/>(Firecrawl)"]
+    PARSE["Extract + Parse<br/>(Docling if PDF)"]
+    ANALYZE["Analyze + Alert<br/>(Gemini)"]
+    SAVE[("Save Report<br/>(Supabase)")]
+
+    INPUT --> FETCH
+    FETCH --> PARSE
+    PARSE --> ANALYZE
+    ANALYZE --> SAVE
 ```
 
 ### 6.2 Analyst Agents (Layer 2)
@@ -422,36 +439,24 @@ Input: URL
 | Procedural Integrity | B2 | Check process compliance | Weekly | Yes |
 
 #### Analyst Workflow
-```
-Input: Topic + Scout Reports
-  │
-  ▼
-┌─────────────────┐
-│ Gather Context  │ ← Tavily Search
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   Synthesize    │ ← Gemini Pro
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Check Approval  │ ← RED alerts?
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-┌───────┐ ┌───────┐
-│ Wait  │ │Publish│
-│Approve│ │Direct │
-└───┬───┘ └───┬───┘
-    │         │
-    └────┬────┘
-         ▼
-┌─────────────────┐
-│  Save Report    │ → Supabase
-└─────────────────┘
+
+```mermaid
+flowchart TD
+    INPUT[/"Topic + Scout Reports"/]
+    GATHER["Gather Context<br/>(Tavily Search)"]
+    SYNTH["Synthesize<br/>(Gemini Pro)"]
+    CHECK{"RED Alerts?"}
+    WAIT["Wait for<br/>Human Approval"]
+    PUBLISH["Publish Direct"]
+    SAVE[("Save Report<br/>(Supabase)")]
+
+    INPUT --> GATHER
+    GATHER --> SYNTH
+    SYNTH --> CHECK
+    CHECK -->|Yes| WAIT
+    CHECK -->|No| PUBLISH
+    WAIT --> SAVE
+    PUBLISH --> SAVE
 ```
 
 ---
@@ -533,6 +538,7 @@ CELERY_RESULT_BACKEND=redis://localhost:6379/0
 ## 10. Deployment
 
 ### 10.1 Development
+
 ```bash
 # Start Redis
 redis-server
@@ -548,6 +554,7 @@ uvicorn src.app:app --reload --port 8000
 ```
 
 ### 10.2 Production (Docker)
+
 ```yaml
 # docker-compose.yml
 services:

@@ -16,6 +16,7 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 - **Tasks** - Specific implementation work items
 
 ### Status Legend
+
 | Status | Symbol | Description |
 |:-------|:-------|:------------|
 | Backlog | 📋 | Not started, in queue |
@@ -26,6 +27,7 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | Blocked | 🔴 | Blocked by dependency |
 
 ### Priority Legend
+
 | Priority | Symbol |
 |:---------|:-------|
 | Critical | 🔴 |
@@ -45,6 +47,29 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | E4 | Synthesizer Layer (Output) | 📋 Backlog | 0% |
 | E5 | Integration & Deployment | 📋 Backlog | 0% |
 
+### Epic Progress Chart
+
+```mermaid
+pie title Epic Progress
+    "E1 Foundation" : 100
+    "E2 Scout Layer" : 40
+    "E3 Analyst Layer" : 0
+    "E4 Synthesizer" : 0
+    "E5 Integration" : 0
+```
+
+### Epic Dependencies
+
+```mermaid
+flowchart LR
+    E1[E1: Foundation ✅] --> E2[E2: Scout Layer 🟡]
+    E2 --> E3[E3: Analyst Layer]
+    E3 --> E4[E4: Synthesizer]
+    E2 --> E5[E5: Integration]
+    E3 --> E5
+    E4 --> E5
+```
+
 ---
 
 ## E1: Foundation & Infrastructure ✅
@@ -56,12 +81,14 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 ### Features
 
 #### F1.1: Project Structure ✅
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US1.1.1 | As a developer, I want a clear project structure so that I can navigate the codebase easily | ✅ | 🟠 |
 | US1.1.2 | As a developer, I want Pydantic schemas so that data is validated consistently | ✅ | 🟠 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T1.1.1 | Create directory structure | ✅ | 1h |
@@ -70,11 +97,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T1.1.4 | Create config/*.yaml files | ✅ | 4h |
 
 #### F1.2: Database Integration ✅
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US1.2.1 | As a system, I want to persist reports to Supabase so that data is not lost | ✅ | 🔴 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T1.2.1 | Create src/database.py | ✅ | 2h |
@@ -82,12 +111,14 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T1.2.3 | Create Supabase tables | ✅ | 1h |
 
 #### F1.3: Documentation ✅
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US1.3.1 | As a contributor, I want comprehensive README so that I can understand the project | ✅ | 🟡 |
 | US1.3.2 | As an operator, I want prompt templates so that agents behave consistently | ✅ | 🟠 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T1.3.1 | Write README.md | ✅ | 4h |
@@ -106,12 +137,14 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 ### Features
 
 #### F2.1: Web Scraping Infrastructure ✅
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US2.1.1 | As a scout, I want to scrape JS-rendered pages so that I can monitor React SPAs | ✅ | 🔴 |
 | US2.1.2 | As a scout, I want to extract PDF content so that I can analyze agenda packets | ✅ | 🔴 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T2.1.1 | Create src/tools/firecrawl_client.py | ✅ | 4h |
@@ -121,11 +154,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T2.1.5 | Implement PDF chunking with LangChain | ✅ | 2h |
 
 #### F2.2: CivicClerk Scraper 🟡
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US2.2.1 | As a citizen, I want daily updates from City of Alachua meetings so that I don't miss important votes | 🟡 | 🔴 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T2.2.1 | Analyze CivicClerk page structure | 📋 | 2h |
@@ -136,11 +171,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T2.2.6 | Write integration tests | 📋 | 4h |
 
 #### F2.3: eScribe Scraper 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US2.3.1 | As a citizen, I want updates from Alachua County meetings so that I can track county-level decisions | 📋 | 🔴 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T2.3.1 | Analyze eScribe page structure | 📋 | 2h |
@@ -150,11 +187,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T2.3.5 | Write integration tests | 📋 | 4h |
 
 #### F2.4: Florida Public Notices Scraper 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US2.4.1 | As a citizen, I want to monitor legal notices so that I catch public hearings and deadlines | 📋 | 🟠 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T2.4.1 | Analyze floridapublicnotices.com structure | 📋 | 2h |
@@ -163,11 +202,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T2.4.4 | Write integration tests | 📋 | 2h |
 
 #### F2.5: Task Scheduling ✅
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US2.5.1 | As an operator, I want scouts to run automatically so that monitoring is 24/7 | ✅ | 🔴 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T2.5.1 | Create src/tasks/celery_app.py | ✅ | 2h |
@@ -176,11 +217,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T2.5.4 | Implement run_all_critical_scouts() | ✅ | 2h |
 
 #### F2.6: Change Detection 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US2.6.1 | As a system, I want to detect changes so that I don't process duplicate content | 📋 | 🟠 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T2.6.1 | Implement content hashing | 📋 | 2h |
@@ -199,11 +242,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 ### Features
 
 #### F3.1: LangGraph Workflows 🔵
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US3.1.1 | As a system, I want stateful workflows so that long-running analyses can be resumed | 🔵 | 🔴 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T3.1.1 | Create src/workflows/graphs.py | ✅ | 4h |
@@ -213,11 +258,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T3.1.5 | Add workflow state persistence | 📋 | 4h |
 
 #### F3.2: Deep Research Integration 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US3.2.1 | As an analyst, I want to search the web so that I can find connections and context | 📋 | 🟠 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T3.2.1 | Enhance Tavily integration | 📋 | 2h |
@@ -226,11 +273,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T3.2.4 | Write integration tests | 📋 | 2h |
 
 #### F3.3: Human-in-the-Loop Approval 🔵
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US3.3.1 | As an operator, I want to approve analyst reports before publication so that I maintain quality control | 🔵 | 🔴 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T3.3.1 | Create approval API endpoints | ✅ | 2h |
@@ -240,11 +289,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T3.3.5 | Write E2E tests | 📋 | 4h |
 
 #### F3.4: Pattern Recognition 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US3.4.1 | As an analyst, I want to identify patterns across reports so that I can surface trends | 📋 | 🟡 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T3.4.1 | Implement embedding generation | 📋 | 2h |
@@ -263,11 +314,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 ### Features
 
 #### F4.1: Newsletter Generation 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US4.1.1 | As a citizen, I want weekly email digests so that I stay informed without checking daily | 📋 | 🟡 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T4.1.1 | Create MJML email templates | 📋 | 4h |
@@ -276,11 +329,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T4.1.4 | Add subscriber management | 📋 | 4h |
 
 #### F4.2: Social Media Content 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US4.2.1 | As a coalition, I want shareable social content so that we can spread awareness | 📋 | 🟢 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T4.2.1 | Create Twitter/X thread templates | 📋 | 2h |
@@ -298,11 +353,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 ### Features
 
 #### F5.1: Docker Deployment 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US5.1.1 | As an operator, I want Docker deployment so that setup is reproducible | 📋 | 🟠 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T5.1.1 | Create Dockerfile | 📋 | 2h |
@@ -311,11 +368,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T5.1.4 | Test on clean environment | 📋 | 4h |
 
 #### F5.2: Testing Suite 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US5.2.1 | As a developer, I want automated tests so that I can refactor with confidence | 📋 | 🟠 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T5.2.1 | Set up pytest infrastructure | 📋 | 2h |
@@ -325,11 +384,13 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T5.2.5 | Write E2E workflow tests | 📋 | 4h |
 
 #### F5.3: Monitoring & Logging 📋
+
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
 | US5.3.1 | As an operator, I want structured logging so that I can debug issues | 📋 | 🟡 |
 
 **Tasks:**
+
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
 | T5.3.1 | Configure Python logging | 📋 | 2h |
@@ -350,6 +411,7 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | T2.6.1 | Implement content hashing | F2.6 | 📋 Backlog | Hans |
 
 ### Sprint Velocity
+
 | Sprint | Planned | Completed | Velocity |
 |:-------|:--------|:----------|:---------|
 | Sprint 1 | 20h | 20h | 100% |
@@ -390,6 +452,7 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 ## Meeting Notes
 
 ### 2026-01-29: Architecture Review
+
 - Completed code review of entire codebase
 - Identified and fixed all P0/P1 issues
 - Created project documentation suite

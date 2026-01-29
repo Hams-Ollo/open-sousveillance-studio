@@ -12,11 +12,13 @@
 **Open Sousveillance Studio** is an AI-powered civic monitoring platform designed to automatically track government activities in Alachua County, Florida. The system focuses on environmental protection (specifically the Santa Fe River Basin and Floridan Aquifer) and democratic accountability.
 
 ### Vision Statement
+>
 > "Understanding systems is the path to freedom."
 
 Build a 24/7 automated monitoring system that levels the information playing field between citizens and special interests by making government activity transparent and enabling effective advocacy.
 
 ### Success Criteria for v1.0
+
 1. **Automated daily monitoring** of 5+ critical government sources
 2. **Structured data extraction** from meeting agendas and PDFs
 3. **Alert system** for high-priority items (RED/YELLOW/GREEN)
@@ -30,22 +32,25 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 
 ### Overview
 
-```
-2026-01 ─────────────────────────────────────────────────────────── 2026-04
-   │                                                                    │
-   ├── Phase 1: Foundation ✅ (Complete)                                │
-   │   └── Jan 1-20                                                     │
-   │                                                                    │
-   ├── Phase 2: Scout Layer 🚧 (Current)                                │
-   │   └── Jan 21 - Feb 15                                              │
-   │                                                                    │
-   ├── Phase 3: Analyst Layer                                           │
-   │   └── Feb 16 - Mar 15                                              │
-   │                                                                    │
-   ├── Phase 4: Integration & Polish                                    │
-   │   └── Mar 16 - Apr 1                                               │
-   │                                                                    │
-   └── v1.0 Release ─────────────────────────────────────────── Apr 1 ──┘
+```mermaid
+gantt
+    title Open Sousveillance Studio - v1.0 Roadmap
+    dateFormat  YYYY-MM-DD
+    
+    section Phase 1
+    Foundation ✅           :done, p1, 2026-01-01, 2026-01-20
+    
+    section Phase 2
+    Scout Layer 🚧          :active, p2, 2026-01-21, 2026-02-15
+    
+    section Phase 3
+    Analyst Layer           :p3, 2026-02-16, 2026-03-15
+    
+    section Phase 4
+    Integration & Polish    :p4, 2026-03-16, 2026-04-01
+    
+    section Release
+    v1.0 Release 🚀         :milestone, 2026-04-01, 0d
 ```
 
 ---
@@ -53,6 +58,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ## Phase Breakdown
 
 ### Phase 1: Foundation ✅ (Complete)
+
 **Duration:** Jan 1-20, 2026  
 **Status:** Complete
 
@@ -69,10 +75,12 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ---
 
 ### Phase 2: Scout Layer 🚧 (Current)
+
 **Duration:** Jan 21 - Feb 15, 2026  
 **Status:** In Progress
 
 #### Goals
+
 - Automated scraping of government portals
 - PDF document processing
 - Structured data extraction
@@ -93,16 +101,19 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 | Scout agent integration tests | 🔲 | Feb 15 |
 
 #### Key Milestones
+
 - **Feb 5:** First automated scrape of CivicClerk
 - **Feb 15:** All critical sources monitored daily
 
 ---
 
 ### Phase 3: Analyst Layer
+
 **Duration:** Feb 16 - Mar 15, 2026  
 **Status:** Planned
 
 #### Goals
+
 - Deep research via Tavily integration
 - Pattern recognition across Scout data
 - Human-in-the-loop approval workflow
@@ -121,16 +132,19 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 | Analyst agent integration tests | 🔲 | Mar 15 |
 
 #### Key Milestones
+
 - **Feb 28:** First end-to-end Scout → Analyst workflow
 - **Mar 15:** Human approval workflow functional
 
 ---
 
 ### Phase 4: Integration & Polish
+
 **Duration:** Mar 16 - Apr 1, 2026  
 **Status:** Planned
 
 #### Goals
+
 - End-to-end system testing
 - Docker deployment configuration
 - Documentation completion
@@ -148,6 +162,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 | v1.0 release preparation | 🔲 | Apr 1 |
 
 #### Key Milestones
+
 - **Mar 25:** All integration tests passing
 - **Apr 1:** v1.0.0 release
 
@@ -156,6 +171,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ## Release Plan
 
 ### v1.0.0 (April 2026) - MVP
+
 **Theme:** Automated Civic Monitoring
 
 **Features:**
@@ -175,6 +191,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ---
 
 ### v1.1.0 (June 2026) - Synthesizer Layer
+
 **Theme:** Public Communication
 
 **Planned Features:**
@@ -186,6 +203,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ---
 
 ### v2.0.0 (Q4 2026) - Multi-Jurisdiction
+
 **Theme:** Scale & Expand
 
 **Planned Features:**
@@ -199,6 +217,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ## Resource Requirements
 
 ### Infrastructure
+
 | Resource | Specification | Monthly Cost |
 |:---------|:--------------|:-------------|
 | Server | 2 vCPU, 4GB RAM | ~$20 |
@@ -207,6 +226,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 | Domain + SSL | Standard | ~$15/year |
 
 ### API Costs (Estimated)
+
 | Service | Usage | Monthly Cost |
 |:--------|:------|:-------------|
 | Firecrawl | ~1,500 scrapes | $16 (Hobby) |
@@ -215,6 +235,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 | **Total** | | **~$50/month** |
 
 ### Team
+
 - **Project Lead:** Hans (part-time)
 - **AI Assistant:** Cascade (development support)
 
@@ -235,6 +256,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ## Success Metrics
 
 ### v1.0 Release Criteria
+
 - [ ] 5+ government sources monitored daily
 - [ ] <5% scraping failure rate
 - [ ] Scout reports generated within 30 minutes of source update
@@ -243,6 +265,7 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 - [ ] Zero critical security vulnerabilities
 
 ### Post-Release KPIs
+
 - Number of alerts generated per week
 - Time from government action to citizen notification
 - User engagement with reports
@@ -253,11 +276,13 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ## Communication Plan
 
 ### Stakeholders
+
 - **Our Alachua Water Coalition** - Primary user/sponsor
 - **Community members** - End users
 - **Technical contributors** - Future open-source contributors
 
 ### Updates
+
 - Weekly progress updates to stakeholders
 - GitHub releases for each milestone
 - Documentation updates with each phase
@@ -267,12 +292,14 @@ Build a 24/7 automated monitoring system that levels the information playing fie
 ## Appendix
 
 ### Related Documents
+
 - `SPEC.md` - Technical specification
 - `PROJECT_MANAGEMENT.md` - Detailed task tracking
 - `TODO.md` - Development task list
 - `README.md` - Project overview and setup
 
 ### Change Log
+
 | Date | Version | Changes |
 |:-----|:--------|:--------|
 | 2026-01-29 | 1.0 | Initial project plan created |
