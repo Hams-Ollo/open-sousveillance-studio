@@ -354,3 +354,338 @@ tier_5_civic:
       - "blog_post"
       - "research_report"
     notes: "Often has technical analysis before government reports."
+
+# -----------------------------------------------------------------------------
+# TIER 6: FLORIDA STATE GOVERNMENT
+# -----------------------------------------------------------------------------
+# Statewide agencies, legislature, and administrative bodies.
+# These set policy and issue permits that affect all localities.
+
+tier_6_state:
+  - id: "fl-legislature-house"
+    name: "Florida House of Representatives"
+    description: "Bills, committee hearings, voting records"
+    jurisdiction: "State of Florida"
+    url: "https://www.myfloridahouse.gov/"
+    platform: "custom"
+    priority: "high"
+    check_frequency: "daily"
+    scraping:
+      method: "beautifulsoup"
+      requires_javascript: false
+    document_types:
+      - "bill"
+      - "committee_agenda"
+      - "vote_record"
+    search_terms:
+      - "springs"
+      - "aquifer"
+      - "water management"
+      - "comprehensive plan"
+      - "development"
+    notes: |
+      Track bills affecting local government authority, water policy, and environmental protections.
+      Bill tracker: https://www.myfloridahouse.gov/Sections/Bills/bills.aspx
+
+  - id: "fl-legislature-senate"
+    name: "Florida Senate"
+    description: "Senate bills, committees, and session information"
+    jurisdiction: "State of Florida"
+    url: "https://www.flsenate.gov/"
+    platform: "custom"
+    priority: "high"
+    check_frequency: "daily"
+    scraping:
+      method: "beautifulsoup"
+      requires_javascript: false
+    document_types:
+      - "bill"
+      - "committee_agenda"
+    notes: "Companion bills to House. Track appropriations for water projects."
+
+  - id: "fl-admin-register"
+    name: "Florida Administrative Register (FAR)"
+    description: "Proposed rules, agency notices, emergency rules"
+    jurisdiction: "State of Florida"
+    url: "https://www.flrules.org/"
+    platform: "custom"
+    priority: "critical"
+    check_frequency: "daily"
+    scraping:
+      method: "beautifulsoup"
+      requires_javascript: false
+    document_types:
+      - "proposed_rule"
+      - "agency_notice"
+      - "emergency_rule"
+    # Filter for relevant agencies
+    agencies:
+      - "DEP"  # Environmental Protection
+      - "SRWMD"  # Water Management
+      - "DCA"  # Community Affairs
+    notes: |
+      The FAR is published daily (M-F). 
+      This is where agencies announce rule changes BEFORE they take effect.
+      Subscribe at: https://www.flrules.org/subscribe.asp
+
+  - id: "fl-dep-public-notices"
+    name: "Florida DEP - Public Notices"
+    description: "Environmental permits, enforcement actions, consent orders"
+    jurisdiction: "State of Florida"
+    url: "https://floridadep.gov/ogc/ogc/content/public-notices"
+    platform: "drupal"
+    priority: "critical"
+    check_frequency: "daily"
+    scraping:
+      method: "beautifulsoup"
+      requires_javascript: false
+    document_types:
+      - "permit_notice"
+      - "enforcement_action"
+      - "consent_order"
+    notes: |
+      Filter by District (Northeast Florida for Alachua County).
+      Major water quality permits and enforcement are announced here.
+
+  - id: "fl-cabinet-meetings"
+    name: "Florida Governor & Cabinet Meetings"
+    description: "Cabinet agendas and meeting materials"
+    jurisdiction: "State of Florida"
+    url: "https://www.flgov.com/cabinet-meetings/"
+    platform: "custom"
+    priority: "medium"
+    check_frequency: "weekly"
+    scraping:
+      method: "beautifulsoup"
+      requires_javascript: false
+    document_types:
+      - "agenda"
+      - "resolution"
+    notes: "Cabinet decisions on state lands, water policy, and appeals."
+
+  - id: "fl-dos-elections"
+    name: "Florida Division of Elections"
+    description: "Campaign finance, ballot initiatives, voter information"
+    jurisdiction: "State of Florida"
+    url: "https://dos.myflorida.com/elections/"
+    platform: "custom"
+    priority: "medium"
+    check_frequency: "weekly"
+    scraping:
+      method: "beautifulsoup"
+      requires_javascript: false
+    document_types:
+      - "campaign_finance"
+      - "ballot_initiative"
+    notes: "Track developer campaign contributions to local officials."
+
+  - id: "fl-geo-survey"
+    name: "Florida Geological Survey"
+    description: "Karst maps, sinkhole reports, aquifer studies"
+    jurisdiction: "State of Florida"
+    url: "https://floridadep.gov/fgs"
+    platform: "drupal"
+    priority: "high"
+    check_frequency: "monthly"
+    scraping:
+      method: "beautifulsoup"
+      requires_javascript: false
+    document_types:
+      - "technical_report"
+      - "map_data"
+    notes: "Critical for karst/sinkhole research. Subsidence Incident Reports database."
+
+# -----------------------------------------------------------------------------
+# TIER 7: US FEDERAL GOVERNMENT
+# -----------------------------------------------------------------------------
+# Federal agencies, Congress, and nationwide regulatory systems.
+# Federal environmental law often provides stronger protections than state.
+
+tier_7_federal:
+  - id: "federal-register"
+    name: "Federal Register"
+    description: "Official daily publication for federal agency rules and notices"
+    jurisdiction: "United States"
+    url: "https://www.federalregister.gov/"
+    platform: "api"
+    priority: "high"
+    check_frequency: "daily"
+    scraping:
+      method: "api"
+      api_endpoint: "https://www.federalregister.gov/api/v1/documents"
+      requires_javascript: false
+    document_types:
+      - "proposed_rule"
+      - "final_rule"
+      - "notice"
+    search_terms:
+      - "Floridan Aquifer"
+      - "springs"
+      - "Florida water"
+      - "Clean Water Act"
+    notes: |
+      REST API available! https://www.federalregister.gov/developers
+      Filter by agency: EPA, Army Corps of Engineers, USGS
+
+  - id: "congress-gov"
+    name: "Congress.gov"
+    description: "Federal legislation, hearings, and voting records"
+    jurisdiction: "United States"
+    url: "https://www.congress.gov/"
+    platform: "custom"
+    priority: "medium"
+    check_frequency: "weekly"
+    scraping:
+      method: "api"
+      api_endpoint: "https://api.congress.gov/v3/"
+      requires_javascript: false
+    document_types:
+      - "bill"
+      - "hearing"
+      - "vote"
+    search_terms:
+      - "Floridan Aquifer"
+      - "springs protection"
+      - "water infrastructure"
+    notes: |
+      API requires free key: https://api.congress.gov/sign-up/
+      Track Florida delegation votes on environmental bills.
+
+  - id: "regulations-gov"
+    name: "Regulations.gov"
+    description: "Public comment portal for federal rulemaking"
+    jurisdiction: "United States"
+    url: "https://www.regulations.gov/"
+    platform: "api"
+    priority: "high"
+    check_frequency: "daily"
+    scraping:
+      method: "api"
+      api_endpoint: "https://api.regulations.gov/v4/"
+      requires_javascript: false
+    document_types:
+      - "proposed_rule"
+      - "public_comment"
+      - "supporting_document"
+    notes: |
+      API key required: https://api.data.gov/signup/
+      Great for tracking EPA and Corps of Engineers rulemakings.
+
+  - id: "epa-echo"
+    name: "EPA ECHO - Enforcement & Compliance"
+    description: "Environmental compliance history and enforcement actions"
+    jurisdiction: "United States"
+    url: "https://echo.epa.gov/"
+    platform: "custom"
+    priority: "critical"
+    check_frequency: "weekly"
+    scraping:
+      method: "api"
+      api_endpoint: "https://echodata.epa.gov/echo/"
+      requires_javascript: false
+    document_types:
+      - "inspection"
+      - "violation"
+      - "enforcement_action"
+    # Search by facility or geographic area
+    geographic_filter:
+      state: "FL"
+      county: "Alachua"
+    notes: |
+      Tracks facility-level compliance with Clean Water Act, RCRA, etc.
+      Shows inspection history, violations, and penalties.
+
+  - id: "usgs-water"
+    name: "USGS Water Resources"
+    description: "Real-time water data, groundwater levels, aquifer studies"
+    jurisdiction: "United States"
+    url: "https://waterdata.usgs.gov/nwis"
+    platform: "api"
+    priority: "high"
+    check_frequency: "daily"
+    scraping:
+      method: "api"
+      api_endpoint: "https://waterservices.usgs.gov/nwis/"
+      requires_javascript: false
+    document_types:
+      - "monitoring_data"
+      - "scientific_report"
+    notes: |
+      Real-time well levels for Floridan Aquifer monitoring wells.
+      REST API: https://waterservices.usgs.gov/rest/
+
+  - id: "usace-permits"
+    name: "Army Corps of Engineers - Jacksonville District"
+    description: "Section 404 wetland permits (dredge and fill)"
+    jurisdiction: "United States"
+    url: "https://www.saj.usace.army.mil/Missions/Regulatory/Public-Notices/"
+    platform: "custom"
+    priority: "critical"
+    check_frequency: "daily"
+    scraping:
+      method: "beautifulsoup"
+      requires_javascript: false
+    document_types:
+      - "public_notice"
+      - "permit_application"
+    notes: |
+      Section 404 permits are required for any fill in wetlands.
+      Jacksonville District covers all of Florida.
+      This often catches projects before local permits.
+
+  - id: "usaspending"
+    name: "USASpending.gov"
+    description: "Federal grants and contracts"
+    jurisdiction: "United States"
+    url: "https://www.usaspending.gov/"
+    platform: "api"
+    priority: "medium"
+    check_frequency: "weekly"
+    scraping:
+      method: "api"
+      api_endpoint: "https://api.usaspending.gov/"
+      requires_javascript: false
+    document_types:
+      - "grant"
+      - "contract"
+    geographic_filter:
+      state: "FL"
+      county: "Alachua"
+    notes: |
+      Track federal infrastructure money flowing to the region.
+      API: https://api.usaspending.gov/
+
+  - id: "govinfo"
+    name: "GovInfo"
+    description: "Official federal publications (CFR, Congressional Record, etc.)"
+    jurisdiction: "United States"
+    url: "https://www.govinfo.gov/"
+    platform: "api"
+    priority: "medium"
+    check_frequency: "weekly"
+    scraping:
+      method: "api"
+      api_endpoint: "https://api.govinfo.gov/"
+      requires_javascript: false
+    document_types:
+      - "regulation"
+      - "congressional_record"
+      - "report"
+    notes: "API key from api.data.gov. Authoritative source for Code of Federal Regulations."
+
+  - id: "foia-gov"
+    name: "FOIA.gov"
+    description: "Freedom of Information Act request portal"
+    jurisdiction: "United States"
+    url: "https://www.foia.gov/"
+    platform: "custom"
+    priority: "low"
+    check_frequency: "monthly"
+    scraping:
+      method: "manual"  # Not scrapable - use for reference
+      requires_javascript: true
+    document_types:
+      - "foia_log"
+    notes: |
+      Aggregates FOIA portals across agencies.
+      Use to file requests for EPA correspondence about Florida projects.

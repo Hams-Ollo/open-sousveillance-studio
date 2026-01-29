@@ -281,20 +281,64 @@ def get_all_sources() -> list[SourceConfig]:
     sources_data = load_sources_config()
     all_sources = []
     
-    # Iterate through all tier keys
-    for tier_key in ["tier_1_municipal", "tier_2_county", "tier_3_state", 
-                     "tier_4_legal_notices", "tier_5_media"]:
+    # Iterate through all tier keys (updated to match sources.yaml structure)
+    tier_keys = [
+        "tier_1_municipal",     # City level
+        "tier_2_county",        # County level
+        "tier_3_regional",      # Water management districts
+        "tier_4_legal",         # Legal notices & public records
+        "tier_5_civic",         # News & civic organizations
+        "tier_6_state",         # Florida state government
+        "tier_7_federal",       # US federal government
+    ]
+    
+    for tier_key in tier_keys:
         tier_sources = sources_data.get(tier_key, [])
         for source in tier_sources:
+            # Make a copy to avoid mutating cached data
+            source_copy = source.copy()
             # Parse scraping config
-            if "scraping" in source:
-                source["scraping"] = ScrapingConfig(**source["scraping"])
+            if "scraping" in source_copy:
+                source_copy["scraping"] = ScrapingConfig(**source_copy["scraping"])
             # Parse board configs
-            if "boards" in source:
-                source["boards"] = [BoardConfig(**b) for b in source["boards"]]
-            all_sources.append(SourceConfig(**source))
+            if "boards" in source_copy:
+                source_copy["boards"] = [BoardConfig(**b) for b in source_copy["boards"]]
+            all_sources.append(SourceConfig(**source_copy))
     
     return all_sources
+
+
+def get_sources_by_tier(tier: int) -> list[SourceConfig]:
+    """
+    Get sources filtered by tier number (1-7).
+    
+    Tier 1: Municipal, Tier 2: County, Tier 3: Regional,
+    Tier 4: Legal, Tier 5: Civic, Tier 6: State, Tier 7: Federal
+    """
+    tier_map = {
+        1: "tier_1_municipal",
+        2: "tier_2_county",
+        3: "tier_3_regional",
+        4: "tier_4_legal",
+        5: "tier_5_civic",
+        6: "tier_6_state",
+        7: "tier_7_federal",
+    }
+    tier_key = tier_map.get(tier)
+    if not tier_key:
+        return []
+    
+    sources_data = load_sources_config()
+    tier_sources = sources_data.get(tier_key, [])
+    result = []
+    for source in tier_sources:
+        source_copy = source.copy()
+        if "scraping" in source_copy:
+            source_copy["scraping"] = ScrapingConfig(**source_copy["scraping"])
+        if "boards" in source_copy:
+            source_copy["boards"] = [BoardConfig(**b) for b in source_copy["boards"]]
+        result.append(SourceConfig(**source_copy))
+    return result
 
 
 def get_sources_by_priority(priority: str) -> list[SourceConfig]:
