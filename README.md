@@ -3,551 +3,42 @@
 **AI-powered civic intelligence. Watching from below.**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![LangGraph](https://img.shields.io/badge/orchestration-LangGraph-orange.svg)](https://langchain-ai.github.io/langgraph/)
+[![Gemini](https://img.shields.io/badge/LLM-Gemini_2.5-blue.svg)](https://ai.google.dev/)
 [![Supabase](https://img.shields.io/badge/database-Supabase-green.svg)](https://supabase.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Firecrawl](https://img.shields.io/badge/scraping-Firecrawl-red.svg)](https://firecrawl.dev/)
 
 **Version:** 0.1.0-dev  
-**Status:** ✅ Core Agents Working (Scout + Analyst tested)  
-**Origin:** 📍 Alachua County, Florida — Built to protect the Floridan Aquifer
+**Status:** ✅ Core Agents Working  
+**Origin:** 📍 Alachua County, Florida
 
-> *"Sousveillance"* (French: sous "from below" + veillance "watching") — the recording of an activity by a participant, in contrast to surveillance, which is done by an authority. **They watched us. Now we watch back.**
-
----
-
-## 🎯 The Problem
-
-Local government decisions happen fast. Agendas are posted days before meetings. Permit applications are buried in obscure portals. Public notices appear in newspapers most people don't read. By the time citizens learn about a development project threatening their water supply, it's often too late to respond.
-
-**The Tara Development Case Study:**  
-The "Tara" development portfolio (~580 acres, 1,000+ homes) sits directly above **Mill Creek Sink**—a karst feature with a proven 12-day hydrologic connection to Hornsby Spring via the Floridan Aquifer. Despite documented environmental concerns, the project has advanced through fragmented municipal processes across City, County, and State agencies.
-
-This system exists to ensure **no civic action goes unnoticed**.
+> *"Sousveillance"* (French: sous "from below" + veillance "watching") — the recording of an activity by a participant, in contrast to surveillance. **They watched us. Now we watch back.**
 
 ---
 
-## 💡 The Solution
+## What Is This?
 
-**Open Sousveillance Studio** is an open-source AI agent platform that flips the surveillance paradigm. While governments have long monitored citizens, this system empowers citizens to monitor government — automatically, continuously, and intelligently.
+Open Sousveillance Studio is an **open-source AI agent platform** that monitors local government activity and alerts citizens to important developments.
 
-The platform deploys AI agents that watch 15+ government data sources, detect new documents within hours of publication, extract actionable intelligence, and generate weekly reports for community distribution.
+**The Problem:** Local government decisions happen fast. Agendas are posted days before meetings. Permit applications are buried in obscure portals. By the time citizens learn about a development threatening their water supply, it's often too late.
 
-```mermaid
-flowchart TB
-    subgraph Sources["🌐 Government Data Sources"]
-        S1[City of Alachua<br/>CivicClerk Portal]
-        S2[Alachua County<br/>eScribe Meetings]
-        S3[SRWMD<br/>Water Permits]
-        S4[Florida Public Notices<br/>Legal Notices]
-        S5[County GIS<br/>Map Genius]
-    end
+**The Solution:** AI agents that automatically watch government portals, extract actionable intelligence, and generate reports for community distribution.
 
-    subgraph Monitor["👁️ Change Detection"]
-        FC[Firecrawl API<br/>LLM-ready Markdown]
-        PDF[PDF Processor<br/>Firecrawl + Gemini]
-    end
+### Key Features
 
-    subgraph Agents["🤖 LangGraph Agent Orchestration"]
-        subgraph L1["Layer 1: Scouts (Daily)"]
-            A1[A1: Meeting Scout]
-            A2[A2: Permit Scout]
-            A3[A3: Legislative Monitor]
-        end
-        
-        subgraph L2["Layer 2: Analysts (Weekly)"]
-            B1[B1: Impact Analyst]
-            B2[B2: Procedural Analyst]
-        end
-        
-        subgraph L3["Layer 3: Synthesizers (Monthly)"]
-            C1[C1: Newsletter Generator]
-            C2[C2: Social Media Planner]
-        end
-    end
-
-    subgraph Storage["💾 Knowledge Base"]
-        DB[(Supabase PostgreSQL<br/>Structured Reports)]
-        VEC[(pgvector<br/>Semantic Search)]
-        DOCS[(Document Archive<br/>Original PDFs)]
-    end
-
-    subgraph Output["📤 Community Distribution"]
-        NEWS[Weekly Newsletter]
-        DASH[Alert Dashboard]
-        API[REST API]
-    end
-
-    Sources --> Monitor
-    Monitor --> L1
-    L1 --> DB
-    DB --> L2
-    L2 -->|Human Approval| L3
-    L3 --> NEWS & DASH
-    DB --> VEC
-    DOCS --> VEC
-```
+- 🔍 **Automated Monitoring** — Scouts watch 15+ government data sources daily
+- 🧠 **AI Analysis** — Gemini 2.5 Pro extracts insights from meeting agendas and permits
+- 🚨 **Smart Alerts** — RED/YELLOW/GREEN urgency levels for time-sensitive items
+- 📊 **Structured Reports** — JSON output ready for dashboards or newsletters
+- 🔧 **Dev Console** — Streamlit UI for testing and debugging
 
 ---
 
-## 🏗️ System Architecture
-
-### Three-Layer Agent Framework
-
-| Layer | Agents | Frequency | Purpose |
-|:------|:-------|:----------|:--------|
-| **Layer 1: Scouts** | A1-A4 | Daily | Data collection from government portals. Deterministic, fact-based extraction. |
-| **Layer 2: Analysts** | B1-B2 | Weekly | Pattern recognition across Scout data. Deep research via Tavily. |
-| **Layer 3: Synthesizers** | C1-C4 | Monthly | Public-facing content generation. Requires human approval before publishing. |
-
-### Technology Stack
-
-```mermaid
-graph LR
-    subgraph Frontend["🖥️ API Layer"]
-        FAST[FastAPI + Uvicorn]
-        SSE[Server-Sent Events]
-    end
-
-    subgraph Orchestration["🔀 Orchestration"]
-        LG[LangGraph<br/>Multi-Agent Workflows]
-        CEL[Celery + Beat<br/>Distributed Tasks]
-    end
-
-    subgraph AI["🧠 AI/ML"]
-        GEM[Gemini 2.5 Pro/Flash]
-        TAV[Tavily Search]
-        EMB[Embeddings + RAG]
-    end
-
-    subgraph Data["💾 Data Layer"]
-        SUP[(Supabase<br/>PostgreSQL + pgvector)]
-        STORE[(Supabase Storage<br/>PDF Archive)]
-    end
-
-    subgraph Scraping["🕷️ Data Ingestion"]
-        FC[Firecrawl<br/>Web Scraping]
-        DOC[Docling<br/>PDF Parsing]
-        CHUNK[LangChain<br/>Text Splitting]
-    end
-
-    FAST --> LG
-    LG --> GEM & TAV
-    LG --> SUP
-    CEL --> LG
-    Scraping --> LG
-    GEM --> EMB --> SUP
-```
-
-| Component | Technology | Purpose |
-|:----------|:-----------|:--------|
-| **Web Server** | FastAPI + Uvicorn | REST API, SSE streaming, approval endpoints |
-| **Orchestration** | LangGraph | Multi-agent workflows with human-in-the-loop |
-| **Scheduling** | Celery + Celery Beat | Distributed task queue with cron scheduling |
-| **LLM** | Gemini 2.5 Pro & Flash | Pro for reasoning, Flash for extraction |
-| **Search** | Tavily | AI-optimized web research |
-| **Database** | Supabase (PostgreSQL) | Structured data, JSONB, pgvector |
-| **Document Storage** | Supabase Storage | PDF archive with full traceability |
-| **Validation** | Pydantic v2 | Strict schemas for all data |
-| **Web Scraping** | Firecrawl | LLM-ready markdown, JS rendering, batch operations |
-| **Document Parsing** | Docling | PDF/DOCX parsing, table extraction, layout understanding |
-
----
-
-## 📊 Data Flow: From Source to Newsletter
-
-```mermaid
-sequenceDiagram
-    participant CRON as ⏰ Celery Beat
-    participant SCOUT as 🔍 Scout Agent
-    participant SRC as 🌐 CivicClerk
-    participant PDF as 📄 Docling
-    participant DB as 💾 Supabase
-    participant ANALYST as 🧠 Analyst Agent
-    participant HUMAN as 👤 Human Reviewer
-    participant SYNTH as 📝 Synthesizer
-    participant EMAIL as 📧 Newsletter
-
-    CRON->>SCOUT: Daily trigger (6 AM)
-    SCOUT->>SRC: Fetch meeting list (Firecrawl)
-    SRC-->>SCOUT: Markdown + PDF links
-    SCOUT->>PDF: Download agenda packets
-    PDF-->>SCOUT: Extracted text + tables
-    SCOUT->>DB: Store ScoutReport + embeddings
-    
-    Note over DB: Deduplicate via content hash
-    
-    CRON->>ANALYST: Weekly trigger (Monday 9 AM)
-    ANALYST->>DB: Query RED/YELLOW alerts
-    ANALYST->>ANALYST: Tavily deep research
-    ANALYST->>DB: Store AnalystReport
-    ANALYST->>HUMAN: interrupt() - Approval required
-    
-    HUMAN-->>ANALYST: Approved ✓
-    
-    ANALYST->>SYNTH: Resume workflow
-    SYNTH->>SYNTH: Generate newsletter content
-    SYNTH->>EMAIL: Send via Resend API
-```
-
----
-
-## � Firecrawl Integration
-
-Open Sousveillance Studio uses **[Firecrawl](https://firecrawl.dev)** as its primary web scraping engine. Firecrawl handles the complexity of modern government portals (JavaScript SPAs, anti-bot measures, dynamic content) and returns clean, LLM-ready data.
-
-### Why Firecrawl?
-
-| Challenge | Firecrawl Solution |
-|:----------|:-------------------|
-| **React/Angular SPAs** | Full JavaScript rendering with configurable wait times |
-| **Dynamic content** | Actions API: click, scroll, wait before scraping |
-| **PDF documents** | Native PDF text extraction (staff reports, agendas) |
-| **Rate limiting** | Built-in caching (2-day default), batch operations |
-| **Anti-bot measures** | Managed proxies and stealth mode |
-| **LLM integration** | Returns markdown optimized for AI processing |
-
-### Key Features We Use
-
-```python
-from firecrawl import Firecrawl
-
-firecrawl = Firecrawl(api_key="fc-YOUR-API-KEY")
-
-# 1. SCRAPE: Get a single meeting page as markdown
-doc = firecrawl.scrape(
-    "https://alachuafl.portal.civicclerk.com/event/849/overview",
-    formats=["markdown", "links"],
-    actions=[
-        {"type": "wait", "milliseconds": 2000},  # Wait for React to render
-        {"type": "scroll", "direction": "down"}   # Load lazy content
-    ]
-)
-
-# 2. MAP: Discover all meeting URLs on the portal
-urls = firecrawl.map(
-    url="https://alachuafl.portal.civicclerk.com",
-    search="meeting",  # Filter to meeting-related pages
-    limit=100
-)
-
-# 3. BATCH SCRAPE: Fetch multiple meetings efficiently
-results = firecrawl.batch_scrape(
-    urls=["https://...meeting1", "https://...meeting2"],
-    formats=["markdown"]
-)
-
-# 4. STRUCTURED EXTRACTION: Get typed data with Pydantic schemas
-from pydantic import BaseModel
-
-class AgendaItem(BaseModel):
-    item_number: str
-    title: str
-    applicant: str | None
-    parcel_number: str | None
-
-result = firecrawl.scrape(
-    "https://alachuafl.portal.civicclerk.com/event/849/overview",
-    formats=[{"type": "json", "schema": AgendaItem.model_json_schema()}]
-)
-```
-
-### Scraping Strategy by Source
-
-| Source | Method | Actions Required | Output |
-|:-------|:-------|:-----------------|:-------|
-| **CivicClerk** (City of Alachua) | `scrape` + actions | `wait` 2s, `scroll` down | Markdown + links |
-| **Florida Public Notices** | `scrape` | None (static) | Markdown |
-| **eScribe** (County) | `scrape` + actions | `wait` for selector | Markdown + PDF links |
-| **PDF Agendas** | `scrape` with `parsers=["pdf"]` | None | Extracted text |
-
-### Cost Estimation
-
-| Plan | Credits/Month | Cost | Sufficient For |
-|:-----|:--------------|:-----|:---------------|
-| **Free** | 500 | $0 | Testing, ~16 scrapes/day |
-| **Hobby** | 3,000 | $16/mo | Production monitoring (~100/day) |
-| **Standard** | 100,000 | $99/mo | Multi-jurisdiction deployment |
-
-**Estimated usage for single-jurisdiction monitoring:** ~1,500 scrapes/month (Hobby plan)
-
-> **Note:** We use `scrape` with `formats=["json"]` instead of the `/extract` endpoint to avoid the separate token-based billing ($89+/mo). Our own LLM handles analysis.
-
----
-
-## 📄 Docling Integration
-
-For PDF and document parsing, we use **[Docling](https://github.com/docling-project/docling)** (IBM's open-source document processor). Docling excels at extracting structured content from complex government documents.
-
-### Why Docling?
-
-| Challenge | Docling Solution |
-|:----------|:-----------------|
-| **Complex PDF layouts** | Advanced layout understanding, reading order detection |
-| **Tables in staff reports** | Structure-preserving table extraction |
-| **Multi-format support** | PDF, DOCX, PPTX, HTML, images |
-| **Scanned documents** | Built-in OCR support |
-| **Data privacy** | 100% local execution (no API calls) |
-
-### Usage with LangChain
-
-```python
-from docling.document_converter import DocumentConverter
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-# 1. Parse PDF with Docling
-converter = DocumentConverter()
-result = converter.convert("staff_report.pdf")
-markdown = result.document.export_to_markdown()
-
-# 2. Chunk with LangChain
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=512,
-    chunk_overlap=50,
-    separators=["\n\n", "\n", ". ", " "]
-)
-chunks = splitter.split_text(markdown)
-
-# 3. Ready for embedding and storage
-```
-
----
-
-## 📁 Project Structure
-
-```
-alachua-civic-intelligence-reporting-studio/
-├── config/                         # ⭐ YAML CONFIGURATION (customize for your community)
-│   ├── instance.yaml               # Instance identity, jurisdiction, scheduling
-│   ├── sources.yaml                # Government data sources to monitor
-│   └── entities.yaml               # Watchlist: projects, orgs, keywords
-│
-├── src/
-│   ├── main.py                     # FastAPI application entry point
-│   ├── config.py                   # Configuration loader (YAML + Pydantic)
-│   ├── database.py                 # Supabase client
-│   ├── schemas.py                  # Pydantic models
-│   ├── registry.py                 # Source URL registry
-│   │
-│   ├── agents/
-│   │   ├── base.py                 # Base agent class
-│   │   ├── scout.py                # A1-A4 Scout implementations
-│   │   └── analyst.py              # B1-B2 Analyst implementations
-│   │
-│   ├── workflows/
-│   │   ├── graphs.py               # LangGraph workflow definitions
-│   │   ├── checkpointer.py         # Supabase state persistence
-│   │   └── nodes.py                # Reusable node functions
-│   │
-│   ├── api/
-│   │   └── routes/
-│   │       ├── workflows.py        # POST /run, GET /status
-│   │       ├── approvals.py        # Human-in-the-loop endpoints
-│   │       └── streaming.py        # SSE for real-time updates
-│   │
-│   ├── tools/
-│   │   ├── firecrawl_client.py     # Firecrawl wrapper with retry logic
-│   │   ├── docling_processor.py    # Docling PDF/DOCX parsing + chunking
-│   │   ├── civicclerk_scraper.py   # CivicClerk-specific scraping patterns
-│   │   └── document_storage.py     # Supabase file management
-│   │
-│   └── tasks/
-│       ├── celery_app.py           # Celery application configuration
-│       ├── beat_schedule.py        # Celery Beat periodic task schedule
-│       └── scout_tasks.py          # Scout agent task definitions
-│
-├── prompt_library/                 # Agent prompt templates
-│   ├── config/                     # Legacy source registry docs
-│   ├── layer-1-scouts/             # A1-A4 prompts
-│   ├── layer-2-analysts/           # B1-B2 prompts
-│   └── layer-3-synthesizers/       # C1-C4 prompts
-│
-├── docs/
-│   ├── PLAN.md                     # Technical architecture plan
-│   └── DEVELOPER_GUIDE.md          # Setup and contribution guide
-│
-├── data/                           # Generated reports by frequency
-│   ├── daily/
-│   ├── weekly/
-│   └── monthly/
-│
-├── requirements.txt
-├── .env.example
-└── README.md
-```
-
----
-
-## ⚙️ Configuration System
-
-Open Sousveillance Studio uses a **modular YAML configuration system** that makes it easy to deploy for any US municipality without code changes.
-
-### Configuration Files
-
-| File | Purpose | Key Settings |
-|:-----|:--------|:-------------|
-| `config/instance.yaml` | Your deployment identity | Instance name, jurisdiction hierarchy, timezone, schedules |
-| `config/sources.yaml` | Government data sources | URLs, scraping methods, document types, board filters |
-| `config/entities.yaml` | Watchlist items | Projects, organizations, people, keywords to monitor |
-
-### Instance Configuration (`instance.yaml`)
-
-Define your community and scheduling:
-
-```yaml
-instance:
-  id: "alachua-fl"
-  name: "Alachua County Civic Watch"
-  timezone: "America/New_York"
-  operator:
-    name: "Our Alachua Water Coalition"
-    email: "contact@ouralachuawater.org"
-
-jurisdiction:
-  country: "US"
-  state: "FL"
-  county: "Alachua"
-  municipalities:
-    - name: "City of Alachua"
-      primary: true
-    - name: "City of High Springs"
-      primary: false
-
-schedule:
-  scouts:
-    enabled: true
-    cron: "0 6 * * *"  # Daily at 6 AM
-  analysts:
-    enabled: true
-    cron: "0 9 * * 1"  # Weekly on Monday
-    requires_approval: true
-```
-
-### Sources Configuration (`sources.yaml`)
-
-Define government portals organized by tier:
-
-```yaml
-tier_1_municipal:
-  - id: "alachua-civicclerk"
-    name: "City of Alachua - Meeting Portal"
-    url: "https://alachuafl.portal.civicclerk.com/"
-    platform: "civicclerk"
-    priority: "critical"
-    scraping:
-      method: "playwright"
-      requires_javascript: true
-      wait_for_selector: ".meeting-list"
-    document_types:
-      - "agenda"
-      - "minutes"
-    boards:
-      - name: "City Commission"
-        keywords: ["commission"]
-        priority: "critical"
-
-tier_2_county:
-  - id: "alachua-county-escribe"
-    name: "Alachua County - Meeting Portal"
-    url: "https://pub-alachuacounty.escribemeetings.com/"
-    # ...
-```
-
-### Entities Configuration (`entities.yaml`)
-
-Define what to watch for:
-
-```yaml
-projects:
-  - id: "tara-portfolio"
-    name: "Tara Development Portfolio"
-    urgency: "red"
-    aliases:
-      - "Tara Forest"
-      - "Tara Baywood"
-    keywords:
-      - "Mill Creek"
-      - "PSE22-0002"
-
-organizations:
-  - id: "tara-forest-llc"
-    name: "Tara Forest, LLC"
-    type: "developer"
-    urgency: "red"
-
-keywords:
-  environmental:
-    - "aquifer"
-    - "karst"
-    - "sinkhole"
-    - "stormwater"
-  procedural:
-    - "variance"
-    - "waiver"
-    - "public hearing"
-```
-
-### Using Configuration in Code
-
-```python
-from src.config import (
-    build_app_config,
-    get_all_sources,
-    get_sources_by_priority,
-    get_projects,
-    get_all_keywords,
-)
-
-# Load complete configuration
-config = build_app_config()
-print(config.instance.name)  # "Alachua County Civic Watch"
-print(config.jurisdiction.state)  # "FL"
-
-# Get all sources across all tiers
-sources = get_all_sources()
-for source in sources:
-    print(f"{source.name}: {source.url}")
-
-# Filter by priority
-critical_sources = get_sources_by_priority("critical")
-
-# Get watchlist items
-projects = get_projects()
-keywords = get_all_keywords()  # Deduplicated set for text matching
-```
-
----
-
-## 🌐 Monitored Data Sources (Example: Alachua County, FL)
-
-Open Sousveillance Studio is designed to be **location-agnostic**. The source registry can be configured for any municipality. Below is the default configuration for Alachua County, Florida:
-
-| Tier | Source | Platform | Priority | Scraping Method |
-|:-----|:-------|:---------|:---------|:----------------|
-| **1** | City of Alachua Meetings | CivicClerk (SPA) | 🔴 Critical | Playwright + XHR interception |
-| **1** | Development Projects Map | Granicus CMS | 🔴 Critical | BeautifulSoup |
-| **2** | Alachua County Meetings | eScribe | 🔴 Critical | Playwright + PDF download |
-| **2** | Map Genius (Projects) | County GIS | 🔴 Critical | JSON API |
-| **3** | SRWMD Water Permits | E-Permitting Portal | 🔴 Critical | Form submission + scrape |
-| **4** | Florida Public Notices | Statewide Repository | 🔴 Critical | Filter by county + parse |
-| **5** | WUFT Environment News | WordPress | 🟡 High | RSS feed |
-
-Full registry: [`prompt_library/config/source-registry.md`](prompt_library/config/source-registry.md)
-
----
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.10+
-- **Redis** - Message broker for Celery ([install](https://redis.io/docs/getting-started/))
-- Docker (optional, for local Supabase and Redis)
-- API keys:
-  - **Firecrawl** - Web scraping ([get key](https://firecrawl.dev)) - Free tier: 500 credits
-  - **Google AI (Gemini)** - LLM analysis ([get key](https://aistudio.google.com))
-  - **Tavily** - Deep research ([get key](https://tavily.com))
-  - **Supabase** - Database ([get project](https://supabase.com))
+- API Keys: [Google AI](https://aistudio.google.com), [Firecrawl](https://firecrawl.dev), [Tavily](https://tavily.com)
 
 ### Installation
 
@@ -569,221 +60,110 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
-### Environment Variables
+### Run the Dev Console
+
+The easiest way to test the system:
 
 ```bash
-# .env
-GOOGLE_API_KEY=your_gemini_api_key
-TAVILY_API_KEY=your_tavily_key
-FIRECRAWL_API_KEY=your_firecrawl_key
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your_supabase_anon_key
-SUPABASE_DB_URL=postgresql://postgres:password@db.your-project.supabase.co:5432/postgres
-
-# Celery / Redis
-CELERY_BROKER_URL=redis://localhost:6379/0
-CELERY_RESULT_BACKEND=redis://localhost:6379/0
-```
-
-### Running the Server
-
-```bash
-# 1. Start Redis (if not using Docker)
-redis-server
-
-# 2. Start the Celery worker (in a separate terminal)
-celery -A src.tasks.celery_app worker --loglevel=info
-
-# 3. Start Celery Beat scheduler (in a separate terminal)
-celery -A src.tasks.celery_app beat --loglevel=info
-
-# 4. Start the FastAPI server
-uvicorn src.main:app --reload --port 8000
-
-# The API will be available at http://localhost:8000
-# Docs at http://localhost:8000/docs
-```
-
-### Docker Compose (Recommended)
-
-```bash
-# Start all services (Redis, Celery worker, Celery Beat, FastAPI)
-docker-compose up -d
-```
-
-### Running Agents Manually
-
-```bash
-# Run a specific Scout agent
-curl -X POST "http://localhost:8000/run" \
-  -H "Content-Type: application/json" \
-  -d '{"agent": "A1", "url": "https://alachuafl.portal.civicclerk.com/"}'
-
-# Check pending approvals
-curl "http://localhost:8000/approvals/pending"
-
-# Approve an analyst report
-curl -X POST "http://localhost:8000/approvals/{thread_id}/decide" \
-  -H "Content-Type: application/json" \
-  -d '{"decision": "approved", "comments": "Looks good!"}'
-```
-
----
-
-## � Streamlit Dev Console
-
-A browser-based testing interface for debugging agents and inspecting prompts.
-
-```bash
-# Start the dev console
 streamlit run src/ui/app.py
 # Opens at http://localhost:8501
 ```
 
-```mermaid
-flowchart LR
-    subgraph DevConsole["🔬 Dev Console (Streamlit)"]
-        AR[Agent Runner<br/>Test Scout/Analyst]
-        PI[Prompt Inspector<br/>View Prompts]
-        ST[Source Tester<br/>Test Scraping]
-        CV[Config Viewer<br/>YAML + Env Vars]
-    end
-    
-    subgraph Backend["Backend Services"]
-        GEM[Gemini 2.5 Pro]
-        FC[Firecrawl API]
-        TAV[Tavily Search]
-    end
-    
-    AR --> GEM
-    AR --> FC
-    ST --> FC
-    AR --> TAV
+### Run the API Server
+
+```bash
+uvicorn src.app:app --reload --port 8000
+# API docs at http://localhost:8000/docs
 ```
 
-### Dev Console Features
+---
 
-| Tab | Purpose |
-|:----|:--------|
-| **🤖 Agent Runner** | Execute Scout/Analyst agents with custom URLs, view structured reports |
-| **📝 Prompt Inspector** | Browse prompt library, view injected domain context |
-| **🌐 Source Tester** | Test web scraping on sources from `config/sources.yaml` |
-| **⚙️ Config Viewer** | Inspect YAML configs and environment variable status |
+## Configuration
+
+Customize for your community by editing YAML files in `config/`:
+
+| File | Purpose |
+|:-----|:--------|
+| `instance.yaml` | Your deployment identity, timezone, schedules |
+| `sources.yaml` | Government portals to monitor |
+| `entities.yaml` | Projects, organizations, and keywords to watch |
+
+Example watchlist entry:
+
+```yaml
+# config/entities.yaml
+projects:
+  - id: "tara-portfolio"
+    name: "Tara Development Portfolio"
+    urgency: "red"
+    keywords: ["Mill Creek", "PSE22-0002"]
+```
 
 ---
 
-## �📅 Roadmap
+## Project Structure
 
-### Phase 1: Foundation ✅
-- [x] Project structure and configuration
-- [x] Pydantic schemas for all data models
-- [x] Supabase database connection
-- [x] Source registry documentation
-- [x] Structured logging with structlog
-- [x] Unit test suite (pytest)
-- [x] Docker Compose configuration
-
-### Phase 2: Scout Layer ✅
-- [x] Firecrawl client wrapper with retry logic
-- [x] CivicClerk scraper (Firecrawl + actions)
-- [x] PDF processing pipeline (Firecrawl + Gemini)
-- [x] Native Google GenAI SDK integration
-- [x] Streamlit Dev Console for testing
-- [ ] Florida Public Notices scraper
-- [ ] Document storage with Supabase
-- [ ] Change detection and deduplication
-
-### Phase 3: Analyst Layer (Current) 🚧
-- [x] LangGraph workflow implementation
-- [x] Tavily integration for deep research
-- [ ] Human approval checkpoint (interrupt/resume)
-- [ ] FastAPI approval endpoints
-
-### Phase 4: Synthesizer Layer
-- [ ] Newsletter generation with MJML
-- [ ] Resend email integration
-- [ ] Social media content templates
-- [ ] Quarterly health scorecard
-
-### Phase 5: Production Hardening
-- [x] Celery + Beat scheduling
-- [ ] Error handling and retry logic
-- [ ] Monitoring and alerting
-- [x] Docker deployment
+```
+open-sousveillance-studio/
+├── config/              # YAML configuration
+├── src/
+│   ├── agents/          # Scout & Analyst agents
+│   ├── ui/              # Streamlit Dev Console
+│   ├── api/             # FastAPI routes
+│   ├── tools/           # Firecrawl, embeddings, RAG
+│   └── app.py           # Main application
+├── prompt_library/      # Agent prompts
+├── docs/                # Documentation
+└── test/                # Test suite
+```
 
 ---
 
-## 🤝 Contributing
+## Documentation
 
-We welcome contributions! Please see [`docs/DEVELOPER_GUIDE.md`](docs/DEVELOPER_GUIDE.md) for setup instructions and coding standards.
+| Document | Description |
+|:---------|:------------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, diagrams, technology stack |
+| [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | Setup, testing, contributing |
+| [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | Roadmap and milestones |
+| [SPEC.md](docs/SPEC.md) | Technical specification |
+
+---
+
+## Roadmap
+
+- [x] **Phase 1:** Foundation (config, schemas, logging)
+- [x] **Phase 2:** Scout Layer (Firecrawl, Gemini, Dev Console)
+- [ ] **Phase 3:** Analyst Layer (deep research, approvals)
+- [ ] **Phase 4:** Synthesizer Layer (newsletters, social media)
+- [ ] **Phase 5:** Production (monitoring, Docker deployment)
+
+---
+
+## Adopt for Your Community
+
+This system is designed to be forked for **any US municipality**:
+
+1. Fork this repository
+2. Edit `config/instance.yaml` with your jurisdiction
+3. Add your government portals to `config/sources.yaml`
+4. Define your watchlist in `config/entities.yaml`
+5. Deploy and start watching!
+
+---
+
+## Contributing
+
+We welcome contributions! See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for setup instructions.
 
 **Priority Areas:**
-- Government portal scrapers (new sources)
+- Government portal scrapers
 - PDF extraction improvements
-- Newsletter template design
-- Documentation and testing
+- Newsletter templates
 
 ---
 
-## 🌍 Adopt for Your Community
-
-Open Sousveillance Studio is designed to be forked and adapted for **any US municipality** with zero code changes. The YAML configuration system makes this simple:
-
-### Quick Start for Your City
-
-1. **Fork this repository**
-
-2. **Configure your instance** (`config/instance.yaml`):
-   ```yaml
-   instance:
-     id: "yourtown-tx"
-     name: "Your Town Civic Watch"
-     timezone: "America/Chicago"
-   
-   jurisdiction:
-     state: "TX"
-     county: "Your County"
-     municipalities:
-       - name: "City of Your Town"
-         primary: true
-   ```
-
-3. **Add your government sources** (`config/sources.yaml`):
-   - Find your city's meeting portal (CivicClerk, eScribe, Granicus, etc.)
-   - Add county commission URLs
-   - Include relevant state agencies
-
-4. **Define your watchlist** (`config/entities.yaml`):
-   - Add local development projects of concern
-   - List developers and organizations to track
-   - Define keywords relevant to your issues
-
-5. **Deploy and start watching!**
-
-### Common Government Portal Platforms
-
-| Platform | Common In | Scraping Method |
-|:---------|:----------|:----------------|
-| **CivicClerk** | Small/mid cities | Firecrawl (React SPA) |
-| **eScribe** | Counties, larger cities | Firecrawl + PDF download |
-| **Granicus** | Large cities | BeautifulSoup or API |
-| **Legistar** | Major metros | REST API |
-| **BoardDocs** | School boards | Firecrawl |
-
-### Example Configurations
-
-We welcome community contributions of configurations for other jurisdictions:
-- `config/examples/gainesville-fl/` - Gainesville, FL
-- `config/examples/austin-tx/` - Austin, TX  
-- `config/examples/seattle-wa/` - Seattle, WA
-
-**Share your config!** Open a PR to add your city's configuration to help others get started.
-
-We'd love to hear how you're using this tool. Open an issue or PR to share your experience!
-
----
-
-## 📧 Contact
+## Contact
 
 **Project Lead:** Hans  
 **Origin Coalition:** Our Alachua Water  
@@ -791,9 +171,9 @@ We'd love to hear how you're using this tool. Open an issue or PR to share your 
 
 ---
 
-## 📜 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
