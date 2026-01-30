@@ -7,6 +7,11 @@ Provides specialized tools for:
 """
 
 from src.tools.firecrawl_client import FirecrawlClient
-from src.tools.docling_processor import DoclingProcessor
+
+# Docling has heavy dependencies (TensorFlow, NumPy) - import lazily
+try:
+    from src.tools.docling_processor import DoclingProcessor
+except ImportError:
+    DoclingProcessor = None  # type: ignore
 
 __all__ = ["FirecrawlClient", "DoclingProcessor"]

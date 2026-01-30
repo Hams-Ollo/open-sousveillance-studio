@@ -8,6 +8,9 @@ from celery import shared_task
 from typing import Optional
 
 from src.tasks.celery_app import celery_app
+from src.logging_config import get_logger, bind_context, clear_context
+
+logger = get_logger("tasks.scout")
 
 
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
@@ -23,6 +26,9 @@ def run_scout(self, agent_id: str, url: str, save: bool = True) -> dict:
     Returns:
         Dict with report summary
     """
+    bind_context(task_id=self.request.id, agent_id=agent_id)
+    logger.info("Scout task started", url=url, save=save)
+    
     try:
         from src.agents.scout import ScoutAgent
         
@@ -41,18 +47,23 @@ def run_scout(self, agent_id: str, url: str, save: bool = True) -> dict:
         
         if save:
             try:
-                from src.database import db
-                db.save_report(report)
+                from src.database import get_db
+                get_db().save_report(report)
                 result["saved"] = True
+                logger.info("Report saved to database", report_id=report.report_id)
             except Exception as e:
                 result["saved"] = False
                 result["save_error"] = str(e)
+                logger.warning("Failed to save report", error=str(e))
         
+        logger.info("Scout task completed", report_id=report.report_id)
         return result
         
     except Exception as e:
-        # Retry on failure
+        logger.error("Scout task failed", error=str(e), retry_count=self.request.retries)
         raise self.retry(exc=e)
+    finally:
+        clear_context()
 
 
 @celery_app.task(bind=True)
@@ -68,9 +79,13 @@ def run_all_critical_scouts(self, save: bool = True) -> dict:
     Returns:
         Dict with summary of all runs
     """
+    bind_context(task_id=self.request.id)
+    logger.info("Starting critical scouts batch")
+    
     from src.config import get_sources_by_priority
     
     sources = get_sources_by_priority("critical")
+    logger.info("Found critical sources", count=len(sources))
     
     results = {
         "total": len(sources),
@@ -97,7 +112,15 @@ def run_all_critical_scouts(self, save: bool = True) -> dict:
                 "url": source.url,
                 "error": str(e)
             })
+            logger.warning("Failed to queue scout", source_id=source.id, error=str(e))
     
+    logger.info(
+        "Critical scouts batch completed",
+        total=results["total"],
+        successful=results["successful"],
+        failed=results["failed"]
+    )
+    clear_context()
     return results
 
 

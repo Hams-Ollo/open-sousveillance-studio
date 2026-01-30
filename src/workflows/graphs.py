@@ -96,8 +96,8 @@ def save_report(state: ScoutState) -> ScoutState:
         return state
     
     try:
-        from src.database import db
-        db.save_report(state["report"])
+        from src.database import get_db
+        get_db().save_report(state["report"])
         return {
             **state,
             "status": "saved"
@@ -198,9 +198,9 @@ def publish_report(state: AnalystState) -> AnalystState:
         return state
     
     try:
-        from src.database import db
+        from src.database import get_db
         if state.get("report"):
-            db.save_report(state["report"])
+            get_db().save_report(state["report"])
         
         return {
             **state,

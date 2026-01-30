@@ -4,65 +4,93 @@ from src.agents.base import BaseAgent
 from src.schemas import ScoutReport
 from src.models import get_gemini_pro, get_gemini_flash
 from src.tools import monitor_url
+from src.prompts import get_alachua_context
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 
+
 class ScoutAgent(BaseAgent):
-    def __init__(self, name: str, prompt_template: str):
+    """
+    Layer 1 Scout agent for monitoring government data sources.
+    
+    Uses domain context from prompt_library for enhanced analysis.
+    """
+    
+    def __init__(self, name: str, prompt_template: str = None):
         super().__init__(name, role="Scout")
         self.prompt_template = prompt_template
-        self.llm = get_gemini_pro() # Using Pro for the heavy lifting of synthesis
-        # We bind the structured output schema to the model
+        self.llm = get_gemini_pro()
         self.structured_llm = self.llm.with_structured_output(ScoutReport)
+        self.context = get_alachua_context()
 
-    def run(self, input_data: Dict[str, Any]) -> ScoutReport:
+    def _execute(self, input_data: Dict[str, Any]) -> ScoutReport:
         """
         1. Identifies URL to monitor from input or registry.
         2. Fetches content using monitor_url tool.
-        3. Passes content + Prompt to Gemini.
+        3. Passes content + domain context + Prompt to Gemini.
         4. Returns structured decision.
         """
         target_url = input_data.get("url")
         if not target_url:
             raise ValueError("ScoutAgent requires a 'url' in input_data")
 
-        print(f"[{self.name}] Monitoring: {target_url}")
+        self.logger.info("Fetching URL content", url=target_url)
         
         # 1. Fetch Content
         page_content = monitor_url.invoke(target_url)
         
-        # 2. Prepare Prompt
-        # We inject the scraped content and the current date
+        # 2. Prepare Prompt with domain context
         current_date = datetime.date.today().isoformat()
         
         final_prompt = ChatPromptTemplate.from_template(
-            """
-            Role: {role}
-            Current Date: {date}
-            
-            Mission: {mission}
-            
-            ---
-            TOPIC: {topic}
-            SOURCE URL: {url}
-            SOURCE CONTENT:
-            {content}
-            ---
-            
-            Based on the content above, generate a ScoutReport.
-            """
+            """You are a **Meeting Intelligence Scout** for the Alachua Civic Intelligence System.
+
+{domain_context}
+
+---
+## CURRENT TASK
+
+**Agent:** {agent_id}
+**Current Date:** {date}
+**Source URL:** {url}
+
+### SOURCE CONTENT:
+{content}
+
+---
+
+## INSTRUCTIONS
+
+Analyze the content above and generate a ScoutReport with:
+1. **report_id**: Format as "{agent_id}-{date}-001"
+2. **period_covered**: The date range covered by this content
+3. **executive_summary**: 2-3 sentences on most critical findings
+4. **alerts**: List of UrgencyAlerts (RED/YELLOW/GREEN) with action items
+5. **items**: List of MeetingItems with topics, related entities, and outcomes
+
+**Priority Keywords to Flag:** {keywords}
+
+Focus on items related to: Tara development, Mill Creek Sink, environmental protection, 
+public hearings, zoning changes, and any entities from the watchlist.
+"""
         )
         
         chain = final_prompt | self.structured_llm
         
-        # 3. Execute
+        # 3. Execute with domain context
         result: ScoutReport = chain.invoke({
-            "role": "Alachua Civic Intelligence Scout",
+            "domain_context": self.context.get_prompt_context(),
+            "agent_id": self.name,
             "date": current_date,
-            "mission": "Monitor for environmental threats and democratic accountability issues.",
-            "topic": self.name, # e.g. "A1 Meeting Scout"
             "url": target_url,
-            "content": page_content[:100000] # Safe truncation for Gemini context
+            "content": page_content[:80000],  # Leave room for context
+            "keywords": self.context.get_keywords_string(),
         })
+        
+        self.logger.info(
+            "Scout analysis complete",
+            items_found=len(result.items),
+            alerts_count=len(result.alerts)
+        )
         
         return result

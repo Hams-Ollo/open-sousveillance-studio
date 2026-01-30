@@ -97,8 +97,8 @@ def run_agent_task(run_id: str, agent: str, url: Optional[str], topic: Optional[
         
         if save:
             try:
-                from src.database import db
-                db.save_report(report)
+                from src.database import get_db
+                get_db().save_report(report)
             except Exception as e:
                 print(f"Warning: Failed to save report: {e}")
         

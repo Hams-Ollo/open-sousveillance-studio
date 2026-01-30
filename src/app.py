@@ -8,17 +8,19 @@ Provides REST API endpoints for:
 - SSE streaming for real-time updates
 """
 
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
 from src.config import build_app_config
+from src.logging_config import configure_logging, get_logger, bind_context, clear_context
 
 
 # =============================================================================
@@ -79,22 +81,31 @@ pending_approvals: dict[str, ApprovalItem] = {}
 # LIFESPAN
 # =============================================================================
 
+# Configure logging on module load
+configure_logging()
+logger = get_logger("api")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     # Startup
-    print("🚀 Starting Alachua Civic Intelligence API...")
+    logger.info("Starting Alachua Civic Intelligence API")
     try:
         config = build_app_config()
-        print(f"📍 Instance: {config.instance.name}")
-        print(f"🌍 Jurisdiction: {config.jurisdiction.county}, {config.jurisdiction.state}")
+        logger.info(
+            "Configuration loaded",
+            instance=config.instance.name,
+            county=config.jurisdiction.county,
+            state=config.jurisdiction.state
+        )
     except Exception as e:
-        print(f"⚠️ Config warning: {e}")
+        logger.warning("Config warning", error=str(e))
     
     yield
     
     # Shutdown
-    print("👋 Shutting down...")
+    logger.info("Shutting down")
 
 
 # =============================================================================
@@ -116,6 +127,47 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next):
+    """Log all HTTP requests with timing and context."""
+    request_id = str(uuid4())[:8]
+    bind_context(request_id=request_id)
+    
+    start_time = time.time()
+    
+    logger.info(
+        "Request started",
+        method=request.method,
+        path=request.url.path,
+    )
+    
+    try:
+        response = await call_next(request)
+        duration_ms = (time.time() - start_time) * 1000
+        
+        logger.info(
+            "Request completed",
+            method=request.method,
+            path=request.url.path,
+            status_code=response.status_code,
+            duration_ms=round(duration_ms, 2)
+        )
+        
+        return response
+    except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        logger.error(
+            "Request failed",
+            method=request.method,
+            path=request.url.path,
+            error=str(e),
+            duration_ms=round(duration_ms, 2)
+        )
+        raise
+    finally:
+        clear_context()
 
 
 # =============================================================================
@@ -210,8 +262,8 @@ def run_agent_task(run_id: str, agent: str, url: Optional[str], topic: Optional[
         
         if save:
             try:
-                from src.database import db
-                db.save_report(report)
+                from src.database import get_db
+                get_db().save_report(report)
             except Exception as e:
                 print(f"Warning: Failed to save report: {e}")
         
@@ -358,9 +410,9 @@ def main():
     import uvicorn
     uvicorn.run(
         "src.app:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "8000")),
+        reload=os.getenv("RELOAD", "true").lower() == "true"
     )
 
 

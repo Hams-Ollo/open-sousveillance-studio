@@ -56,27 +56,15 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(hour=6, minute=0),
         "options": {"queue": "scouts"}
     },
-    
-    # Weekly analyst run on Monday at 9 AM Eastern
-    "weekly-analyst-run": {
-        "task": "src.tasks.analyst_tasks.run_weekly_analysis",
-        "schedule": crontab(hour=9, minute=0, day_of_week=1),
-        "options": {"queue": "analysts"}
-    },
-    
-    # Monthly synthesizer run on 1st of month at 10 AM Eastern
-    "monthly-newsletter": {
-        "task": "src.tasks.synthesizer_tasks.generate_monthly_newsletter",
-        "schedule": crontab(hour=10, minute=0, day_of_month=1),
-        "options": {"queue": "synthesizers"}
-    },
+    # TODO: Add analyst and synthesizer tasks when implemented
+    # "weekly-analyst-run": {...}
+    # "monthly-newsletter": {...}
 }
 
 # Task routing
 celery_app.conf.task_routes = {
     "src.tasks.scout_tasks.*": {"queue": "scouts"},
-    "src.tasks.analyst_tasks.*": {"queue": "analysts"},
-    "src.tasks.synthesizer_tasks.*": {"queue": "synthesizers"},
+    # TODO: Add routing for analyst and synthesizer tasks when implemented
 }
 
 

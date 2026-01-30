@@ -10,11 +10,11 @@ import os
 from typing import Optional
 from langchain_core.tools import tool
 from tavily import TavilyClient
-from firecrawl import Firecrawl
+from firecrawl import FirecrawlApp
 
 # Initialize clients lazily to avoid import-time crashes
 _tavily_client: Optional[TavilyClient] = None
-_firecrawl_client: Optional[Firecrawl] = None
+_firecrawl_client: Optional[FirecrawlApp] = None
 
 
 def get_tavily_client() -> Optional[TavilyClient]:
@@ -27,13 +27,13 @@ def get_tavily_client() -> Optional[TavilyClient]:
     return _tavily_client
 
 
-def get_firecrawl_client() -> Optional[Firecrawl]:
+def get_firecrawl_client() -> Optional[FirecrawlApp]:
     """Get or create Firecrawl client."""
     global _firecrawl_client
     if _firecrawl_client is None:
         api_key = os.getenv("FIRECRAWL_API_KEY")
         if api_key:
-            _firecrawl_client = Firecrawl(api_key=api_key)
+            _firecrawl_client = FirecrawlApp(api_key=api_key)
     return _firecrawl_client
 
 

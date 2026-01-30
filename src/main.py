@@ -15,8 +15,8 @@ from src.config import get_sources_by_priority
 
 def get_database():
     """Lazy import database to avoid crashes if credentials missing."""
-    from src.database import db
-    return db
+    from src.database import get_db
+    return get_db()
 
 
 def get_critical_urls() -> list[str]:

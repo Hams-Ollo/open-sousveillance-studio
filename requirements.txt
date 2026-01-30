@@ -1,26 +1,36 @@
 # Core Framework
-fastapi
-uvicorn[standard]
-sse-starlette
+fastapi==0.128.0
+uvicorn[standard]==0.40.0
+starlette==0.50.0
 
 # LLM & Orchestration
-langchain
-langchain-google-genai
-langgraph
+langchain==1.2.7
+langchain-google-genai==4.2.0
+langgraph==1.0.7
+google-generativeai==0.8.6
 
 # Task Queue
-celery[redis]
-redis
+celery[redis]==5.6.2
+redis==6.4.0
 
 # Data & Storage
-supabase
-pydantic
-pyyaml
-python-dotenv
+supabase==2.27.2
+pydantic==2.12.5
+pyyaml==6.0.3
+python-dotenv==1.2.1
+numpy==1.26.4  # Required for docling compatibility
 
 # Web Scraping & Document Processing
-firecrawl-py
-docling
+firecrawl-py==4.14.0
+docling==2.71.0
 
 # Research
-tavily-python
+tavily-python==0.7.21
+
+# Logging
+structlog==25.5.0
+
+# Testing
+pytest==9.0.2
+pytest-asyncio==1.3.0
+httpx==0.28.1

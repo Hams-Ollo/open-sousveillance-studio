@@ -30,4 +30,18 @@ class Database:
             print(f"Error saving report to Supabase: {e}")
             raise e
 
-db = Database()
+_db: Database | None = None
+
+def get_db() -> Database:
+    """Lazy initialization of Database singleton.
+    
+    Returns:
+        Database: The database instance.
+        
+    Raises:
+        ValueError: If SUPABASE_URL or SUPABASE_KEY are not set.
+    """
+    global _db
+    if _db is None:
+        _db = Database()
+    return _db

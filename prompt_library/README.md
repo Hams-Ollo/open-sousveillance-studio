@@ -1,6 +1,6 @@
 # Alachua Civic Intelligence Prompt Library
 
-**Version:** 1.0  
+**Version:** 2.0  
 **Last Updated:** January 2026  
 **Purpose:** AI-assisted civic monitoring prompts for environmental protection and democratic accountability
 
@@ -8,7 +8,29 @@
 
 ## Overview
 
-This prompt library contains structured prompts designed for copy/paste use with AI systems (Claude, ChatGPT, Gemini). Each prompt is self-contained and produces standardized markdown reports.
+This prompt library serves two purposes:
+
+1. **Manual Use:** Structured prompts for copy/paste use with AI systems (Claude, ChatGPT, Gemini)
+2. **Automated Integration:** Domain context loaded by `src/prompts/` module for automated agents
+
+### Automated Agent Integration
+
+The automated agents (`ScoutAgent`, `AnalystAgent`) load context from this library at runtime:
+
+```python
+from src.prompts import get_alachua_context
+
+context = get_alachua_context()
+print(context.get_prompt_context())  # Formatted for LLM injection
+print(context.priority_keywords)      # List of keywords to flag
+print(context.get_entities_string())  # All tracked entities
+```
+
+**Key files used by automation:**
+- `config/alachua-context.md` → Domain context (Tara projects, entities, keywords)
+- `config/agent-behavioral-standards.md` → Behavioral constraints
+
+**When updating these files:** Changes automatically propagate to all automated agents on next run.
 
 ## Folder Structure
 
@@ -40,7 +62,9 @@ prompt_library/
     └── sample-outputs.md
 ```
 
-## How to Use
+## Manual Use (Copy/Paste)
+
+For manual use with AI chat interfaces:
 
 ### Step 1: Choose Your Prompt
 Select based on your monitoring need and schedule:

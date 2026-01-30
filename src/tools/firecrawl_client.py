@@ -13,7 +13,7 @@ import time
 from typing import Optional
 from dataclasses import dataclass
 
-from firecrawl import Firecrawl
+from firecrawl import FirecrawlApp
 
 
 @dataclass
@@ -48,7 +48,7 @@ class FirecrawlClient:
         if not self.api_key:
             raise ValueError("FIRECRAWL_API_KEY not found. Set environment variable or pass api_key.")
         
-        self.client = Firecrawl(api_key=self.api_key)
+        self.client = FirecrawlApp(api_key=self.api_key)
         self.max_retries = max_retries
     
     def _retry_with_backoff(self, func, *args, **kwargs):
