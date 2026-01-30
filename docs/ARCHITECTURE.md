@@ -1,4 +1,4 @@
-# Architecture
+# 🏗️ Architecture
 
 **Open Sousveillance Studio — Technical Architecture & System Design**
 
@@ -18,7 +18,7 @@
 
 ---
 
-## System Overview
+## 🔭 System Overview
 
 Open Sousveillance Studio deploys AI agents that watch 15+ government data sources, detect new documents within hours of publication, extract actionable intelligence, and generate weekly reports for community distribution.
 
@@ -79,7 +79,7 @@ flowchart TB
 
 ---
 
-## Three-Layer Agent Framework
+## 🤖 Three-Layer Agent Framework
 
 | Layer | Agents | Frequency | Purpose |
 |:------|:-------|:----------|:--------|
@@ -89,7 +89,7 @@ flowchart TB
 
 ---
 
-## Technology Stack
+## 🛠️ Technology Stack
 
 ```mermaid
 graph LR
@@ -144,7 +144,7 @@ graph LR
 
 ---
 
-## Data Flow
+## 🔄 Data Flow
 
 ```mermaid
 sequenceDiagram
@@ -183,7 +183,7 @@ sequenceDiagram
 
 ---
 
-## Firecrawl Integration
+## 🕷️ Firecrawl Integration
 
 Open Sousveillance Studio uses **[Firecrawl](https://firecrawl.dev)** as its primary web scraping engine. Firecrawl handles the complexity of modern government portals (JavaScript SPAs, anti-bot measures, dynamic content) and returns clean, LLM-ready data.
 
@@ -248,7 +248,7 @@ results = firecrawl.batch_scrape(
 
 ---
 
-## Docling Integration
+## 📄 Docling Integration
 
 For PDF and document parsing, we use **[Docling](https://github.com/docling-project/docling)** (IBM's open-source document processor). Docling excels at extracting structured content from complex government documents.
 
@@ -286,7 +286,7 @@ chunks = splitter.split_text(markdown)
 
 ---
 
-## Configuration System
+## ⚙️ Configuration System
 
 Open Sousveillance Studio uses a **modular YAML configuration system** that makes it easy to deploy for any US municipality without code changes.
 
@@ -414,7 +414,7 @@ keywords = get_all_keywords()  # Deduplicated set for text matching
 
 ---
 
-## Monitored Data Sources
+## 📍 Monitored Data Sources
 
 Open Sousveillance Studio is designed to be **location-agnostic**. The source registry can be configured for any municipality. Below is the default configuration for Alachua County, Florida:
 
@@ -430,7 +430,7 @@ Open Sousveillance Studio is designed to be **location-agnostic**. The source re
 
 ---
 
-## Streamlit Dev Console
+## 🔬 Streamlit Dev Console
 
 A browser-based testing interface for debugging agents and inspecting prompts.
 
@@ -471,7 +471,7 @@ flowchart LR
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 open-sousveillance-studio/

@@ -15,7 +15,7 @@
 
 ---
 
-## What Is This?
+## 🎯 What Is This?
 
 Open Sousveillance Studio is an **open-source AI agent platform** that monitors local government activity and alerts citizens to important developments.
 
@@ -33,14 +33,14 @@ Open Sousveillance Studio is an **open-source AI agent platform** that monitors 
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### Prerequisites
+### 📋 Prerequisites
 
 - Python 3.10+
 - API Keys: [Google AI](https://aistudio.google.com), [Firecrawl](https://firecrawl.dev), [Tavily](https://tavily.com)
 
-### Installation
+### 💻 Installation
 
 ```bash
 # Clone the repository
@@ -60,7 +60,7 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
-### Quick Start (Windows)
+### ⚡ Quick Start (Windows)
 
 The easiest way to start everything:
 
@@ -73,7 +73,7 @@ This launches:
 - **Streamlit Dev Console** at `http://localhost:8501`
 - **FastAPI Backend** at `http://localhost:8000`
 
-### Manual Start
+### 🔧 Manual Start
 
 **Dev Console only:**
 ```bash
@@ -89,7 +89,7 @@ uvicorn src.app:app --reload --port 8000
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 Customize for your community by editing YAML files in `config/`:
 
@@ -112,7 +112,7 @@ projects:
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 open-sousveillance-studio/
@@ -130,20 +130,20 @@ open-sousveillance-studio/
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 | Document | Description |
 |:---------|:------------|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, diagrams, technology stack |
-| [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) | Development standards, style guide, AI assistant guidelines |
-| [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | Setup, testing, contributing |
-| [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | Roadmap, epics, features, user stories |
-| [SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) | Workflow design, data flow, open questions |
-| [SPEC.md](docs/SPEC.md) | Technical specification |
+| 🏗️ [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, diagrams, technology stack |
+| 📏 [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) | Development standards, style guide, AI assistant guidelines |
+| 👩‍💻 [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | Setup, testing, contributing |
+| 📅 [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | Roadmap, epics, features, user stories |
+| 🔄 [SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) | Workflow design, data flow, open questions |
+| 📋 [SPEC.md](docs/SPEC.md) | Technical specification |
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
 
 - [x] **Phase 1:** Foundation (config, schemas, logging)
 - [x] **Phase 2:** Scout Layer (Firecrawl, Gemini, Dev Console)
@@ -153,7 +153,7 @@ open-sousveillance-studio/
 
 ---
 
-## Adopt for Your Community
+## 🏘️ Adopt for Your Community
 
 This system is designed to be forked for **any US municipality**:
 
@@ -165,7 +165,7 @@ This system is designed to be forked for **any US municipality**:
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 We welcome contributions! See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for setup and [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) for development standards.
 
@@ -176,7 +176,7 @@ We welcome contributions! See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for 
 
 ---
 
-## Contact
+## 📬 Contact
 
 **Project Lead:** Hans
 **Origin Coalition:** Our Alachua Water
@@ -184,7 +184,7 @@ We welcome contributions! See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for 
 
 ---
 
-## License
+## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
 

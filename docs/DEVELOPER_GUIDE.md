@@ -1,4 +1,4 @@
-# Developer Guide
+# 👩‍💻 Developer Guide
 
 **Open Sousveillance Studio — Development Setup & Contributing**
 
@@ -19,7 +19,7 @@
 
 ---
 
-## Prerequisites
+## 📋 Prerequisites
 
 ### Required Software
 
@@ -47,7 +47,7 @@
 
 ---
 
-## Local Development Setup
+## 💻 Local Development Setup
 
 ### 1. Clone the Repository
 
@@ -105,7 +105,7 @@ python -c "import redis; r = redis.Redis(); r.ping(); print('✅ Redis OK')"
 
 ---
 
-## Environment Variables
+## 🔐 Environment Variables
 
 Create a `.env` file in the project root with the following variables:
 
@@ -164,7 +164,7 @@ LOG_FORMAT=console          # console (colored) or json (production)
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 open-sousveillance-studio/
@@ -230,9 +230,9 @@ open-sousveillance-studio/
 
 ---
 
-## Running the Application
+## ▶️ Running the Application
 
-### Docker Compose (Recommended)
+### 🐳 Docker Compose (Recommended)
 
 The easiest way to run all services:
 
@@ -257,7 +257,7 @@ This starts:
 
 You need **4 terminal windows** for full development:
 
-### One-Command Start (Windows)
+### ⚡ One-Command Start (Windows)
 
 The easiest way to start both services:
 
@@ -308,7 +308,7 @@ For quick testing without background tasks:
 uvicorn src.app:app --reload --port 8000
 ```
 
-### Streamlit Dev Console (Recommended for Testing)
+### 🔬 Streamlit Dev Console (Recommended for Testing)
 
 The easiest way to test agents interactively:
 
@@ -389,7 +389,7 @@ curl -X POST "http://localhost:8000/approvals/{id}/decide" \
 
 ---
 
-## Running Tests
+## 🧪 Running Tests
 
 ### Run All Tests
 
@@ -432,7 +432,7 @@ test/
 
 ---
 
-## Code Style & Standards
+## 🎨 Code Style & Standards
 
 > **📘 For comprehensive standards, see [CODING_STANDARDS.md](CODING_STANDARDS.md)**
 
@@ -501,7 +501,7 @@ class MyModel(BaseModel):
 
 ---
 
-## Architecture Overview
+## 🏗️ Architecture Overview
 
 ### Three-Layer Agent Framework
 
@@ -536,7 +536,7 @@ Government Portal → Firecrawl → Scout Agent → ScoutReport → Database
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 ### Getting Started
 
@@ -569,7 +569,7 @@ We especially welcome contributions in:
 
 ---
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### Common Issues
 

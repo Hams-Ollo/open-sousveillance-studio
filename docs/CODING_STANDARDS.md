@@ -1,4 +1,4 @@
-# Coding Standards
+# 📏 Coding Standards
 
 **Open Sousveillance Studio — Development Standards & Best Practices**
 
@@ -21,7 +21,7 @@
 
 ---
 
-## Philosophy
+## 💡 Philosophy
 
 ### Core Principles
 
@@ -40,7 +40,7 @@
 
 ---
 
-## Python Style Guide
+## 🐍 Python Style Guide
 
 ### Base Standard
 
@@ -189,21 +189,21 @@ def extract_agenda_items(
     board_filter: Optional[str] = None
 ) -> List[MeetingItem]:
     """Extract agenda items from meeting content.
-    
+
     Parses the provided content and extracts structured agenda items,
     optionally filtering by board name.
-    
+
     Args:
         content: Raw markdown content from scraped page.
         board_filter: Optional board name to filter items (e.g., "Planning").
-    
+
     Returns:
         List of MeetingItem objects with extracted data.
-    
+
     Raises:
         ValueError: If content is empty or malformed.
         ExtractionError: If LLM fails to parse content.
-    
+
     Example:
         >>> items = extract_agenda_items(content, board_filter="Commission")
         >>> print(items[0].topic)
@@ -213,7 +213,7 @@ def extract_agenda_items(
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ### Directory Layout
 
@@ -270,7 +270,7 @@ src/
 
 ---
 
-## Agent Development Standards
+## 🤖 Agent Development Standards
 
 ### Agent Structure
 
@@ -282,33 +282,33 @@ from src.schemas import ScoutReport
 
 class MeetingScoutAgent(BaseAgent):
     """A1: Monitors city meeting portals for new agendas."""
-    
+
     agent_id: str = "A1"
     agent_name: str = "Meeting Scout"
     layer: int = 1  # 1=Scout, 2=Analyst, 3=Synthesizer
-    
+
     def __init__(self):
         super().__init__()
         # Initialize dependencies
         self.llm = get_gemini_pro()
-    
+
     def _execute(self, input_data: dict) -> ScoutReport:
         """Execute the agent's primary task.
-        
+
         Args:
             input_data: Must contain 'url' key.
-        
+
         Returns:
             ScoutReport with extracted data.
         """
         url = input_data["url"]
-        
+
         # 1. Fetch content
         content = self._fetch_content(url)
-        
+
         # 2. Analyze with LLM
         report = self._analyze(content)
-        
+
         # 3. Return structured output
         return report
 ```
@@ -351,7 +351,7 @@ All agent outputs must:
 ```python
 class ScoutReport(BaseReport):
     """Output from Scout agents."""
-    
+
     items: List[MeetingItem] = Field(
         default_factory=list,
         description="Extracted agenda items"
@@ -368,7 +368,7 @@ class ScoutReport(BaseReport):
 
 ---
 
-## Testing Standards
+## 🧪 Testing Standards
 
 ### Test Structure
 
@@ -417,15 +417,15 @@ def test_scout_agent_extracts_meeting_items():
     """Scout should extract items from valid content."""
     # Arrange
     mock_content = "## Agenda\n1. Rezoning RZ-2026-001"
-    
+
     with patch("src.tools.firecrawl_client.scrape_page") as mock_scrape:
         mock_scrape.return_value = mock_content
-        
+
         agent = ScoutAgent()
-        
+
         # Act
         result = agent.run({"url": "https://example.com"})
-        
+
         # Assert
         assert isinstance(result, ScoutReport)
         assert len(result.items) > 0
@@ -436,9 +436,9 @@ def test_scout_agent_handles_scraping_failure():
     """Scout should raise AgentError on scraping failure."""
     with patch("src.tools.firecrawl_client.scrape_page") as mock_scrape:
         mock_scrape.side_effect = ScrapingError("Timeout")
-        
+
         agent = ScoutAgent()
-        
+
         with pytest.raises(AgentError):
             agent.run({"url": "https://example.com"})
 ```
@@ -464,7 +464,7 @@ pytest -v
 
 ---
 
-## Documentation Standards
+## 📝 Documentation Standards
 
 ### Code Documentation
 
@@ -511,7 +511,7 @@ Follow [Keep a Changelog](https://keepachangelog.com/):
 
 ---
 
-## Git Workflow
+## 🔀 Git Workflow
 
 ### Branch Naming
 
@@ -537,6 +537,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -599,7 +600,7 @@ Brief description of changes.
 
 ---
 
-## Security Standards
+## 🔒 Security Standards
 
 ### Secrets Management
 
@@ -636,7 +637,7 @@ from pydantic import BaseModel, Field, validator
 class RunAgentRequest(BaseModel):
     agent: str = Field(..., regex=r"^[ABC]\d$")
     url: str = Field(..., min_length=10)
-    
+
     @validator("url")
     def validate_url(cls, v):
         if not v.startswith(("http://", "https://")):
@@ -659,7 +660,7 @@ fastapi==0.115.8
 
 ---
 
-## Performance Standards
+## ⚡ Performance Standards
 
 ### API Response Times
 
@@ -700,7 +701,7 @@ def should_process(content: str, stored_hash: str) -> bool:
 
 ---
 
-## AI Assistant Guidelines
+## 🤖 AI Assistant Guidelines
 
 ### For AI Coding Assistants (Cascade, Copilot, etc.)
 
@@ -767,7 +768,7 @@ Agent development:
 
 ---
 
-## Tooling Configuration
+## 🛠️ Tooling Configuration
 
 ### pyproject.toml
 
@@ -847,7 +848,7 @@ repos:
 
 ---
 
-## Checklist for Contributors
+## ✅ Checklist for Contributors
 
 Before submitting a PR, verify:
 

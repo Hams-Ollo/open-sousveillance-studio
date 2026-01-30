@@ -1,4 +1,4 @@
-# System Overview & Design Discussion
+# 🔄 System Overview & Design Discussion
 
 **Open Sousveillance Studio — Architecture Deep Dive**
 
@@ -6,7 +6,7 @@
 
 ---
 
-## Core Concept
+## 🎯 Core Concept
 
 **Goal:** Automatically monitor local government activity and alert citizens before important decisions are made, not after.
 
@@ -14,7 +14,7 @@
 
 ---
 
-## Three-Layer Agent Architecture
+## 🏗️ Three-Layer Agent Architecture
 
 ```mermaid
 flowchart TB
@@ -49,7 +49,7 @@ flowchart TB
 
 ---
 
-## Layer 1: Scouts — Data Collection
+## 🔍 Layer 1: Scouts — Data Collection
 
 ### Purpose
 
@@ -86,7 +86,7 @@ class ScoutReport(BaseReport):
 
 ---
 
-## Layer 2: Analysts — Pattern Recognition
+## 🧠 Layer 2: Analysts — Pattern Recognition
 
 ### Purpose
 
@@ -123,7 +123,7 @@ class AnalystReport(BaseReport):
 
 ---
 
-## Layer 3: Synthesizers — Public Output
+## 📣 Layer 3: Synthesizers — Public Output
 
 ### Purpose
 
@@ -147,7 +147,7 @@ AnalystReports → Human Approval → Synthesizer → Newsletter/Social/Alert
 
 ---
 
-## Human-in-the-Loop Approval
+## 👤 Human-in-the-Loop Approval
 
 ### Current Design
 
@@ -163,7 +163,7 @@ AnalystReports → Human Approval → Synthesizer → Newsletter/Social/Alert
 
 ---
 
-## Data Storage Architecture
+## 🗄️ Data Storage Architecture
 
 ```mermaid
 erDiagram
@@ -222,7 +222,7 @@ erDiagram
 
 ---
 
-## Configuration-Driven Design
+## ⚙️ Configuration-Driven Design
 
 The system is designed to be **forkable** for any municipality:
 
@@ -253,7 +253,7 @@ projects:
 
 ---
 
-## Potential Gaps & Enhancements
+## 💡 Potential Gaps & Enhancements
 
 ### 1. Change Detection
 
@@ -302,7 +302,7 @@ flowchart LR
 
 ---
 
-## End-to-End Workflow Example
+## 🔄 End-to-End Workflow Example
 
 **Scenario:** City of Alachua posts a new Planning & Zoning meeting agenda.
 
@@ -348,7 +348,7 @@ sequenceDiagram
 
 ---
 
-## Discussion Points
+## 💬 Discussion Points
 
 ### Your Vision vs. Current Implementation
 
@@ -372,6 +372,6 @@ sequenceDiagram
 
 *Add your notes and decisions below:*
 
-## Your Notes
+## 📝 Your Notes
 
 <!-- Add your thoughts here -->
