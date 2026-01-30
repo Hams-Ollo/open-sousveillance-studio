@@ -29,6 +29,14 @@ class BaseReport(BaseModel):
     alerts: List[UrgencyAlert] = Field(default_factory=list, description="List of actionable alerts")
     raw_markdown: Optional[str] = Field(None, description="The human-readable markdown version of this report")
 
+    @property
+    def urgency_level(self) -> UrgencyLevel:
+        """Derive overall urgency from the highest alert level."""
+        if not self.alerts:
+            return UrgencyLevel.GREEN
+        priority = {UrgencyLevel.RED: 0, UrgencyLevel.YELLOW: 1, UrgencyLevel.GREEN: 2}
+        return min((alert.level for alert in self.alerts), key=lambda x: priority.get(x, 2))
+
 
 class ScoutReport(BaseReport):
     """Output from A1/A2 scouts - monitors government data sources."""
