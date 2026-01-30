@@ -335,10 +335,13 @@ def get_db():
 **Completed:** 2026-01-30
 
 ### [x] P2-14: Create docs/DEVELOPER_GUIDE.md
+
 **Completed:** 2026-01-30
 
 ### [x] P2-15: Add Embedding/Vector Support (RAG pipeline)
+
 **Completed:** 2026-01-30
+
 - `src/tools/embeddings.py` - Gemini embedding service (1536 dimensions)
 - `src/tools/chunking.py` - LangChain text splitting
 - `src/tools/vector_store.py` - Supabase pgvector operations
@@ -346,7 +349,9 @@ def get_db():
 - `migrations/001_vector_schema.sql` - Database schema
 
 ### [x] P3-18: Add Logging Configuration (structlog)
+
 **Completed:** 2026-01-30
+
 - `src/logging_config.py` - Centralized structlog configuration
 - JSON output for production, colored console for development
 - Request logging middleware in FastAPI
@@ -355,7 +360,9 @@ def get_db():
 - Environment variables: `LOG_LEVEL`, `LOG_FORMAT`
 
 ### [x] P3-16: Add Unit Tests
+
 **Completed:** 2026-01-30
+
 - `test/conftest.py` - Pytest fixtures and mocks
 - `test/test_config.py` - Configuration loading tests
 - `test/test_schemas.py` - Pydantic model validation tests
@@ -364,19 +371,25 @@ def get_db():
 - `test/test_tools.py` - Tools module tests
 
 ### [x] P3-17: Create Docker Compose
+
 **Completed:** 2026-01-30
+
 - `docker-compose.yml` - Multi-service orchestration
 - `Dockerfile` - Python 3.11 slim image
 - Services: api, celery-worker, celery-beat, redis
 - Health checks and volume mounts
 
 ### [x] P3-19: Create PROJECT-KNOWLEDGE-BASE.md
+
 **Completed:** 2026-01-30
+
 - `docs/PROJECT-KNOWLEDGE-BASE.md` - Comprehensive technical reference
 - Updated `docs/DEVELOPER_GUIDE.md` with Docker Compose instructions
 
 ### [x] P3-20: Clean Up Prompt Library
+
 **Completed:** 2026-01-30
+
 - `src/prompts/__init__.py` - Prompt module initialization
 - `src/prompts/loader.py` - PromptLoader utility for loading prompt files
 - `src/prompts/context.py` - AgentContext with extracted domain context
@@ -384,14 +397,18 @@ def get_db():
 - Updated `prompt_library/README.md` with integration documentation
 
 ### [x] Security Scan and Vulnerability Fixes
+
 **Completed:** 2026-01-30
+
 - Ran pip-audit, bandit, and safety scans
 - Fixed hardcoded host binding (0.0.0.0 → env var)
 - Pinned all dependencies to specific versions
 - Added HOST, PORT, RELOAD env vars to `.env.example`
 
 ### [x] Streamlit Dev Console
+
 **Completed:** 2026-01-30
+
 - `src/ui/app.py` - Main Streamlit application
 - `src/ui/pages/agent_runner.py` - Test Scout/Analyst agents
 - `src/ui/pages/prompt_inspector.py` - View prompt library
@@ -400,7 +417,9 @@ def get_db():
 - Added `streamlit==1.45.0` to requirements.txt
 
 ### [x] Native Google GenAI SDK Migration
+
 **Completed:** 2026-01-30
+
 - Replaced `langchain_google_genai` with native `google.genai` SDK
 - Fixed PyTorch DLL loading issues on Windows
 - Updated `src/models.py` with `GeminiModel` and `StructuredGeminiModel` classes
@@ -408,14 +427,18 @@ def get_db():
 - Fixed model names to `gemini-2.5-pro` and `gemini-2.5-flash`
 
 ### [x] Documentation Restructure
+
 **Completed:** 2026-01-30
+
 - Simplified `README.md` to project overview and quick start
 - Created `docs/ARCHITECTURE.md` with technical diagrams and system design
 - Created `docs/SYSTEM_OVERVIEW.md` for workflow brainstorming
 - Updated `docs/PROJECT_PLAN.md` with future agents, features, epics, user stories
 
 ### [x] Coding Standards & Tooling
+
 **Completed:** 2026-01-30
+
 - Created `docs/CODING_STANDARDS.md` - comprehensive development standards
 - Created `pyproject.toml` - Black, Ruff, mypy, pytest configuration
 - Created `.pre-commit-config.yaml` - automated quality checks
@@ -427,16 +450,19 @@ def get_db():
 ## 🔜 Next Priority Items
 
 ### [ ] Supabase Integration Testing
+
 - Test database writes with real Supabase instance
 - Implement document storage for PDFs
 - Test vector embeddings with pgvector
 
 ### [ ] Human-in-the-Loop Approval Flow
+
 - Implement LangGraph interrupt/resume
 - Build approval UI in Streamlit
 - Email notifications for pending approvals
 
 ### [ ] Florida Public Notices Scraper
+
 - Implement scraper for statewide public notices
 - Filter by Alachua County
 - Parse legal notice formats
