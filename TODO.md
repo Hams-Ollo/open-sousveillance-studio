@@ -1,6 +1,6 @@
 # TODO: Alachua Civic Intelligence Reporting Studio
 
-**Last Updated:** 2026-01-30  
+**Last Updated:** 2026-01-30
 **Status:** Active Development
 
 ---
@@ -18,9 +18,9 @@
 
 ### [x] 1. Fix `src/tools.py` - Uses Removed Dependencies
 
-**File:** `src/tools.py`  
-**Issue:** Imports `requests` and `BeautifulSoup` which were removed from `requirements.txt`  
-**Impact:** Application crashes on import  
+**File:** `src/tools.py`
+**Issue:** Imports `requests` and `BeautifulSoup` which were removed from `requirements.txt`
+**Impact:** Application crashes on import
 **Solution:** Replace with Firecrawl implementation
 
 ```python
@@ -36,9 +36,9 @@ from firecrawl import Firecrawl
 
 ### [x] 2. Fix `src/models.py` - Invalid Gemini Model Names
 
-**File:** `src/models.py`  
-**Issue:** Uses non-existent model identifiers `gemini-3.0-pro` and `gemini-3.0-flash`  
-**Impact:** API calls fail  
+**File:** `src/models.py`
+**Issue:** Uses non-existent model identifiers `gemini-3.0-pro` and `gemini-3.0-flash`
+**Impact:** API calls fail
 **Solution:** Update to valid model names
 
 ```python
@@ -55,9 +55,9 @@ model="gemini-2.5-flash"
 
 ### [x] 3. Fix `src/config.py` - Module-Level Crash
 
-**File:** `src/config.py` (lines 392-401)  
-**Issue:** Raises `ValueError` on import if `GOOGLE_API_KEY` not set  
-**Impact:** Cannot import any module that imports config without API key  
+**File:** `src/config.py` (lines 392-401)
+**Issue:** Raises `ValueError` on import if `GOOGLE_API_KEY` not set
+**Impact:** Cannot import any module that imports config without API key
 **Solution:** Remove legacy exports or make validation lazy
 
 ---
@@ -66,17 +66,17 @@ model="gemini-2.5-flash"
 
 ### [x] 4. Delete `src/registry.py` - Redundant Source Registry
 
-**File:** `src/registry.py`  
-**Issue:** Hardcoded registry duplicates `config/sources.yaml`  
-**Impact:** Configuration drift, maintenance burden  
+**File:** `src/registry.py`
+**Issue:** Hardcoded registry duplicates `config/sources.yaml`
+**Impact:** Configuration drift, maintenance burden
 **Solution:** Remove file, update `main.py` to use `config.get_all_sources()`
 
 ---
 
 ### [x] 5. Create `src/tools/firecrawl_client.py`
 
-**Status:** File does not exist  
-**Required by:** README architecture, Scout agents  
+**Status:** File does not exist
+**Required by:** README architecture, Scout agents
 **Implementation:**
 
 - Firecrawl wrapper with retry logic
@@ -88,8 +88,8 @@ model="gemini-2.5-flash"
 
 ### [x] 6. Create `src/tools/docling_processor.py`
 
-**Status:** File does not exist  
-**Required by:** README architecture, PDF processing  
+**Status:** File does not exist
+**Required by:** README architecture, PDF processing
 **Implementation:**
 
 - Docling DocumentConverter wrapper
@@ -101,8 +101,8 @@ model="gemini-2.5-flash"
 
 ### [x] 7. Create `src/app.py` - FastAPI Application
 
-**File:** `src/main.py`  
-**Issue:** Currently CLI-only with `argparse`, README documents FastAPI server  
+**File:** `src/main.py`
+**Issue:** Currently CLI-only with `argparse`, README documents FastAPI server
 **Solution:** Create proper FastAPI application with:
 
 - `POST /run` - Trigger agent runs
@@ -114,7 +114,7 @@ model="gemini-2.5-flash"
 
 ### [x] 8. Create `src/tasks/` Directory - Celery Integration
 
-**Status:** Directory does not exist  
+**Status:** Directory does not exist
 **Required files:**
 
 - `src/tasks/__init__.py`
@@ -126,7 +126,7 @@ model="gemini-2.5-flash"
 
 ### [x] 9. Create `src/api/routes/` Directory - FastAPI Routes
 
-**Status:** Directory does not exist  
+**Status:** Directory does not exist
 **Required files:**
 
 - `src/api/__init__.py`
@@ -139,7 +139,7 @@ model="gemini-2.5-flash"
 
 ### [x] 10. Create `src/workflows/` Directory - LangGraph
 
-**Status:** Directory does not exist  
+**Status:** Directory does not exist
 **Required files:**
 
 - `src/workflows/__init__.py`
@@ -153,8 +153,8 @@ model="gemini-2.5-flash"
 
 ### [x] 11. Fix `src/database.py` - Fragile Initialization
 
-**File:** `src/database.py` (line 33)  
-**Issue:** Module-level `db = Database()` crashes if credentials missing  
+**File:** `src/database.py` (line 33)
+**Issue:** Module-level `db = Database()` crashes if credentials missing
 **Solution:** Lazy initialization pattern
 
 ```python
@@ -174,8 +174,8 @@ def get_db():
 
 ### [x] 12. Create Additional Schemas
 
-**File:** `src/schemas.py`  
-**Issue:** Only `ScoutReport` exists, Analyst reuses it  
+**File:** `src/schemas.py`
+**Issue:** Only `ScoutReport` exists, Analyst reuses it
 **Add:**
 
 - `AnalystReport` - For B1/B2 agents
@@ -186,15 +186,15 @@ def get_db():
 
 ### [x] 13. Fix `src/agents/base.py` - Return Type
 
-**File:** `src/agents/base.py`  
-**Issue:** Forces all agents to return `ScoutReport`  
+**File:** `src/agents/base.py`
+**Issue:** Forces all agents to return `ScoutReport`
 **Solution:** Use `Union[ScoutReport, AnalystReport, ...]` or generic
 
 ---
 
 ### [x] 14. Create `docs/DEVELOPER_GUIDE.md`
 
-**Status:** Referenced in PROJECT-KNOWLEDGE-BASE.md but doesn't exist  
+**Status:** Referenced in PROJECT-KNOWLEDGE-BASE.md but doesn't exist
 **Content needed:**
 
 - Local development setup
@@ -206,8 +206,8 @@ def get_db():
 
 ### [x] 15. Add Embedding/Vector Support
 
-**Status:** Not implemented  
-**Required for:** RAG, semantic search  
+**Status:** Not implemented
+**Required for:** RAG, semantic search
 **Implementation:**
 
 - Gemini embeddings integration
@@ -220,7 +220,7 @@ def get_db():
 
 ### [x] 16. Add Unit Tests
 
-**Directory:** `test/`  
+**Directory:** `test/`
 **Implemented:**
 
 - Config loading tests
@@ -233,7 +233,7 @@ def get_db():
 
 ### [x] 17. Create Docker Compose
 
-**Status:** Implemented  
+**Status:** Implemented
 **Services:**
 
 - Redis
@@ -245,21 +245,21 @@ def get_db():
 
 ### [x] 18. Add Logging Configuration
 
-**Status:** ~~Using print statements~~ Implemented with structlog  
+**Status:** ~~Using print statements~~ Implemented with structlog
 **Solution:** Proper Python logging with structured output
 
 ---
 
 ### [x] 19. Update PROJECT-KNOWLEDGE-BASE.md
 
-**File:** `docs/PROJECT-KNOWLEDGE-BASE.md`  
+**File:** `docs/PROJECT-KNOWLEDGE-BASE.md`
 **Status:** Created comprehensive knowledge base with current tech stack
 
 ---
 
 ### [x] 20. Clean Up Prompt Library
 
-**Directory:** `prompt_library/`  
+**Directory:** `prompt_library/`
 **Status:** Integrated with automated agents via `src/prompts/` module
 
 ---
@@ -407,6 +407,21 @@ def get_db():
 - Updated `src/agents/scout.py` and `src/agents/analyst.py` to use native SDK
 - Fixed model names to `gemini-2.5-pro` and `gemini-2.5-flash`
 
+### [x] Documentation Restructure
+**Completed:** 2026-01-30
+- Simplified `README.md` to project overview and quick start
+- Created `docs/ARCHITECTURE.md` with technical diagrams and system design
+- Created `docs/SYSTEM_OVERVIEW.md` for workflow brainstorming
+- Updated `docs/PROJECT_PLAN.md` with future agents, features, epics, user stories
+
+### [x] Coding Standards & Tooling
+**Completed:** 2026-01-30
+- Created `docs/CODING_STANDARDS.md` - comprehensive development standards
+- Created `pyproject.toml` - Black, Ruff, mypy, pytest configuration
+- Created `.pre-commit-config.yaml` - automated quality checks
+- Created `.vscode/settings.json` - IDE workspace settings
+- Created `src/exceptions.py` - custom exception classes
+
 ---
 
 ## 🔜 Next Priority Items
@@ -446,7 +461,13 @@ def get_db():
 | `src/config.py` | ✅ Working | YAML config loader |
 | `src/database.py` | ✅ Working | Lazy initialization |
 | `src/schemas.py` | ✅ Working | All report types |
+| `src/exceptions.py` | ✅ New | Custom exception classes |
 | `src/agents/base.py` | ✅ Working | BaseReport return type |
 | `src/agents/scout.py` | ✅ Working | Tested via Streamlit |
 | `src/agents/analyst.py` | ✅ Working | Tested via Streamlit |
 | `src/ui/app.py` | ✅ Working | Streamlit Dev Console |
+| `pyproject.toml` | ✅ New | Black, Ruff, mypy, pytest config |
+| `.pre-commit-config.yaml` | ✅ New | Pre-commit hooks |
+| `docs/CODING_STANDARDS.md` | ✅ New | Development standards |
+| `docs/ARCHITECTURE.md` | ✅ New | System design & diagrams |
+| `docs/SYSTEM_OVERVIEW.md` | ✅ New | Workflow brainstorming |

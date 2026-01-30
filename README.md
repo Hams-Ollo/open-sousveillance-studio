@@ -7,8 +7,8 @@
 [![Supabase](https://img.shields.io/badge/database-Supabase-green.svg)](https://supabase.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Version:** 0.1.0-dev  
-**Status:** ✅ Core Agents Working  
+**Version:** 0.1.0-dev
+**Status:** ✅ Core Agents Working
 **Origin:** 📍 Alachua County, Florida
 
 > *"Sousveillance"* (French: sous "from below" + veillance "watching") — the recording of an activity by a participant, in contrast to surveillance. **They watched us. Now we watch back.**
@@ -124,8 +124,10 @@ open-sousveillance-studio/
 | Document | Description |
 |:---------|:------------|
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, diagrams, technology stack |
+| [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) | Development standards, style guide, AI assistant guidelines |
 | [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | Setup, testing, contributing |
-| [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | Roadmap and milestones |
+| [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | Roadmap, epics, features, user stories |
+| [SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) | Workflow design, data flow, open questions |
 | [SPEC.md](docs/SPEC.md) | Technical specification |
 
 ---
@@ -154,7 +156,7 @@ This system is designed to be forked for **any US municipality**:
 
 ## Contributing
 
-We welcome contributions! See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for setup instructions.
+We welcome contributions! See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for setup and [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) for development standards.
 
 **Priority Areas:**
 - Government portal scrapers
@@ -165,8 +167,8 @@ We welcome contributions! See [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for 
 
 ## Contact
 
-**Project Lead:** Hans  
-**Origin Coalition:** Our Alachua Water  
+**Project Lead:** Hans
+**Origin Coalition:** Our Alachua Water
 **Repository:** [github.com/Hams-Ollo/open-sousveillance-studio](https://github.com/Hams-Ollo/open-sousveillance-studio)
 
 ---

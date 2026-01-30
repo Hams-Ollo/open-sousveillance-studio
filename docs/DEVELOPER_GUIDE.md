@@ -306,7 +306,7 @@ flowchart LR
         ST[Source Tester]
         CV[Config Viewer]
     end
-    
+
     AR --> |Test| Agents
     PI --> |View| Prompts
     ST --> |Scrape| Sources
@@ -414,12 +414,16 @@ test/
 
 ## Code Style & Standards
 
-### Python Style
+> **📘 For comprehensive standards, see [CODING_STANDARDS.md](CODING_STANDARDS.md)**
+
+### Quick Reference
 
 - **PEP 8** compliance
 - **Type hints** for all function signatures
-- **Docstrings** for public functions and classes
+- **Docstrings** for public functions and classes (Google style)
 - **Max line length:** 100 characters
+- **Formatter:** Black
+- **Linter:** Ruff
 
 ### Formatting Tools
 

@@ -1,6 +1,6 @@
 # Work Notes: Alachua Civic Intelligence Reporting Studio
 
-**Session Date:** 2026-01-29  
+**Session Date:** 2026-01-29
 **Session Focus:** P0 and P1 Bug Fixes and Core Implementation
 
 ---
@@ -16,7 +16,7 @@ This session addressed all critical (P0) and high-priority (P1) issues identifie
 ### 🔴 P0 - Critical Fixes
 
 #### 1. `src/tools.py` - Replaced Broken Dependencies
-**Before:** Used `requests` and `BeautifulSoup` (removed from requirements)  
+**Before:** Used `requests` and `BeautifulSoup` (removed from requirements)
 **After:** Implemented Firecrawl-based scraping with:
 - Lazy client initialization
 - `monitor_url()` - Scrapes web pages with JS rendering
@@ -24,13 +24,13 @@ This session addressed all critical (P0) and high-priority (P1) issues identifie
 - `deep_research()` - Tavily search integration
 
 #### 2. `src/models.py` - Fixed Invalid Model Names
-**Before:** `gemini-3.0-pro`, `gemini-3.0-flash` (don't exist)  
+**Before:** `gemini-3.0-pro`, `gemini-3.0-flash` (don't exist)
 **After:** `gemini-2.5-pro`, `gemini-2.5-flash`
 - Added lazy API key loading
 - Added docstrings
 
 #### 3. `src/config.py` - Removed Module-Level Crash
-**Before:** Raised `ValueError` on import if `GOOGLE_API_KEY` missing  
+**Before:** Raised `ValueError` on import if `GOOGLE_API_KEY` missing
 **After:** Removed validation at import time
 - Added `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` exports
 - Legacy exports now have warning comments
@@ -40,7 +40,7 @@ This session addressed all critical (P0) and high-priority (P1) issues identifie
 ### 🟠 P1 - Core Implementation
 
 #### 4. Deleted `src/registry.py`
-**Reason:** Duplicated `config/sources.yaml`  
+**Reason:** Duplicated `config/sources.yaml`
 **Updated:** `src/main.py` to use `config.get_sources_by_priority()`
 
 #### 5. Created `src/tools/` Package
@@ -346,21 +346,21 @@ flowchart TB
     subgraph UI["🔬 Dev Console"]
         ST[Streamlit<br/>localhost:8501]
     end
-    
+
     subgraph Agents["🤖 Agents"]
         SA[ScoutAgent]
         AA[AnalystAgent]
     end
-    
+
     subgraph LLM["🧠 LLM"]
         GEM[google.genai<br/>Gemini 2.5 Pro]
     end
-    
+
     subgraph Tools["🔧 Tools"]
         FC[Firecrawl]
         TAV[Tavily]
     end
-    
+
     ST --> SA & AA
     SA --> GEM
     SA --> FC
@@ -377,3 +377,76 @@ flowchart TB
 1. Supabase integration testing
 2. Human-in-the-loop approval flow
 3. Florida Public Notices scraper
+
+---
+
+## Session 3 Continued: Documentation & Standards (2026-01-30 Afternoon)
+
+### Focus
+- Documentation restructuring
+- Coding standards creation
+- Project planning expansion
+
+### Major Accomplishments
+
+#### 1. Documentation Restructure
+- Simplified `README.md` to ~180 lines (was ~750)
+- Created `docs/ARCHITECTURE.md` with all technical diagrams
+- Created `docs/SYSTEM_OVERVIEW.md` for workflow brainstorming
+
+#### 2. Project Plan Expansion
+Updated `docs/PROJECT_PLAN.md` with:
+- **12 new agents** across all layers (A5-A8, B3-B5, C5-C7, R1-R3)
+- **40+ features** across 9 categories
+- **6 Epics** with user stories and task breakdowns
+- **~200 hours** of estimated work
+
+#### 3. Coding Standards
+Created `docs/CODING_STANDARDS.md` (~700 lines) covering:
+- Python style guide (PEP 8 + project specifics)
+- Agent development standards
+- Testing requirements
+- Git workflow (Conventional Commits)
+- Security standards
+- AI assistant guidelines
+
+#### 4. Tooling Configuration
+- `pyproject.toml` - Black, Ruff, mypy, pytest settings
+- `.pre-commit-config.yaml` - Automated quality checks
+- `.vscode/settings.json` - IDE workspace settings
+- `src/exceptions.py` - Custom exception hierarchy
+
+### Files Created
+- `docs/ARCHITECTURE.md`
+- `docs/SYSTEM_OVERVIEW.md`
+- `docs/CODING_STANDARDS.md`
+- `pyproject.toml`
+- `.pre-commit-config.yaml`
+- `.vscode/settings.json`
+- `src/exceptions.py`
+
+### Files Modified
+- `README.md` - Simplified, added new doc links
+- `TODO.md` - Added completed items, updated file status
+- `docs/PROJECT_PLAN.md` - Added agents, features, epics
+- `docs/DEVELOPER_GUIDE.md` - Added Streamlit section
+
+### Documentation Structure
+
+```
+docs/
+├── ARCHITECTURE.md        # Technical diagrams, system design
+├── CODING_STANDARDS.md    # Development standards (NEW)
+├── DEVELOPER_GUIDE.md     # Setup, contributing
+├── PROJECT_PLAN.md        # Roadmap, epics, user stories
+├── SYSTEM_OVERVIEW.md     # Workflow brainstorming (NEW)
+├── SPEC.md                # Technical specification
+└── ...other docs
+```
+
+### Session Summary
+All core documentation is now in place for open-source contributors:
+- Clear README for quick start
+- Comprehensive coding standards for consistency
+- Detailed project plan with prioritized backlog
+- Architecture docs with mermaid diagrams
