@@ -235,8 +235,17 @@ def display_scout_result(result):
 
     st.subheader("📋 Scout Report")
 
+    # Executive Summary
+    exec_summary = getattr(result, 'executive_summary', '')
+    if exec_summary:
+        st.info(exec_summary)
+
     # Summary metrics
-    col1, col2, col3 = st.columns(3)
+    items = getattr(result, 'items', [])
+    alerts = getattr(result, 'alerts', [])
+    priority_items = [i for i in items if getattr(i, 'priority_flag', False)]
+
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         urgency = getattr(result, 'urgency_level', None)
@@ -244,18 +253,20 @@ def display_scout_result(result):
         if urgency_str == "RED":
             st.metric("Urgency", urgency_str, delta="🔴", delta_color="inverse")
         elif urgency_str == "YELLOW":
-            st.metric("Urgency", urgency_str, delta="�", delta_color="off")
+            st.metric("Urgency", urgency_str, delta="🟡", delta_color="off")
         elif urgency_str == "GREEN":
             st.metric("Urgency", urgency_str, delta="🟢", delta_color="normal")
         else:
             st.metric("Urgency", urgency_str, delta="❓")
 
     with col2:
-        alerts = getattr(result, 'alerts', [])
-        st.metric("Alerts", len(alerts))
+        st.metric("Total Items", len(items))
 
     with col3:
-        st.metric("Report ID", getattr(result, 'report_id', 'N/A')[:8] + "...")
+        st.metric("Priority Flagged", len(priority_items), delta="⚠️" if priority_items else None)
+
+    with col4:
+        st.metric("Alerts", len(alerts))
 
     # Alerts section
     if alerts:
@@ -267,7 +278,6 @@ def display_scout_result(result):
             context = getattr(alert, 'context', '')
             deadline = getattr(alert, 'deadline', None)
 
-            # Color code by level
             if level_str == "RED":
                 icon = "🔴"
             elif level_str == "YELLOW":
@@ -281,9 +291,85 @@ def display_scout_result(result):
                 if deadline:
                     st.caption(f"Deadline: {deadline}")
 
+    # Priority Items Section (if any)
+    if priority_items:
+        st.subheader("⚠️ Priority Items (Watchlist Matches)")
+        for item in priority_items:
+            _display_meeting_item(item, highlight=True)
+
+    # All Items by Category
+    if items:
+        st.subheader("📑 All Agenda Items")
+
+        # Group items by category
+        from collections import defaultdict
+        by_category = defaultdict(list)
+        for item in items:
+            cat = getattr(item, 'category', None)
+            cat_str = cat.value if hasattr(cat, 'value') else str(cat) if cat else 'other'
+            by_category[cat_str].append(item)
+
+        # Display by category
+        category_labels = {
+            'budget_finance': '💰 Budget & Finance',
+            'land_use': '🏗️ Land Use & Development',
+            'public_safety': '🚔 Public Safety',
+            'infrastructure': '🛣️ Infrastructure',
+            'personnel': '👥 Personnel',
+            'contracts': '📝 Contracts',
+            'environment': '🌿 Environment',
+            'public_hearing': '🎤 Public Hearing',
+            'consent': '✅ Consent Agenda',
+            'intergovernmental': '🏛️ Intergovernmental',
+            'community': '🎉 Community',
+            'other': '📋 Other',
+        }
+
+        for cat_key, cat_items in by_category.items():
+            cat_label = category_labels.get(cat_key, f"📋 {cat_key.replace('_', ' ').title()}")
+            with st.expander(f"{cat_label} ({len(cat_items)} items)", expanded=False):
+                for item in cat_items:
+                    _display_meeting_item(item, highlight=getattr(item, 'priority_flag', False))
+
     # Full report JSON
     with st.expander("View Raw Report JSON"):
         st.json(result.model_dump() if hasattr(result, 'model_dump') else str(result))
+
+
+def _display_meeting_item(item, highlight: bool = False):
+    """Display a single MeetingItem."""
+    topic = getattr(item, 'topic', 'Unknown')
+    summary = getattr(item, 'summary', '')
+    significance = getattr(item, 'significance', None)
+    sig_str = significance.value if hasattr(significance, 'value') else str(significance) if significance else 'routine'
+    priority_reason = getattr(item, 'priority_reason', '')
+    watchlist_matches = getattr(item, 'watchlist_matches', [])
+    agenda_id = getattr(item, 'agenda_id', '')
+    outcome = getattr(item, 'outcome', '')
+
+    # Significance indicators
+    sig_icons = {'routine': '⚪', 'notable': '🔵', 'critical': '🔴'}
+    sig_icon = sig_icons.get(sig_str, '⚪')
+
+    # Build title
+    title_prefix = "🚨 " if highlight else ""
+    agenda_prefix = f"[{agenda_id}] " if agenda_id else ""
+
+    st.markdown(f"**{title_prefix}{agenda_prefix}{topic}** {sig_icon}")
+
+    if summary:
+        st.write(summary)
+
+    if highlight and priority_reason:
+        st.warning(f"**Priority:** {priority_reason}")
+
+    if highlight and watchlist_matches:
+        st.caption(f"Matches: {', '.join(watchlist_matches)}")
+
+    if outcome:
+        st.caption(f"Outcome: {outcome}")
+
+    st.divider()
 
 
 def display_analyst_result(result):

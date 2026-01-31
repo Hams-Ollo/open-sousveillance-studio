@@ -38,68 +38,58 @@ class Entity:
 class AgentContext:
     """
     Structured context for agent prompts.
-    
+
     Contains all domain-specific information extracted from the prompt library.
     """
-    
+
     # Tara Development Portfolio
     tara_projects: list[TaraProject] = field(default_factory=list)
     tara_summary: str = ""
-    
+
     # Environmental context
     environmental_context: str = ""
-    
+
     # Tracked entities
     developer_entities: list[Entity] = field(default_factory=list)
     government_entities: list[Entity] = field(default_factory=list)
     opposition_entities: list[Entity] = field(default_factory=list)
     whistleblower_entities: list[Entity] = field(default_factory=list)
-    
+
     # Keywords to flag
     priority_keywords: list[str] = field(default_factory=list)
-    
+
     # Behavioral standards
     core_identity: str = ""
     always_rules: list[str] = field(default_factory=list)
     never_rules: list[str] = field(default_factory=list)
-    
+
     def get_keywords_string(self) -> str:
         """Get keywords as comma-separated string."""
         return ", ".join(self.priority_keywords)
-    
+
     def get_entities_string(self) -> str:
         """Get all entity names as comma-separated string."""
         all_entities = (
-            self.developer_entities + 
-            self.government_entities + 
+            self.developer_entities +
+            self.government_entities +
             self.opposition_entities +
             self.whistleblower_entities
         )
         return ", ".join(e.name for e in all_entities)
-    
+
     def get_prompt_context(self) -> str:
         """
         Generate a formatted context block for injection into prompts.
-        
+
         Returns:
             Formatted string suitable for LLM prompt injection.
         """
-        return f"""## DOMAIN CONTEXT
+        return f"""## CIVIC INTELLIGENCE CONTEXT
 
-### Core Identity
-{self.core_identity}
-
-### The Tara Development Portfolio
-{self.tara_summary}
-
-### Environmental Context
-{self.environmental_context}
-
-### Priority Keywords
-Flag any content containing: {self.get_keywords_string()}
-
-### Key Entities to Track
-{self.get_entities_string()}
+### Your Mission
+You are a civic intelligence agent providing COMPREHENSIVE coverage of government activity.
+Your goal is to ensure citizens have complete awareness of what their government is doing.
+Document ALL items - do not filter based on keywords. Flag priority items for extra attention.
 
 ### Behavioral Standards
 **You ALWAYS:**
@@ -107,6 +97,29 @@ Flag any content containing: {self.get_keywords_string()}
 
 **You NEVER:**
 {chr(10).join(f"- {rule}" for rule in self.never_rules)}
+
+---
+
+## LOCAL CONTEXT (Alachua, Florida)
+
+### High-Priority Issues
+The following issues require elevated attention when encountered:
+
+**The Tara Development Portfolio:**
+{self.tara_summary}
+
+**Environmental Concerns:**
+{self.environmental_context}
+
+### Watchlist Entities
+Flag items involving these entities for priority review:
+- **Developers:** {', '.join(e.name for e in self.developer_entities)}
+- **Government Officials:** {', '.join(e.name for e in self.government_entities)}
+- **Opposition/Advocacy:** {', '.join(e.name for e in self.opposition_entities)}
+- **Whistleblowers:** {', '.join(e.name for e in self.whistleblower_entities)}
+
+### Priority Keywords
+Flag (but don't filter) items containing: {self.get_keywords_string()}
 """
 
 
@@ -114,21 +127,21 @@ def _build_context() -> AgentContext:
     """Build AgentContext from prompt library files."""
     loader = get_prompt_loader()
     context = AgentContext()
-    
+
     try:
         # Load Alachua context
         alachua_content = loader.load_context()
-        
+
         # Extract Tara summary
         tara_section = loader.extract_section(alachua_content, "The Tara Development Portfolio")
         if tara_section:
             context.tara_summary = tara_section[:1500]  # Truncate for prompt size
-        
+
         # Extract environmental context
         env_section = loader.extract_section(alachua_content, "Environmental Context")
         if env_section:
             context.environmental_context = env_section[:1000]
-        
+
         # Build Tara projects list
         context.tara_projects = [
             TaraProject("Tara Forest West", "395 acres", "540 lots", "Pending"),
@@ -137,7 +150,7 @@ def _build_context() -> AgentContext:
             TaraProject("Tara April", "Stormwater", "N/A", "Awaiting final plat", "PSE22-0002"),
             TaraProject("Tara Phoenicia", "Mixed-use", "TBD", "Awaiting final plat"),
         ]
-        
+
         # Build entity lists
         context.developer_entities = [
             Entity("Tara Forest, LLC", "Property owner"),
@@ -146,7 +159,7 @@ def _build_context() -> AgentContext:
             Entity("Jay Brown", "Site developer", ["JBPro"]),
             Entity("Holtzman Vogel", "Legal representation"),
         ]
-        
+
         context.government_entities = [
             Entity("Mike DaRoza", "City Manager"),
             Entity("Adam Boukari", "Former City Manager"),
@@ -154,7 +167,7 @@ def _build_context() -> AgentContext:
             Entity("Tim Alexander", "SRWMD Asst. Exec. Dir."),
             Entity("Sara Ferson", "SRWMD District Engineer"),
         ]
-        
+
         context.opposition_entities = [
             Entity("National Speleological Society", "Adjacent property owner", ["NSS"]),
             Entity("Jane Graham", "NSS legal counsel", ["Sunshine City Law"]),
@@ -162,11 +175,11 @@ def _build_context() -> AgentContext:
             Entity("Prof. Thomas Sawicki, PhD", "NSS expert (biodiversity)"),
             Entity("Stephen Boyes, P.G.", "NSS expert (sinkhole risk)"),
         ]
-        
+
         context.whistleblower_entities = [
             Entity("Justin Tabor", "Former Principal Planner", notes="Resigned early 2025, authored Open Letter"),
         ]
-        
+
         # Priority keywords
         context.priority_keywords = [
             "Tara", "Tara April", "Tara Forest", "Tara Baywood", "Tara Phoenicia",
@@ -181,21 +194,21 @@ def _build_context() -> AgentContext:
             "Justin Tabor", "Mike DaRoza", "Adam Boukari",
             "whistleblower", "ethics", "AICP",
         ]
-        
+
         logger.debug("Loaded Alachua context", keywords_count=len(context.priority_keywords))
-        
+
     except FileNotFoundError as e:
         logger.warning("Could not load Alachua context", error=str(e))
-    
+
     try:
         # Load behavioral standards
         standards_content = loader.load_behavioral_standards()
-        
+
         # Extract core identity
         identity_section = loader.extract_section(standards_content, "Core Identity")
         if identity_section:
             context.core_identity = identity_section[:500]
-        
+
         # Extract always/never rules
         always_section = loader.extract_section(standards_content, "You ALWAYS")
         if always_section:
@@ -205,7 +218,7 @@ def _build_context() -> AgentContext:
                 "Flag uncertainty when confidence is below HIGH",
                 "Prioritize actionable information",
             ]
-        
+
         never_section = loader.extract_section(standards_content, "You NEVER")
         if never_section:
             context.never_rules = [
@@ -214,12 +227,12 @@ def _build_context() -> AgentContext:
                 "Editorialize or express political opinions",
                 "Skip verification to appear more comprehensive",
             ]
-        
+
         logger.debug("Loaded behavioral standards")
-        
+
     except FileNotFoundError as e:
         logger.warning("Could not load behavioral standards", error=str(e))
-    
+
     return context
 
 
@@ -227,7 +240,7 @@ def _build_context() -> AgentContext:
 def get_alachua_context() -> AgentContext:
     """
     Get the cached Alachua context.
-    
+
     Returns:
         AgentContext with all domain-specific information.
     """

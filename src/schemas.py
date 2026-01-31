@@ -8,6 +8,29 @@ class UrgencyLevel(str, Enum):
     YELLOW = "YELLOW" # Monitor
     GREEN = "GREEN"   # Log
 
+
+class CivicCategory(str, Enum):
+    """Universal civic categories applicable to any municipality."""
+    BUDGET_FINANCE = "budget_finance"       # Budgets, taxes, appropriations, audits
+    LAND_USE = "land_use"                   # Zoning, plats, comprehensive plan
+    PUBLIC_SAFETY = "public_safety"         # Police, fire, emergency services
+    INFRASTRUCTURE = "infrastructure"       # Roads, utilities, maintenance
+    PERSONNEL = "personnel"                 # Hiring, salaries, HR matters
+    CONTRACTS = "contracts"                 # Bids, RFPs, vendor agreements
+    ENVIRONMENT = "environment"             # Environmental protection, permits
+    PUBLIC_HEARING = "public_hearing"       # Quasi-judicial, public comment
+    CONSENT = "consent"                     # Consent agenda items
+    INTERGOVERNMENTAL = "intergovernmental" # County/state/federal coordination
+    COMMUNITY = "community"                 # Events, proclamations, recognition
+    OTHER = "other"                         # Uncategorized items
+
+
+class Significance(str, Enum):
+    """Civic significance level for agenda items."""
+    ROUTINE = "routine"     # Standard business, no action needed
+    NOTABLE = "notable"     # Worth knowing about, may have implications
+    CRITICAL = "critical"   # Requires attention, action, or attendance
+
 class UrgencyAlert(BaseModel):
     level: UrgencyLevel = Field(..., description="Urgency level based on immediate deadlines or threats")
     deadline: Optional[date] = Field(None, description="Specific deadline for action if applicable")
@@ -15,10 +38,19 @@ class UrgencyAlert(BaseModel):
     context: str = Field(..., description="Context explaining why this is urgent")
 
 class MeetingItem(BaseModel):
+    """A single agenda item with comprehensive analysis."""
     agenda_id: Optional[str] = Field(None, description="Agenda item ID if available")
-    topic: str = Field(..., description="Summary of the agenda topic")
-    related_to: List[str] = Field(..., description="List of related entities or keywords (e.g., 'Tara Forest', 'Water')")
+    topic: str = Field(..., description="Brief title of the agenda item")
+    summary: str = Field(..., description="2-3 sentence summary explaining what this item is about")
+    category: CivicCategory = Field(CivicCategory.OTHER, description="Civic category for this item")
+    significance: Significance = Field(Significance.ROUTINE, description="How significant is this for citizens")
+    related_to: List[str] = Field(default_factory=list, description="Related entities, projects, or keywords")
     outcome: Optional[str] = Field(None, description="Vote outcome or decision if meeting already occurred")
+
+    # Priority flagging for watchlist matches
+    priority_flag: bool = Field(False, description="True if this item matches watchlist entities/keywords")
+    priority_reason: Optional[str] = Field(None, description="Why this item was flagged as priority")
+    watchlist_matches: List[str] = Field(default_factory=list, description="Which watchlist items this matches")
 
 class BaseReport(BaseModel):
     """Base class for all report types with shared fields."""
