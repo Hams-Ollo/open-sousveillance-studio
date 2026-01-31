@@ -11,7 +11,7 @@
 **Status:** ✅ Comprehensive Civic Intelligence
 **Origin:** 📍 Alachua County, Florida
 
-> *"Sousveillance"* (French: sous "from below" + veillance "watching") — the recording of an activity by a participant, in contrast to surveillance. **They watched us. Now we watch back.**
+> *"Sousveillance"* (French: sous "from below" + veillance "watching") — the recording of an activity by a participant, in contrast to surveillance. **From clear seeing, right action.**
 
 ---
 
