@@ -171,7 +171,8 @@ open-sousveillance-studio/
 ├── config/                     # YAML configuration files
 │   ├── instance.yaml           # Instance identity & scheduling
 │   ├── sources.yaml            # Government data sources
-│   └── entities.yaml           # Watchlist (projects, orgs, keywords)
+│   ├── entities.yaml           # Watchlist with priority tiers (critical/high/medium/low)
+│   └── civic_categories.yaml   # Universal civic categories (shared across instances)
 │
 ├── src/                        # Application source code
 │   ├── agents/                 # AI agent implementations
@@ -207,11 +208,15 @@ open-sousveillance-studio/
 │   │       ├── source_tester.py
 │   │       └── config_viewer.py
 │   │
+│   ├── prompts/                # Prompt loading & context
+│   │   ├── loader.py           # PromptLoader & ConfigLoader classes
+│   │   └── context.py          # AgentContext with watchlist entities
+│   │
 │   ├── app.py                  # FastAPI application
 │   ├── main.py                 # CLI entry point
 │   ├── config.py               # Configuration loader
 │   ├── database.py             # Supabase client
-│   ├── schemas.py              # Pydantic models
+│   ├── schemas.py              # Pydantic models (CivicCategory, Significance, etc.)
 │   └── tools.py                # LangChain tool definitions
 │
 ├── prompt_library/             # Agent prompt templates
@@ -533,6 +538,25 @@ Government Portal → Firecrawl → Scout Agent → ScoutReport → Database
 | LLM | Gemini 2.5 | `src/models.py` |
 | Database | Supabase | `src/database.py` |
 | Scraping | Firecrawl | `src/tools/firecrawl_client.py` |
+| Config Loading | ConfigLoader | `src/prompts/loader.py` |
+| Agent Context | AgentContext | `src/prompts/context.py` |
+
+### Working with Configuration
+
+```python
+from src.prompts.loader import get_config_loader
+from src.prompts.context import get_alachua_context
+
+# Load watchlist from YAML
+config_loader = get_config_loader()
+keywords = config_loader.get_all_watchlist_keywords()  # 110+ keywords
+critical = config_loader.get_priority_entities("critical")  # Critical entities
+
+# Load full agent context (includes watchlist + prompt library)
+context = get_alachua_context()
+print(context.instance_name)  # "Alachua County Civic Watch"
+print(len(context.watchlist_entities))  # 23 entities
+```
 
 ---
 

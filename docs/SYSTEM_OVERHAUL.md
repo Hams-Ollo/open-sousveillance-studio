@@ -304,9 +304,9 @@ categories:
   # ... additional categories
 ```
 
-- [ ] Create `civic_categories.yaml`
-- [ ] Define all universal categories
-- [ ] Add loader function in `src/prompts/loader.py`
+- [x] Create `civic_categories.yaml`
+- [x] Define all universal categories (12 categories + significance levels)
+- [x] Add `ConfigLoader` class in `src/prompts/loader.py`
 
 ### 2.2 Refactor Instance Config
 
@@ -334,9 +334,9 @@ instance:
   entities_config: "entities.yaml"
 ```
 
-- [ ] Update `instance.yaml` structure
-- [ ] Add jurisdiction metadata
-- [ ] Add focus areas (high-level, not keyword lists)
+- [x] Update `instance.yaml` structure
+- [x] Add jurisdiction metadata
+- [x] Updated header to document config file relationships
 
 ### 2.3 Refactor Entities Config
 
@@ -347,16 +347,16 @@ Separate into:
 - `tracked` (standard tracking - logged but not alerted)
 - `known` (context only - helps LLM understand relationships)
 
-- [ ] Restructure entities.yaml
-- [ ] Add priority tiers
-- [ ] Update loader to handle new structure
+- [x] Restructure entities.yaml with priority tiers (critical/high/medium/low)
+- [x] Add instance metadata section
+- [x] Update `ConfigLoader` to handle new structure with `get_priority_entities()`
 
 ### Phase 2 Testing Checkpoint
 
-- [ ] Verify civic categories load correctly
-- [ ] Verify instance config loads correctly
-- [ ] Verify entity tiers work (watchlist vs tracked)
-- [ ] Test with a new "mock municipality" config
+- [x] Verify civic categories load correctly
+- [x] Verify instance config loads correctly (instance name, municipality)
+- [x] Verify entity tiers work (23 entities, 110 keywords loaded)
+- [ ] Test with a new "mock municipality" config (deferred to Phase 3)
 
 ---
 
@@ -433,10 +433,11 @@ Track all files modified during this overhaul.
 | `src/agents/scout.py` | 1 | ✅ Done | Updated _build_prompt for comprehensive analysis |
 | `src/prompts/context.py` | 1 | ✅ Done | Refactored get_prompt_context for comprehensive + watchlist |
 | `src/ui/pages/agent_runner.py` | 1 | ✅ Done | Added category grouping, priority highlighting, exec summary |
-| `config/civic_categories.yaml` | 2 | ⬜ Pending | NEW - universal categories |
-| `config/instance.yaml` | 2 | ⬜ Pending | Refactor structure |
-| `config/entities.yaml` | 2 | ⬜ Pending | Add priority tiers |
-| `src/prompts/loader.py` | 2 | ⬜ Pending | Load civic categories |
+| `config/civic_categories.yaml` | 2 | ✅ Done | NEW - 12 universal categories + significance levels |
+| `config/instance.yaml` | 2 | ✅ Done | Updated header with config file documentation |
+| `config/entities.yaml` | 2 | ✅ Done | Added priority tiers (critical/high/medium/low), instance metadata |
+| `src/prompts/loader.py` | 2 | ✅ Done | Added ConfigLoader class with YAML loading |
+| `src/prompts/context.py` | 2 | ✅ Done | Config-driven watchlist loading, WatchlistEntity dataclass |
 | `src/database.py` | 3 | ⬜ Pending | Vector search functions |
 | `src/agents/base.py` | 3 | ⬜ Pending | Memory retrieval |
 

@@ -4,11 +4,17 @@
 # This file defines YOUR specific deployment of Open Sousveillance Studio.
 # Customize this for your community, city, county, or state.
 #
-# To get started:
-# 1. Copy this file to create your own instance
-# 2. Update the jurisdiction details below
-# 3. Configure your sources in sources.yaml
-# 4. Define your watchlist in entities.yaml
+# CONFIGURATION FILES:
+#   instance.yaml       - This file: deployment settings, scheduling, alerts
+#   entities.yaml       - Watchlist: entities, keywords, topics to FLAG
+#   sources.yaml        - Data sources: URLs, portals, document feeds
+#   civic_categories.yaml - Universal civic categories (shared across instances)
+#
+# To deploy for a new municipality:
+# 1. Copy this file and entities.yaml
+# 2. Update jurisdiction and watchlist for your area
+# 3. Configure sources.yaml with local government URLs
+# 4. civic_categories.yaml is universal - no changes needed
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -17,16 +23,16 @@
 instance:
   # Unique identifier for this instance (used in database, logs, etc.)
   id: "alachua-fl"
-  
+
   # Human-readable name for reports and dashboards
   name: "Alachua County Civic Watch"
-  
+
   # Short description of the monitoring focus
   description: "Monitoring local government transparency in Alachua County, Florida, with a focus on protecting the Floridan Aquifer and Mill Creek Sink."
-  
+
   # Timezone for scheduling and timestamps (IANA format)
   timezone: "America/New_York"
-  
+
   # Contact info for the instance operator (for attribution in reports)
   operator:
     name: "Our Alachua Water Coalition"
@@ -42,15 +48,15 @@ instance:
 jurisdiction:
   # Country (ISO 3166-1 alpha-2)
   country: "US"
-  
+
   # State (US postal code or full name)
   state: "FL"
   state_name: "Florida"
-  
+
   # County (primary geographic unit)
   county: "Alachua"
   county_fips: "12001"  # Optional: FIPS code for data integration
-  
+
   # Municipalities within scope (list all cities/towns to monitor)
   municipalities:
     - name: "City of Alachua"
@@ -65,7 +71,7 @@ jurisdiction:
       type: "city"
       population: 145000
       primary: false
-  
+
   # Unincorporated areas (if monitoring county-level only)
   include_unincorporated: true
 
@@ -82,13 +88,13 @@ schedule:
     cron: "0 6 * * *"  # Every day at 6:00 AM
     retry_on_failure: true
     max_retries: 3
-  
+
   # Weekly analysts - synthesize patterns
   analysts:
     enabled: true
     cron: "0 9 * * 1"  # Every Monday at 9:00 AM
     requires_approval: true  # Pause for human review before synthesis
-  
+
   # Monthly synthesizers - generate newsletters
   synthesizers:
     enabled: true
@@ -103,7 +109,7 @@ schedule:
 alerts:
   # Enable/disable alert system
   enabled: true
-  
+
   # Channels for different urgency levels
   channels:
     red:  # Immediate action required
@@ -111,11 +117,11 @@ alerts:
         webhook_url: "${DISCORD_WEBHOOK_URL}"  # Use env var
       - type: "email"
         recipients: ["alerts@ouralachuawater.org"]
-    
+
     yellow:  # Monitor closely
       - type: "email"
         recipients: ["weekly-digest@ouralachuawater.org"]
-    
+
     green:  # Informational
       - type: "log"  # Just log to database, no notification
 
@@ -130,12 +136,12 @@ outputs:
     enabled: true
     base_path: "./data"
     structure: "frequency"  # Options: "frequency" (daily/weekly/monthly), "date" (YYYY/MM/DD)
-  
+
   # Supabase storage (for PDFs and documents)
   supabase_storage:
     enabled: true
     bucket: "government-documents"
-  
+
   # Newsletter distribution
   newsletter:
     enabled: false  # Enable when ready
@@ -155,18 +161,18 @@ features:
     enabled: true
     method: "hybrid"  # Options: "pdfplumber", "gemini", "hybrid"
     store_originals: true  # Keep original PDFs in storage
-  
+
   # Vector embeddings for semantic search
   embeddings:
     enabled: true
     model: "text-embedding-004"  # Google's embedding model
     store_in: "supabase"  # Uses pgvector
-  
+
   # Human-in-the-loop approval
   approval_workflow:
     enabled: true
     require_for: ["analyst", "synthesizer"]  # Which agent types need approval
-  
+
   # Change detection (vs full scrape every time)
   change_detection:
     enabled: true

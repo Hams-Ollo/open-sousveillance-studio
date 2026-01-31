@@ -7,8 +7,8 @@
 [![Supabase](https://img.shields.io/badge/database-Supabase-green.svg)](https://supabase.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Version:** 0.1.0-dev
-**Status:** ✅ Core Agents Working
+**Version:** 0.2.0-dev
+**Status:** ✅ Comprehensive Civic Intelligence
 **Origin:** 📍 Alachua County, Florida
 
 > *"Sousveillance"* (French: sous "from below" + veillance "watching") — the recording of an activity by a participant, in contrast to surveillance. **They watched us. Now we watch back.**
@@ -25,11 +25,14 @@ Open Sousveillance Studio is an **open-source AI agent platform** that monitors 
 
 ### Key Features
 
-- 🔍 **Automated Monitoring** — Scouts watch 15+ government data sources daily
+- 🔍 **Comprehensive Coverage** — Scouts analyze ALL government activity, not just keyword matches
 - 🧠 **AI Analysis** — Gemini 2.5 Pro extracts insights from meeting agendas and permits
 - 🚨 **Smart Alerts** — RED/YELLOW/GREEN urgency levels for time-sensitive items
+- 🏷️ **Civic Categories** — 12 universal categories (Budget, Land Use, Environment, etc.)
+- ⚠️ **Priority Flagging** — Watchlist items highlighted without filtering other content
 - 📊 **Structured Reports** — JSON output ready for dashboards or newsletters
-- 🔧 **Dev Console** — Streamlit UI for testing and debugging
+- 🔧 **Config-Driven** — Deploy to any municipality by editing YAML files
+- 🖥️ **Dev Console** — Streamlit UI for testing and debugging
 
 ---
 
@@ -97,18 +100,33 @@ Customize for your community by editing YAML files in `config/`:
 |:-----|:--------|
 | `instance.yaml` | Your deployment identity, timezone, schedules |
 | `sources.yaml` | Government portals to monitor |
-| `entities.yaml` | Projects, organizations, and keywords to watch |
+| `entities.yaml` | Watchlist: entities, keywords, topics to FLAG (not filter) |
+| `civic_categories.yaml` | Universal civic categories (shared across all instances) |
 
-Example watchlist entry:
+### Priority Tiers
+
+Entities in your watchlist use priority tiers instead of urgency colors:
+
+| Tier | Meaning |
+|:-----|:--------|
+| `critical` | Immediate attention, potential citizen action needed |
+| `high` | Important to track closely, may escalate |
+| `medium` | Worth monitoring, background awareness |
+| `low` | Informational, allies, or general context |
+
+### Example Watchlist Entry
 
 ```yaml
 # config/entities.yaml
 projects:
   - id: "tara-portfolio"
     name: "Tara Development Portfolio"
-    urgency: "red"
+    priority: "critical"  # Flags items for priority review
     keywords: ["Mill Creek", "PSE22-0002"]
+    aliases: ["Tara Forest", "Tara Baywood"]
 ```
+
+**Key Principle:** The system documents ALL government activity. Watchlist items are *flagged* for priority attention, not used to *filter* what gets reported.
 
 ---
 
@@ -116,16 +134,21 @@ projects:
 
 ```
 open-sousveillance-studio/
-├── config/              # YAML configuration
+├── config/                    # YAML configuration
+│   ├── instance.yaml          # Deployment settings
+│   ├── entities.yaml          # Watchlist (instance-specific)
+│   ├── sources.yaml           # Data sources to monitor
+│   └── civic_categories.yaml  # Universal categories
 ├── src/
-│   ├── agents/          # Scout & Analyst agents
-│   ├── ui/              # Streamlit Dev Console
-│   ├── api/             # FastAPI routes
-│   ├── tools/           # Firecrawl, embeddings, RAG
-│   └── app.py           # Main application
-├── prompt_library/      # Agent prompts
-├── docs/                # Documentation
-└── test/                # Test suite
+│   ├── agents/                # Scout & Analyst agents
+│   ├── prompts/               # Context & prompt loading
+│   ├── schemas.py             # Pydantic models (CivicCategory, Significance, etc.)
+│   ├── ui/                    # Streamlit Dev Console
+│   ├── api/                   # FastAPI routes
+│   └── app.py                 # Main application
+├── prompt_library/            # Agent prompts & context
+├── docs/                      # Documentation
+└── test/                      # Test suite
 ```
 
 ---
@@ -135,21 +158,31 @@ open-sousveillance-studio/
 | Document | Description |
 |:---------|:------------|
 | 🏗️ [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, diagrams, technology stack |
-| 📏 [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) | Development standards, style guide, AI assistant guidelines |
+| � [SYSTEM_OVERHAUL.md](docs/SYSTEM_OVERHAUL.md) | **NEW** Comprehensive coverage architecture |
+| �📏 [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) | Development standards, style guide |
 | 👩‍💻 [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | Setup, testing, contributing |
 | 📅 [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | Roadmap, epics, features, user stories |
-| 🔄 [SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) | Workflow design, data flow, open questions |
+| 🔄 [SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) | Workflow design, data flow |
 | 📋 [SPEC.md](docs/SPEC.md) | Technical specification |
 
 ---
 
 ## 🗺️ Roadmap
 
-- [x] **Phase 1:** Foundation (config, schemas, logging)
-- [x] **Phase 2:** Scout Layer (Firecrawl, Gemini, Dev Console)
-- [ ] **Phase 3:** Analyst Layer (deep research, approvals)
-- [ ] **Phase 4:** Synthesizer Layer (newsletters, social media)
-- [ ] **Phase 5:** Production (monitoring, Docker deployment)
+### Completed
+- [x] **Foundation:** Config, schemas, logging, Streamlit Dev Console
+- [x] **Scout Layer:** Firecrawl integration, Gemini analysis
+- [x] **Comprehensive Coverage:** Analyze ALL items, not just keyword matches
+- [x] **Config-Driven Architecture:** YAML-based watchlists and categories
+
+### In Progress
+- [ ] **Analyst Layer:** Deep research, pattern recognition, approvals
+- [ ] **Vector Search:** Query past reports for context
+
+### Planned
+- [ ] **Synthesizer Layer:** Newsletters, social media content
+- [ ] **Feedback System:** User ratings to improve relevance
+- [ ] **Production:** Monitoring, Docker deployment, multi-municipality
 
 ---
 
@@ -160,8 +193,11 @@ This system is designed to be forked for **any US municipality**:
 1. Fork this repository
 2. Edit `config/instance.yaml` with your jurisdiction
 3. Add your government portals to `config/sources.yaml`
-4. Define your watchlist in `config/entities.yaml`
-5. Deploy and start watching!
+4. Define your watchlist in `config/entities.yaml` (priority tiers: critical/high/medium/low)
+5. `civic_categories.yaml` is universal — no changes needed
+6. Deploy and start watching!
+
+**Key Design Principle:** Generic framework (code) + Instance config (YAML) + LLM intelligence (dynamic reasoning)
 
 ---
 

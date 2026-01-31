@@ -1,0 +1,195 @@
+# Civic Categories Configuration
+# Universal categories applicable to any municipality
+# These categories are used by scouts to classify agenda items
+
+categories:
+  budget_finance:
+    name: "Budget & Finance"
+    description: "Budgets, taxes, appropriations, audits, financial reports"
+    icon: "💰"
+    keywords:
+      - budget
+      - appropriation
+      - tax
+      - levy
+      - audit
+      - financial
+      - revenue
+      - expenditure
+      - fiscal
+      - millage
+      - bond
+      - debt
+
+  land_use:
+    name: "Land Use & Development"
+    description: "Zoning, plats, comprehensive plan, development approvals"
+    icon: "🏗️"
+    keywords:
+      - zoning
+      - plat
+      - subdivision
+      - comprehensive plan
+      - land use
+      - development
+      - annexation
+      - rezoning
+      - variance
+      - special exception
+      - site plan
+      - PUD
+      - density
+
+  public_safety:
+    name: "Public Safety"
+    description: "Police, fire, emergency services, code enforcement"
+    icon: "🚔"
+    keywords:
+      - police
+      - fire
+      - emergency
+      - sheriff
+      - code enforcement
+      - safety
+      - crime
+      - dispatch
+      - EMS
+
+  infrastructure:
+    name: "Infrastructure"
+    description: "Roads, utilities, water, sewer, maintenance"
+    icon: "🛣️"
+    keywords:
+      - road
+      - street
+      - utility
+      - water
+      - sewer
+      - stormwater
+      - drainage
+      - sidewalk
+      - traffic
+      - maintenance
+      - construction
+      - paving
+
+  personnel:
+    name: "Personnel"
+    description: "Hiring, salaries, HR matters, appointments"
+    icon: "👥"
+    keywords:
+      - hiring
+      - salary
+      - compensation
+      - appointment
+      - resignation
+      - termination
+      - employee
+      - staff
+      - position
+      - HR
+
+  contracts:
+    name: "Contracts & Procurement"
+    description: "Bids, RFPs, vendor agreements, purchasing"
+    icon: "📝"
+    keywords:
+      - contract
+      - bid
+      - RFP
+      - RFQ
+      - procurement
+      - vendor
+      - agreement
+      - purchase
+      - award
+
+  environment:
+    name: "Environment"
+    description: "Environmental protection, permits, conservation"
+    icon: "🌿"
+    keywords:
+      - environment
+      - conservation
+      - wetland
+      - wildlife
+      - tree
+      - pollution
+      - ERP
+      - permit
+      - aquifer
+      - watershed
+      - sustainability
+
+  public_hearing:
+    name: "Public Hearing"
+    description: "Quasi-judicial proceedings, public comment opportunities"
+    icon: "🎤"
+    keywords:
+      - public hearing
+      - quasi-judicial
+      - public comment
+      - testimony
+      - appeal
+      - variance
+      - special exception
+
+  consent:
+    name: "Consent Agenda"
+    description: "Routine items approved without discussion"
+    icon: "✅"
+    keywords:
+      - consent
+      - routine
+      - minutes
+      - approval
+
+  intergovernmental:
+    name: "Intergovernmental"
+    description: "County, state, federal coordination and agreements"
+    icon: "🏛️"
+    keywords:
+      - interlocal
+      - county
+      - state
+      - federal
+      - grant
+      - coordination
+      - agreement
+      - MOU
+
+  community:
+    name: "Community"
+    description: "Events, proclamations, recognition, community programs"
+    icon: "🎉"
+    keywords:
+      - proclamation
+      - recognition
+      - event
+      - community
+      - volunteer
+      - award
+      - ceremony
+
+  other:
+    name: "Other"
+    description: "Items not fitting other categories"
+    icon: "📋"
+    keywords: []
+
+# Significance levels for civic items
+significance_levels:
+  routine:
+    name: "Routine"
+    description: "Standard business, no citizen action needed"
+    icon: "⚪"
+    
+  notable:
+    name: "Notable"
+    description: "Worth knowing about, may have future implications"
+    icon: "🔵"
+    
+  critical:
+    name: "Critical"
+    description: "Requires attention, action, or attendance"
+    icon: "🔴"

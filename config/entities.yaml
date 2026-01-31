@@ -1,21 +1,33 @@
 # =============================================================================
-# OPEN SOUSVEILLANCE STUDIO - ENTITIES & WATCHLIST CONFIGURATION
+# OPEN SOUSVEILLANCE STUDIO - WATCHLIST CONFIGURATION
 # =============================================================================
-# This file defines the specific entities, keywords, and topics to monitor.
+# Instance-specific watchlist for Alachua, Florida
 #
-# The system will:
-# - Flag documents containing these terms
-# - Track relationships between entities
-# - Assign urgency levels based on keyword context
-# - Build a knowledge graph over time
+# This file defines entities, keywords, and topics to FLAG (not filter).
+# The system documents ALL government activity, but items matching this
+# watchlist receive priority highlighting.
 #
-# Categories:
-# - projects: Development projects, construction, land use changes
-# - organizations: Companies, LLCs, advocacy groups, government bodies
-# - people: Key officials, developers, attorneys, experts
-# - locations: Specific sites, addresses, parcels, geographic features
-# - topics: Issue areas, policy domains, environmental concerns
+# PRIORITY TIERS:
+#   critical - Immediate attention required, potential citizen action needed
+#   high     - Important to track closely, may escalate
+#   medium   - Worth monitoring, background awareness
+#   low      - Informational, allies, or general context
+#
+# CATEGORIES:
+#   projects      - Development projects, construction, land use changes
+#   organizations - Companies, LLCs, advocacy groups, government bodies
+#   people        - Key officials, developers, attorneys, experts
+#   locations     - Specific sites, addresses, parcels, geographic features
+#   topics        - Issue areas, policy domains, environmental concerns
 # =============================================================================
+
+# Instance metadata
+instance:
+  name: "Alachua Civic Intelligence"
+  municipality: "City of Alachua"
+  county: "Alachua County"
+  state: "Florida"
+  timezone: "America/New_York"
 
 # -----------------------------------------------------------------------------
 # PROJECTS
@@ -27,9 +39,9 @@ projects:
   - id: "tara-portfolio"
     name: "Tara Development Portfolio"
     description: "Multi-phase residential development over Mill Creek Sink"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     status: "active"
-    
+
     # All known names/aliases for this project
     aliases:
       - "Tara Forest"
@@ -42,7 +54,7 @@ projects:
       - "Tara Larga"
       - "Tara Verde"
       - "Tara Vista"
-    
+
     # Keywords that indicate relevance
     keywords:
       - "Tara"
@@ -50,7 +62,7 @@ projects:
       - "PSE22-0002"  # Application number
       - "580 acres"
       - "1000 units"
-    
+
     # Related entity IDs
     related_organizations:
       - "tara-forest-llc"
@@ -58,11 +70,11 @@ projects:
       - "sayed-moukhtara"
     related_locations:
       - "mill-creek-sink"
-    
+
     # Tracking metadata
     first_detected: "2021-06-15"
     notes: |
-      Projects are being reviewed in "piecemeal fashion" despite being 
+      Projects are being reviewed in "piecemeal fashion" despite being
       "inextricably intertwined" (per former City Manager Mike DaRoza, June 2022).
       Apex Companies letter (Dec 23, 2025) found "insufficient geologic data."
 
@@ -76,7 +88,7 @@ organizations:
   - id: "tara-forest-llc"
     name: "Tara Forest, LLC"
     type: "developer"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     aliases:
       - "Tara Forest LLC"
       - "Tara April LLC"
@@ -92,7 +104,7 @@ organizations:
   - id: "city-of-alachua"
     name: "City of Alachua"
     type: "municipality"
-    urgency: "yellow"
+    priority: "medium"  # Was: urgency: yellow
     aliases:
       - "Alachua City"
       - "City Commission"
@@ -104,7 +116,7 @@ organizations:
   - id: "alachua-county"
     name: "Alachua County"
     type: "county"
-    urgency: "yellow"
+    priority: "medium"  # Was: urgency: yellow
     aliases:
       - "BOCC"
       - "Board of County Commissioners"
@@ -116,7 +128,7 @@ organizations:
   - id: "srwmd"
     name: "Suwannee River Water Management District"
     type: "state_agency"
-    urgency: "yellow"
+    priority: "high"  # Was: urgency: yellow
     aliases:
       - "SRWMD"
       - "Suwannee River WMD"
@@ -131,7 +143,7 @@ organizations:
   - id: "our-alachua-water"
     name: "Our Alachua Water"
     type: "advocacy"
-    urgency: "green"
+    priority: "low"  # Ally - informational
     aliases:
       - "OAW"
     keywords:
@@ -141,7 +153,7 @@ organizations:
   - id: "nss"
     name: "National Speleological Society"
     type: "advocacy"
-    urgency: "green"
+    priority: "low"  # Ally - informational
     aliases:
       - "NSS"
     keywords:
@@ -153,7 +165,7 @@ organizations:
   - id: "our-santa-fe-river"
     name: "Our Santa Fe River"
     type: "advocacy"
-    urgency: "green"
+    priority: "low"  # Ally - informational
     aliases:
       - "OSFR"
     keywords:
@@ -171,7 +183,7 @@ people:
   - id: "sayed-moukhtara"
     name: "Sayed Moukhtara"
     role: "Developer"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     aliases:
       - "Moukhtara"
       - "S. Moukhtara"
@@ -185,7 +197,7 @@ people:
   - id: "justin-tabor"
     name: "Justin Tabor"
     role: "Former Planning Director"
-    urgency: "yellow"
+    priority: "high"  # Was: urgency: yellow
     aliases:
       - "J. Tabor"
     notes: "Former City Planning Director, now with developer's firm."
@@ -197,7 +209,7 @@ people:
   - id: "bryan-buescher"
     name: "Bryan Buescher"
     role: "Water Quality Expert"
-    urgency: "green"
+    priority: "low"  # Ally - informational
     organizations:
       - "our-alachua-water"
     keywords:
@@ -214,7 +226,7 @@ locations:
   - id: "mill-creek-sink"
     name: "Mill Creek Sink"
     type: "karst_feature"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     aliases:
       - "Mill Creek"
       - "Mill Creek Sinkhole"
@@ -233,7 +245,7 @@ locations:
   - id: "hornsby-spring"
     name: "Hornsby Spring"
     type: "spring"
-    urgency: "yellow"
+    priority: "high"  # Was: urgency: yellow
     aliases:
       - "Hornsby"
     keywords:
@@ -244,7 +256,7 @@ locations:
   - id: "santa-fe-river"
     name: "Santa Fe River"
     type: "river"
-    urgency: "yellow"
+    priority: "high"  # Was: urgency: yellow
     keywords:
       - "Santa Fe River"
       - "Santa Fe"
@@ -253,7 +265,7 @@ locations:
   - id: "floridan-aquifer"
     name: "Floridan Aquifer"
     type: "aquifer"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     aliases:
       - "Upper Floridan"
       - "Floridan"
@@ -272,7 +284,7 @@ topics:
   # Environmental
   - id: "karst-geology"
     name: "Karst Geology"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     keywords:
       - "karst"
       - "sinkhole"
@@ -284,7 +296,7 @@ topics:
 
   - id: "water-quality"
     name: "Water Quality"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     keywords:
       - "nitrate"
       - "nitrogen"
@@ -298,7 +310,7 @@ topics:
 
   - id: "stormwater"
     name: "Stormwater Management"
-    urgency: "yellow"
+    priority: "high"  # Was: urgency: yellow
     keywords:
       - "stormwater"
       - "drainage"
@@ -311,7 +323,7 @@ topics:
   # Land Use
   - id: "rezoning"
     name: "Rezoning"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     keywords:
       - "rezone"
       - "rezoning"
@@ -323,7 +335,7 @@ topics:
 
   - id: "annexation"
     name: "Annexation"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     keywords:
       - "annexation"
       - "annex"
@@ -333,7 +345,7 @@ topics:
 
   - id: "special-exception"
     name: "Special Exception"
-    urgency: "yellow"
+    priority: "high"  # Was: urgency: yellow
     keywords:
       - "special exception"
       - "variance"
@@ -344,7 +356,7 @@ topics:
   # Permits
   - id: "erp"
     name: "Environmental Resource Permit"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     keywords:
       - "ERP"
       - "environmental resource permit"
@@ -354,7 +366,7 @@ topics:
 
   - id: "consumptive-use"
     name: "Consumptive Use Permit"
-    urgency: "red"
+    priority: "critical"  # Was: urgency: red
     keywords:
       - "consumptive use"
       - "water use permit"

@@ -22,6 +22,29 @@
 
 Open Sousveillance Studio deploys AI agents that watch 15+ government data sources, detect new documents within hours of publication, extract actionable intelligence, and generate weekly reports for community distribution.
 
+### Core Design Principle
+
+**Comprehensive Coverage + Priority Flagging**
+
+The system documents ALL government activity, not just keyword matches. Watchlist items are *flagged* for priority attention, not used to *filter* what gets reported.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    INSTANCE CONFIG                       │
+│  (Municipality-specific: sources, entities, watchlists) │
+└─────────────────────────────────────────────────────────┘
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                    AGENT FRAMEWORK                       │
+│  (Generic: Scout, Analyst, Synthesizer patterns)        │
+└─────────────────────────────────────────────────────────┘
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                    LLM INTELLIGENCE                      │
+│  (Dynamic: reasoning, pattern recognition, synthesis)   │
+└─────────────────────────────────────────────────────────┘
+```
+
 ```mermaid
 flowchart TB
     subgraph Sources["🌐 Government Data Sources"]
@@ -296,7 +319,38 @@ Open Sousveillance Studio uses a **modular YAML configuration system** that make
 |:-----|:--------|:-------------|
 | `config/instance.yaml` | Your deployment identity | Instance name, jurisdiction hierarchy, timezone, schedules |
 | `config/sources.yaml` | Government data sources | URLs, scraping methods, document types, board filters |
-| `config/entities.yaml` | Watchlist items | Projects, organizations, people, keywords to monitor |
+| `config/entities.yaml` | Watchlist items to FLAG | Projects, organizations, people, keywords (priority tiers) |
+| `config/civic_categories.yaml` | Universal civic categories | 12 categories shared across all instances |
+
+### Priority Tiers (entities.yaml)
+
+Entities use priority tiers instead of urgency colors:
+
+| Tier | Meaning | Example |
+|:-----|:--------|:--------|
+| `critical` | Immediate attention, potential citizen action | Active development threatening water supply |
+| `high` | Important to track closely, may escalate | Permit applications, key officials |
+| `medium` | Worth monitoring, background awareness | Government bodies, routine tracking |
+| `low` | Informational, allies, or general context | Advocacy groups, coalition partners |
+
+### Civic Categories (civic_categories.yaml)
+
+Universal categories applicable to any municipality:
+
+| Category | Description |
+|:---------|:------------|
+| `budget_finance` | Budgets, taxes, appropriations, audits |
+| `land_use` | Zoning, plats, comprehensive plan |
+| `public_safety` | Police, fire, emergency services |
+| `infrastructure` | Roads, utilities, maintenance |
+| `personnel` | Hiring, salaries, HR matters |
+| `contracts` | Bids, RFPs, vendor agreements |
+| `environment` | Environmental protection, permits |
+| `public_hearing` | Quasi-judicial, public comment |
+| `consent` | Consent agenda items |
+| `intergovernmental` | County/state/federal coordination |
+| `community` | Events, proclamations, recognition |
+| `other` | Uncategorized items |
 
 ### Instance Configuration (`instance.yaml`)
 
@@ -354,10 +408,17 @@ tier_1_municipal:
 ### Entities Configuration (`entities.yaml`)
 
 ```yaml
+# Instance metadata
+instance:
+  name: "Alachua Civic Intelligence"
+  municipality: "City of Alachua"
+  county: "Alachua County"
+  state: "Florida"
+
 projects:
   - id: "tara-portfolio"
     name: "Tara Development Portfolio"
-    urgency: "red"
+    priority: "critical"  # Flags items for priority review
     aliases:
       - "Tara Forest"
       - "Tara Baywood"
@@ -369,47 +430,51 @@ organizations:
   - id: "tara-forest-llc"
     name: "Tara Forest, LLC"
     type: "developer"
-    urgency: "red"
+    priority: "critical"
 
-keywords:
-  environmental:
-    - "aquifer"
-    - "karst"
-    - "sinkhole"
-    - "stormwater"
-  procedural:
-    - "variance"
-    - "waiver"
-    - "public hearing"
+  - id: "our-alachua-water"
+    name: "Our Alachua Water"
+    type: "advocacy"
+    priority: "low"  # Ally - informational
+
+topics:
+  - id: "karst-geology"
+    name: "Karst Geology"
+    priority: "critical"
+    keywords:
+      - "karst"
+      - "sinkhole"
+      - "cave"
+      - "aquifer"
 ```
 
 ### Using Configuration in Code
 
 ```python
-from src.config import (
-    build_app_config,
-    get_all_sources,
-    get_sources_by_priority,
-    get_projects,
-    get_all_keywords,
-)
+from src.config import build_app_config
+from src.prompts.loader import get_config_loader
 
 # Load complete configuration
 config = build_app_config()
 print(config.instance.name)  # "Alachua County Civic Watch"
 print(config.jurisdiction.state)  # "FL"
 
-# Get all sources across all tiers
-sources = get_all_sources()
-for source in sources:
-    print(f"{source.name}: {source.url}")
+# Load watchlist from YAML config
+config_loader = get_config_loader()
 
-# Filter by priority
-critical_sources = get_sources_by_priority("critical")
+# Get all keywords for watchlist matching
+keywords = config_loader.get_all_watchlist_keywords()
+print(f"Tracking {len(keywords)} keywords")
 
-# Get watchlist items
-projects = get_projects()
-keywords = get_all_keywords()  # Deduplicated set for text matching
+# Get entities by priority tier
+critical_entities = config_loader.get_priority_entities("critical")
+for entity in critical_entities:
+    print(f"CRITICAL: {entity['name']}")
+
+# Load civic categories
+categories = config_loader.load_civic_categories()
+for cat_id, cat_info in categories['categories'].items():
+    print(f"{cat_info['icon']} {cat_info['name']}")
 ```
 
 ---
