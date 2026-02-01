@@ -26,47 +26,94 @@ tier_1_municipal:
   - id: "alachua-civicclerk"
     name: "City of Alachua - Meeting Portal"
     description: "Official agendas, minutes, and video archives for City Commission and boards"
-    
+
     # Source identification
     jurisdiction: "City of Alachua"
     url: "https://alachuafl.portal.civicclerk.com/"
     platform: "civicclerk"  # Helps select the right scraper
-    
+    site_id: "alachuafl"  # CivicClerk tenant ID
+
     # Monitoring configuration
     priority: "critical"  # critical, high, medium, low
     check_frequency: "daily"
-    
+
     # Scraping configuration
     scraping:
-      method: "playwright"  # playwright, beautifulsoup, firecrawl, api
+      method: "firecrawl"  # Use Firecrawl with JS rendering
       requires_javascript: true
-      wait_for_selector: ".meeting-list"
-      intercept_api: true  # Try to capture XHR/fetch calls
-      
+      wait_ms: 4000  # CivicClerk React app needs time to load
+      scroll: true  # Scroll to load past events
+      scroll_count: 3  # Number of scroll iterations
+
+      # Alternative: Use custom CivicClerkScraper
+      custom_scraper: "src.tools.civicclerk_scraper.CivicClerkScraper"
+
     # What document types to extract
     document_types:
-      - "agenda"
-      - "agenda_packet"
-      - "minutes"
+      - "agenda"           # Simple agenda outline
+      - "agenda_packet"    # Full packet with staff reports (PREFERRED)
+      - "minutes"          # Meeting minutes (post-meeting)
       - "resolution"
       - "ordinance"
-    
+
+    # Download options available per meeting
+    download_options:
+      - id: "agenda_pdf"
+        label: "Agenda (PDF)"
+        priority: 2
+      - id: "agenda_text"
+        label: "Agenda (Plain Text)"
+        priority: 4
+      - id: "agenda_packet_pdf"
+        label: "Agenda Packet (PDF)"
+        priority: 1  # HIGHEST - most comprehensive
+      - id: "agenda_packet_text"
+        label: "Agenda Packet (Plain Text)"
+        priority: 3
+
     # Boards/committees to monitor (filter on scrape)
     boards:
       - name: "City Commission"
         keywords: ["commission", "city commission"]
         priority: "critical"
+        category_id: null  # Discover from portal
       - name: "Planning and Zoning Board"
-        keywords: ["planning", "zoning", "PZB"]
+        keywords: ["planning", "zoning", "PZB", "Planning and Zoning"]
         priority: "critical"
-      - name: "Community Redevelopment Agency"
-        keywords: ["CRA", "redevelopment"]
+        category_id: null
+      - name: "Community Redevelopment Agency Board"
+        keywords: ["CRA", "CRAB", "CRAAB", "redevelopment", "Community Redevelopment"]
         priority: "high"
-    
+        category_id: null
+      - name: "Education Task Force"
+        keywords: ["education", "task force"]
+        priority: "medium"
+        category_id: null
+
     # Notes for maintainers
     notes: |
-      CivicClerk is a React SPA. Use Playwright to wait for content load.
-      The internal API returns JSON - intercept for structured data.
+      CivicClerk is a React SPA hosted at {site_id}.portal.civicclerk.com
+
+      Page Structure:
+      - Calendar widget (left) + Event list (right)
+      - Scroll UP for past events, DOWN for future events
+      - Each event has download button with 4 options
+
+      Scraping Strategy:
+      1. Load page with Firecrawl (wait 4s for React)
+      2. Scroll to load past/future events
+      3. Parse meeting list from markdown
+      4. For each meeting with documents, download Agenda Packet (PDF)
+      5. Process PDFs with Docling/Gemini
+
+      Download Priority:
+      - Agenda Packet (PDF) > Agenda (PDF) > Plain Text versions
+      - Packets include staff reports, attachments, backup materials
+
+      Known Issues:
+      - Direct PDF URLs not exposed in HTML - require click interaction
+      - May need Playwright for reliable PDF downloads
+      - Future events have no documents until agenda is posted
 
   - id: "alachua-calendar"
     name: "City of Alachua - Event Calendar"
@@ -135,7 +182,7 @@ tier_2_county:
         keywords: ["planning commission"]
         priority: "high"
     notes: |
-      eScribe provides PDF download links directly. 
+      eScribe provides PDF download links directly.
       Watch for Joint Meetings with City of Alachua.
 
   - id: "alachua-county-mapgenius"
@@ -176,14 +223,75 @@ tier_2_county:
 # and transportation access. Often the "upstream" approval before local permits.
 
 tier_3_regional:
-  - id: "srwmd-permits"
-    name: "Suwannee River Water Management District - Permits"
-    description: "Environmental Resource Permits (ERP) and Water Use Permits (WUP)"
+  # -------------------------
+  # SUWANNEE RIVER WATER MANAGEMENT DISTRICT (PRIMARY)
+  # -------------------------
+  - id: "srwmd-permit-issuances"
+    name: "SRWMD - Notice of Permit Issuance"
+    description: "Issued Environmental Resource Permits (ERP) and Water Use Permits (WUP)"
     jurisdiction: "SRWMD (Regional)"
-    url: "https://www.mysuwanneeriver.com/8/Permits-Rules"
+    url: "https://www.mysuwanneeriver.com/1617/Notice-of-Permit-Issuance"
     platform: "civicplus"
     priority: "critical"
     check_frequency: "daily"
+    scraping:
+      method: "firecrawl"
+      requires_javascript: true
+      wait_ms: 3000
+      custom_scraper: "src.tools.srwmd_scraper.SRWMDScraper"
+    document_types:
+      - "permit_issuance"
+      - "erp_permit"
+      - "wup_permit"
+    search_terms:
+      - "Tara"
+      - "Alachua"
+      - "Mill Creek"
+      - "Moukhtara"
+    notes: |
+      SRWMD Permit Issuance Notices
+      - Lists recently issued permits
+      - Includes permit number, applicant, project description
+      - PDF attachments with full permit details
+      - Critical for tracking approved development permits
+
+  - id: "srwmd-permit-applications"
+    name: "SRWMD - Notice of Receipt of Applications"
+    description: "New permit applications received by SRWMD"
+    jurisdiction: "SRWMD (Regional)"
+    url: "https://www.mysuwanneeriver.com/1616/Notice-of-Receipt-of-Applications"
+    platform: "civicplus"
+    priority: "critical"
+    check_frequency: "daily"
+    scraping:
+      method: "firecrawl"
+      requires_javascript: true
+      wait_ms: 3000
+      custom_scraper: "src.tools.srwmd_scraper.SRWMDScraper"
+    document_types:
+      - "permit_application"
+      - "erp_application"
+      - "wup_application"
+    search_terms:
+      - "Tara"
+      - "Alachua"
+      - "Mill Creek"
+      - "Moukhtara"
+    notes: |
+      SRWMD Permit Application Notices
+      - Lists new permit applications received
+      - EARLIEST signal of new development projects
+      - Includes applicant, project location, permit type
+      - Monitor daily for new Alachua-area applications
+
+  - id: "srwmd-permits-portal"
+    name: "Suwannee River Water Management District - Permits Portal"
+    description: "Main permits and rules page"
+    jurisdiction: "SRWMD (Regional)"
+    url: "https://www.mysuwanneeriver.com/8/Permits-Rules"
+    platform: "civicplus"
+    priority: "high"
+    check_frequency: "weekly"
     scraping:
       method: "beautifulsoup"
       requires_javascript: false
@@ -191,12 +299,6 @@ tier_3_regional:
       - "permit_application"
       - "permit_issuance"
       - "notice_of_intent"
-    # Specific search terms to use on the e-permitting portal
-    search_terms:
-      - "Tara Forest"
-      - "Sayed Moukhtara"
-      - "Mill Creek"
-      - "City of Alachua"
     notes: |
       The e-permitting portal is at https://permitting.sjrwmd.com/srep/#/ep
       Pre-application meetings are logged here - earliest signal of new projects.
@@ -247,20 +349,83 @@ tier_4_legal:
     platform: "custom"
     priority: "critical"
     check_frequency: "daily"
+
+    # Scraping configuration
     scraping:
-      method: "beautifulsoup"
-      requires_javascript: false
-      # Filter parameters to apply
+      method: "firecrawl"  # Requires JS for filters
+      requires_javascript: true
+      custom_scraper: "src.tools.florida_notices_scraper.FloridaNoticesScraper"
+
+      # Filter parameters to apply via Firecrawl Actions
       filters:
+        newspaper: "Alachua County Today"
         county: "Alachua"
         date_range: "35_days"  # Default view
+
+      # Actions sequence
+      actions:
+        - type: "wait"
+          milliseconds: 2000
+        - type: "click"
+          selector: "select[name='newspaper']"
+        - type: "click"
+          selector: "option:contains('Alachua County Today')"
+        - type: "click"
+          selector: "option:contains('Alachua')"
+        - type: "click"
+          selector: "button:contains('Update')"
+        - type: "wait"
+          milliseconds: 2000
+
     document_types:
       - "public_notice"
       - "legal_notice"
       - "hearing_notice"
+      - "government_publication"
+
+    # Notice categories to track
+    categories:
+      - name: "Government Publications - Notices of Hearings"
+        priority: "critical"
+        keywords: ["public hearing", "zoning", "ordinance"]
+      - name: "Government Publications - Miscellaneous"
+        priority: "high"
+        keywords: ["city of alachua", "alachua county"]
+      - name: "Foreclosures"
+        priority: "medium"
+      - name: "Probate"
+        priority: "low"
+
     notes: |
-      Filter by Alachua County using the dropdown.
-      This is the certified catch-all for all legally required notices.
+      Florida Public Notices (floridapublicnotices.com)
+
+      Page Structure:
+      - Filter dropdowns: Newspaper, Date Range, County (multi-select)
+      - "Update" button applies filters
+      - Results shown as cards (12 per page)
+      - Click card → Opens modal with full notice
+      - "View original file" → Opens PDF on CloudFront
+      - "Next Notice >" → Iterates through results in modal
+
+      Scraping Strategy:
+      1. Apply filters via Firecrawl Actions (newspaper + county)
+      2. Scrape card list for notice metadata
+      3. Click each card to open modal
+      4. Extract PDF URL from modal (CloudFront pattern)
+      5. Scrape PDF content directly
+
+      PDF URLs:
+      - Hosted on CloudFront: https://d3pf...cloudfront.net/XX/XXXXXXXX.pdf
+      - Direct URLs available in modal "View original file" link
+
+      Key Categories for Alachua:
+      - Government Publications - Notices of Hearings (CRITICAL)
+      - Government Publications - Miscellaneous
+
+      Tips:
+      - "Next Notice" button allows iteration without closing modal
+      - 69 results typical for Alachua County in 35-day window
+      - Check daily for new hearing notices
 
   - id: "mainstreet-notices"
     name: "Mainstreet Daily News - Public Notices"
@@ -424,7 +589,7 @@ tier_6_state:
       - "SRWMD"  # Water Management
       - "DCA"  # Community Affairs
     notes: |
-      The FAR is published daily (M-F). 
+      The FAR is published daily (M-F).
       This is where agencies announce rule changes BEFORE they take effect.
       Subscribe at: https://www.flrules.org/subscribe.asp
 

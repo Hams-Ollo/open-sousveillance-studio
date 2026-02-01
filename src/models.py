@@ -66,6 +66,8 @@ class StructuredGeminiModel[T]:
 
     def invoke(self, prompt: str) -> T:
         """Send a prompt and get a structured response."""
+        import json
+
         response = self.base_model.client.models.generate_content(
             model=self.base_model.model_name,
             contents=prompt,
@@ -78,9 +80,30 @@ class StructuredGeminiModel[T]:
         )
 
         # Parse JSON response into Pydantic model
-        import json
-        data = json.loads(response.text)
-        return self.schema.model_validate(data)
+        try:
+            data = json.loads(response.text)
+            return self.schema.model_validate(data)
+        except json.JSONDecodeError as e:
+            # Response was likely truncated - try to salvage what we can
+            # or provide a more helpful error message
+            raw_text = response.text if response.text else ""
+
+            # Log the issue
+            import structlog
+            logger = structlog.get_logger("models")
+            logger.error(
+                "JSON parsing failed - response may be truncated",
+                error=str(e),
+                response_length=len(raw_text),
+                response_preview=raw_text[:500] if raw_text else "empty"
+            )
+
+            # Re-raise with more context
+            raise ValueError(
+                f"Gemini returned invalid JSON (likely truncated). "
+                f"Response length: {len(raw_text)} chars. "
+                f"Try reducing input content size. Original error: {e}"
+            ) from e
 
 
 def get_gemini_pro() -> GeminiModel:
@@ -88,7 +111,7 @@ def get_gemini_pro() -> GeminiModel:
     return GeminiModel(
         model_name="gemini-2.5-pro",
         temperature=0.2,
-        max_output_tokens=8192
+        max_output_tokens=32768  # Increased to handle large structured outputs
     )
 
 

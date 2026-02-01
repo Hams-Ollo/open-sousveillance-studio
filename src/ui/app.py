@@ -29,7 +29,7 @@ st.set_page_config(
 )
 
 # Import page modules
-from src.ui.pages import agent_runner, prompt_inspector, source_tester, config_viewer
+from src.ui.pages import agent_runner, prompt_inspector, source_tester, config_viewer, orchestrator_panel
 
 
 def check_api_keys() -> dict:
@@ -47,12 +47,12 @@ def render_sidebar():
     """Render the sidebar with environment status and settings."""
     with st.sidebar:
         st.title("🔬 Dev Console")
-        st.caption("Open Sousveillance Studio System")
+        st.caption("Alachua Civic Intelligence Reporting Studio")
 
         st.divider()
 
         # Environment Status
-        st.subheader("Environment Status")
+        st.subheader("🔑 Environment Status")
         api_keys = check_api_keys()
 
         for key, configured in api_keys.items():
@@ -63,15 +63,39 @@ def render_sidebar():
 
         st.divider()
 
-        # Quick Links
-        st.subheader("Quick Links")
-        st.page_link("https://alachua.legistar.com/Calendar.aspx", label="Legistar Calendar", icon="📅")
-        st.page_link("https://alachuacounty.us/", label="Alachua County", icon="🏛️")
+        # Target Data Sources - the URLs we're actively scraping
+        st.subheader("🎯 Target Data Sources")
+
+        st.markdown("**Municipal Meetings**")
+        st.link_button(
+            "📅 CivicClerk Portal",
+            "https://alachuafl.portal.civicclerk.com/",
+            use_container_width=True
+        )
+
+        st.markdown("**Public Notices**")
+        st.link_button(
+            "📰 Florida Public Notices",
+            "https://floridapublicnotices.com/",
+            use_container_width=True
+        )
+
+        st.markdown("**SRWMD Permits**")
+        st.link_button(
+            "📝 Permit Applications",
+            "https://www.mysuwanneeriver.com/1616/Notice-of-Receipt-of-Applications",
+            use_container_width=True
+        )
+        st.link_button(
+            "✅ Permit Issuances",
+            "https://www.mysuwanneeriver.com/1617/Notice-of-Permit-Issuance",
+            use_container_width=True
+        )
 
         st.divider()
 
         # Version info
-        st.caption("Version: 0.1.0-dev")
+        st.caption("Version: 0.2.0-dev")
         st.caption(f"Project: {PROJECT_ROOT.name}")
 
 
@@ -82,7 +106,8 @@ def main():
     # Main content area with tabs
     st.title("🔬 Open Sousveillance Studio - Developer Console")
 
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "🎯 Orchestrator",
         "🤖 Agent Runner",
         "📝 Prompt Inspector",
         "🌐 Source Tester",
@@ -90,15 +115,18 @@ def main():
     ])
 
     with tab1:
-        agent_runner.render()
+        orchestrator_panel.render()
 
     with tab2:
-        prompt_inspector.render()
+        agent_runner.render()
 
     with tab3:
-        source_tester.render()
+        prompt_inspector.render()
 
     with tab4:
+        source_tester.render()
+
+    with tab5:
         config_viewer.render()
 
 

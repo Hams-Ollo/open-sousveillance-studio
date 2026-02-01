@@ -226,3 +226,130 @@ class FirecrawlClient:
             result = self.scrape_page(url, wait_ms=wait_ms)
             results.append(result)
         return results
+
+    def scrape_with_actions(
+        self,
+        url: str,
+        actions: list[dict],
+        formats: list[str] = None
+    ) -> ScrapeResult:
+        """
+        Scrape a page with custom browser actions.
+
+        Args:
+            url: URL to scrape
+            actions: List of action dicts (click, wait, scroll, etc.)
+            formats: Output formats (default: ["markdown"])
+
+        Returns:
+            ScrapeResult with content after actions executed
+
+        Example actions:
+            [
+                {"type": "wait", "milliseconds": 2000},
+                {"type": "click", "selector": "#download-btn"},
+                {"type": "wait", "milliseconds": 500},
+                {"type": "click", "selector": "[data-option='agenda-packet']"},
+            ]
+        """
+        formats = formats or ["markdown"]
+
+        try:
+            result = self._retry_with_backoff(
+                self.client.scrape,
+                url,
+                formats=formats,
+                actions=actions
+            )
+
+            if hasattr(result, 'markdown'):
+                markdown = result.markdown
+            elif isinstance(result, dict):
+                markdown = result.get('markdown', result.get('content', ''))
+            else:
+                markdown = str(result)
+
+            return ScrapeResult(
+                url=url,
+                markdown=markdown or "",
+                success=True,
+                metadata=result.get('metadata') if isinstance(result, dict) else None
+            )
+
+        except Exception as e:
+            return ScrapeResult(
+                url=url,
+                markdown="",
+                success=False,
+                error=str(e)
+            )
+
+    def scrape_civicclerk_with_scroll(
+        self,
+        url: str,
+        scroll_count: int = 3
+    ) -> ScrapeResult:
+        """
+        Scrape CivicClerk portal with scrolling to load more events.
+
+        Args:
+            url: CivicClerk portal URL
+            scroll_count: Number of scroll iterations (up for past, down for future)
+
+        Returns:
+            ScrapeResult with all loaded meeting content
+        """
+        actions = [
+            {"type": "wait", "milliseconds": 3000},  # Wait for React to load
+        ]
+
+        # Scroll up to load past events
+        for _ in range(scroll_count):
+            actions.append({"type": "scroll", "direction": "up"})
+            actions.append({"type": "wait", "milliseconds": 1000})
+
+        # Scroll back down to load future events
+        for _ in range(scroll_count):
+            actions.append({"type": "scroll", "direction": "down"})
+            actions.append({"type": "wait", "milliseconds": 1000})
+
+        return self.scrape_with_actions(
+            url,
+            actions=actions,
+            formats=["markdown", "links"]
+        )
+
+    def civicclerk_click_download(
+        self,
+        url: str,
+        download_button_selector: str = "[aria-label='Download Files from this Event']",
+        agenda_packet_selector: str = "text=Agenda Packet (PDF)"
+    ) -> ScrapeResult:
+        """
+        Click download button and select Agenda Packet on CivicClerk.
+
+        This attempts to trigger the download dropdown and click the
+        Agenda Packet (PDF) option. Note: Firecrawl may not capture
+        the actual file download, but will return the page state after clicks.
+
+        Args:
+            url: CivicClerk meeting page URL
+            download_button_selector: CSS selector for download button
+            agenda_packet_selector: Selector for Agenda Packet option
+
+        Returns:
+            ScrapeResult with page content after clicking
+        """
+        actions = [
+            {"type": "wait", "milliseconds": 3000},
+            {"type": "click", "selector": download_button_selector},
+            {"type": "wait", "milliseconds": 500},
+            {"type": "click", "selector": agenda_packet_selector},
+            {"type": "wait", "milliseconds": 1000},
+        ]
+
+        return self.scrape_with_actions(
+            url,
+            actions=actions,
+            formats=["markdown", "links"]
+        )

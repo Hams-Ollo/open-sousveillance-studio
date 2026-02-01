@@ -82,29 +82,55 @@ gantt
 
 #### Goals
 
-- Automated scraping of government portals (scheduled daily at 4am, plus manual trigger)
-- PDF document processing
-- Structured data extraction
-- Change detection and deduplication
+- **Hybrid scraping pipeline** with three phases: Discovery → Detail → Analysis
+- Date-bounded scraping (±30-60 days from current date)
+- PDF-focused content extraction (agendas, packets)
+- Incremental processing (only new/changed meetings)
+- Database-driven state tracking and deduplication
+
+#### Hybrid Scraping Architecture
+
+```
+Phase 1: DISCOVERY (Light scrape - meeting list only)
+├── Scrape meeting list → Extract: meeting_id, title, date, board, status
+├── Filter by date window (-30 to +60 days)
+└── Compare against database: Which meetings are NEW or UPDATED?
+
+Phase 2: DETAIL (Per-meeting scrape - only for new/updated)
+├── Check if agenda has been posted
+├── Download Agenda Packet PDF
+├── Extract PDF content with Docling/Firecrawl
+└── Store document with meeting metadata
+
+Phase 3: ANALYSIS (AI processing - only for new content)
+├── Run Scout Agent on PDF content (not whole page)
+├── Match against watchlist
+├── Generate alerts for upcoming meetings
+└── Store ScoutReport
+```
 
 #### Deliverables
 
 | Deliverable | Status | Target Date |
 |:------------|:-------|:------------|
 | Firecrawl client wrapper | ✅ | Jan 29 |
+| Firecrawl Actions API integration | ✅ | Jan 31 |
 | Docling PDF processor | ✅ | Jan 29 |
-| CivicClerk scraper (City of Alachua) | 🔲 | Feb 5 |
+| CivicClerk scraper (basic) | ✅ | Jan 31 |
+| Florida Public Notices scraper (basic) | ✅ | Jan 31 |
+| **Hybrid scraping pipeline** | 🔲 | Feb 5 |
+| **Meeting state tracking (database)** | 🔲 | Feb 6 |
 | eScribe scraper (Alachua County) | 🔲 | Feb 8 |
-| Florida Public Notices scraper | 🔲 | Feb 10 |
-| Document storage with Supabase | 🔲 | Feb 12 |
-| Change detection (content hashing) | 🔲 | Feb 14 |
+| **Scraping Orchestrator** | 🔲 | Feb 10 |
+| Change detection (content hashing) | 🔲 | Feb 12 |
 | Celery task scheduling | ✅ | Jan 29 |
 | Scout agent integration tests | 🔲 | Feb 15 |
 
 #### Key Milestones
 
-- **Feb 5:** First automated scrape of CivicClerk
-- **Feb 15:** All critical sources monitored daily
+- **Feb 5:** Hybrid scraping pipeline operational for CivicClerk
+- **Feb 10:** Orchestrator coordinates all sources
+- **Feb 15:** All critical sources monitored daily with incremental updates
 
 ---
 
@@ -389,6 +415,16 @@ gantt
 |:-----------|:--------------------|:------|:---------|
 | As a system operator, I want to skip unchanged content so that I don't waste API credits | Content hash comparison prevents reprocessing | T1.3.1: Implement content hashing<br>T1.3.2: Store hashes in Supabase<br>T1.3.3: Add hash comparison before processing | 4 hrs |
 | As a system operator, I want to detect partial changes so that only new agenda items are processed | Diff detection identifies new items in updated documents | T1.3.4: Implement document diffing<br>T1.3.5: Track item-level changes | 6 hrs |
+
+#### Feature 1.4: Scraping Orchestrator
+
+| User Story | Acceptance Criteria | Tasks | Estimate |
+|:-----------|:--------------------|:------|:---------|
+| As a system operator, I want a central orchestrator so that all scrapers run on schedule with proper coordination | Orchestrator loads sources.yaml, instantiates scrapers, executes on schedule | T1.4.1: Create src/orchestrator.py<br>T1.4.2: Implement source config loading<br>T1.4.3: Implement scraper instantiation<br>T1.4.4: Add priority-based scheduling | 8 hrs |
+| As a system operator, I want the orchestrator to handle errors gracefully so that one failing source doesn't stop others | Failed scrapes logged, retried with backoff, other sources continue | T1.4.5: Implement error handling with retry<br>T1.4.6: Add dead letter queue for failed items<br>T1.4.7: Add health check endpoints | 6 hrs |
+| As a system operator, I want the orchestrator to deduplicate content so that we don't reprocess unchanged documents | Content hashing prevents duplicate processing, change detection flags updates | T1.4.8: Integrate content hashing<br>T1.4.9: Implement change detection<br>T1.4.10: Add version tracking | 4 hrs |
+| As a system operator, I want the orchestrator to trigger alerts so that critical matches are surfaced immediately | Watchlist matches trigger immediate alerts, high-priority items queued for digest | T1.4.11: Integrate watchlist matching<br>T1.4.12: Implement alert routing<br>T1.4.13: Add notification channels | 6 hrs |
+| As a system operator, I want the orchestrator to store documents with embeddings so that semantic search works | Documents stored in Supabase with vector embeddings | T1.4.14: Generate embeddings on store<br>T1.4.15: Integrate with pgvector<br>T1.4.16: Add metadata indexing | 4 hrs |
 
 ---
 

@@ -1,7 +1,7 @@
 # Project Management: Open Sousveillance Studio
 
-**Version:** 1.0  
-**Last Updated:** 2026-01-29  
+**Version:** 1.0
+**Last Updated:** 2026-01-29
 **Project Lead:** Hans
 
 ---
@@ -42,7 +42,7 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | ID | Epic | Status | Progress |
 |:---|:-----|:-------|:---------|
 | E1 | Foundation & Infrastructure | ✅ Done | 100% |
-| E2 | Scout Layer (Data Collection) | 🟡 In Progress | 40% |
+| E2 | Scout Layer (Data Collection) | 🟡 In Progress | 60% |
 | E3 | Analyst Layer (Intelligence) | 📋 Backlog | 0% |
 | E4 | Synthesizer Layer (Output) | 📋 Backlog | 0% |
 | E5 | Integration & Deployment | 📋 Backlog | 0% |
@@ -52,7 +52,7 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 ```mermaid
 pie title Epic Progress
     "E1 Foundation" : 100
-    "E2 Scout Layer" : 40
+    "E2 Scout Layer" : 60
     "E3 Analyst Layer" : 0
     "E4 Synthesizer" : 0
     "E5 Integration" : 0
@@ -74,8 +74,8 @@ flowchart LR
 
 ## E1: Foundation & Infrastructure ✅
 
-**Status:** Done  
-**Sprint:** 1-2 (Jan 1-20)  
+**Status:** Done
+**Sprint:** 1-2 (Jan 1-20)
 **Owner:** Hans
 
 ### Features
@@ -130,8 +130,8 @@ flowchart LR
 
 ## E2: Scout Layer (Data Collection) 🟡
 
-**Status:** In Progress  
-**Sprint:** 3-4 (Jan 21 - Feb 15)  
+**Status:** In Progress
+**Sprint:** 3-4 (Jan 21 - Feb 15)
 **Owner:** Hans
 
 ### Features
@@ -153,21 +153,21 @@ flowchart LR
 | T2.1.4 | Create src/tools/docling_processor.py | ✅ | 4h |
 | T2.1.5 | Implement PDF chunking with LangChain | ✅ | 2h |
 
-#### F2.2: CivicClerk Scraper 🟡
+#### F2.2: CivicClerk Scraper ✅
 
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
-| US2.2.1 | As a citizen, I want daily updates from City of Alachua meetings so that I don't miss important votes | 🟡 | 🔴 |
+| US2.2.1 | As a citizen, I want daily updates from City of Alachua meetings so that I don't miss important votes | ✅ | 🔴 |
 
 **Tasks:**
 
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
-| T2.2.1 | Analyze CivicClerk page structure | 📋 | 2h |
-| T2.2.2 | Implement meeting list extraction | 📋 | 4h |
-| T2.2.3 | Implement agenda item parsing | 📋 | 4h |
-| T2.2.4 | Implement PDF packet download | 📋 | 2h |
-| T2.2.5 | Add board filtering (Commission, PZB, CRA) | 📋 | 2h |
+| T2.2.1 | Analyze CivicClerk page structure | ✅ | 2h |
+| T2.2.2 | Implement meeting list extraction | ✅ | 4h |
+| T2.2.3 | Implement agenda item parsing | ✅ | 4h |
+| T2.2.4 | Implement PDF packet download (Firecrawl Actions) | ✅ | 2h |
+| T2.2.5 | Add board filtering (Commission, PZB, CRA) | ✅ | 2h |
 | T2.2.6 | Write integration tests | 📋 | 4h |
 
 #### F2.3: eScribe Scraper 📋
@@ -186,20 +186,21 @@ flowchart LR
 | T2.3.4 | Add DRC and BOCC filters | 📋 | 2h |
 | T2.3.5 | Write integration tests | 📋 | 4h |
 
-#### F2.4: Florida Public Notices Scraper 📋
+#### F2.4: Florida Public Notices Scraper ✅
 
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
-| US2.4.1 | As a citizen, I want to monitor legal notices so that I catch public hearings and deadlines | 📋 | 🟠 |
+| US2.4.1 | As a citizen, I want to monitor legal notices so that I catch public hearings and deadlines | ✅ | 🟠 |
 
 **Tasks:**
 
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
-| T2.4.1 | Analyze floridapublicnotices.com structure | 📋 | 2h |
-| T2.4.2 | Implement county filter | 📋 | 2h |
-| T2.4.3 | Implement notice extraction | 📋 | 4h |
-| T2.4.4 | Write integration tests | 📋 | 2h |
+| T2.4.1 | Analyze floridapublicnotices.com structure | ✅ | 2h |
+| T2.4.2 | Implement county/newspaper filter (Firecrawl Actions) | ✅ | 2h |
+| T2.4.3 | Implement notice extraction with modal iteration | ✅ | 4h |
+| T2.4.4 | Implement PDF URL extraction (CloudFront) | ✅ | 2h |
+| T2.4.5 | Write integration tests | 📋 | 2h |
 
 #### F2.5: Task Scheduling ✅
 
@@ -231,12 +232,105 @@ flowchart LR
 | T2.6.3 | Implement deduplication logic | 📋 | 2h |
 | T2.6.4 | Write unit tests | 📋 | 2h |
 
+#### F2.8: Hybrid Scraping Pipeline 🔵
+
+| ID | User Story | Status | Priority |
+|:---|:-----------|:-------|:---------|
+| US2.8.1 | As an operator, I want date-bounded scraping so that we only process relevant meetings (±30-60 days) | 🔵 | 🔴 |
+| US2.8.2 | As an operator, I want a discovery phase that scrapes meeting lists first so that we can filter before heavy processing | 🔵 | 🔴 |
+| US2.8.3 | As an operator, I want per-meeting PDF downloads so that we analyze actual agenda content, not page summaries | 📋 | 🔴 |
+| US2.8.4 | As an operator, I want database-driven state tracking so that we only process new/changed meetings | 📋 | 🟠 |
+| US2.8.5 | As a citizen, I want Scout analysis on PDF content so that I get accurate, detailed meeting intelligence | 📋 | 🟠 |
+
+**Tasks:**
+
+| ID | Task | Status | Estimate |
+|:---|:-----|:-------|:---------|
+| T2.8.1 | Create scraped_meetings database table for state tracking | 📋 | 2h |
+| T2.8.2 | Implement Discovery phase: scrape meeting list only | 📋 | 4h |
+| T2.8.3 | Add date filtering (configurable days_back, days_forward) | 📋 | 2h |
+| T2.8.4 | Implement database comparison: identify NEW/UPDATED meetings | 📋 | 2h |
+| T2.8.5 | Implement Detail phase: per-meeting PDF download | 📋 | 4h |
+| T2.8.6 | Integrate Docling for PDF content extraction | 📋 | 2h |
+| T2.8.7 | Store extracted content with meeting metadata | 📋 | 2h |
+| T2.8.8 | Modify Scout Agent to analyze PDF content instead of page | 📋 | 2h |
+| T2.8.9 | Implement content hashing for change detection | 📋 | 2h |
+| T2.8.10 | Write unit tests for hybrid pipeline | 📋 | 4h |
+| T2.8.11 | Write integration tests for full pipeline | 📋 | 4h |
+
+**Hybrid Pipeline Architecture:**
+
+```
+Phase 1: DISCOVERY (Light scrape)
+├── Scrape meeting list → meeting_id, title, date, board, status
+├── Filter by date window (-30 to +60 days)
+└── Compare against DB: Which meetings are NEW or UPDATED?
+
+Phase 2: DETAIL (Per-meeting, only new/updated)
+├── Check if agenda posted
+├── Download Agenda Packet PDF
+├── Extract PDF content (Docling/Firecrawl)
+└── Store document with metadata
+
+Phase 3: ANALYSIS (AI processing, only new content)
+├── Run Scout Agent on PDF content
+├── Match against watchlist
+├── Generate alerts for upcoming meetings
+└── Store ScoutReport
+```
+
+---
+
+#### F2.7: Scraping Orchestrator 🔵
+
+| ID | User Story | Status | Priority |
+|:---|:-----------|:-------|:---------|
+| US2.7.1 | As an operator, I want a central orchestrator so that all scrapers run on schedule with proper coordination | 🔵 | 🔴 |
+| US2.7.2 | As an operator, I want the orchestrator to handle errors gracefully so that one failing source doesn't stop others | 📋 | 🔴 |
+| US2.7.3 | As an operator, I want the orchestrator to deduplicate content so that we don't reprocess unchanged documents | 📋 | 🟠 |
+| US2.7.4 | As an operator, I want the orchestrator to trigger alerts so that critical matches are surfaced immediately | 📋 | 🟠 |
+| US2.7.5 | As an operator, I want the orchestrator to store documents with embeddings so that semantic search works | 📋 | 🟠 |
+
+**Tasks:**
+
+| ID | Task | Status | Estimate |
+|:---|:-----|:-------|:---------|
+| T2.7.1 | Create src/orchestrator.py with OrchestratorConfig | 📋 | 4h |
+| T2.7.2 | Implement source config loading from sources.yaml | 📋 | 2h |
+| T2.7.3 | Implement dynamic scraper instantiation | 📋 | 2h |
+| T2.7.4 | Add priority-based scheduling logic | 📋 | 2h |
+| T2.7.5 | Implement error handling with exponential backoff | 📋 | 2h |
+| T2.7.6 | Add dead letter queue for failed items | 📋 | 2h |
+| T2.7.7 | Add health check endpoints | 📋 | 2h |
+| T2.7.8 | Integrate content hashing for deduplication | 📋 | 2h |
+| T2.7.9 | Implement change detection and version tracking | 📋 | 2h |
+| T2.7.10 | Integrate watchlist matching from entities.yaml | 📋 | 2h |
+| T2.7.11 | Implement alert routing (immediate vs digest) | 📋 | 2h |
+| T2.7.12 | Add notification channel support (email, webhook) | 📋 | 2h |
+| T2.7.13 | Generate embeddings on document store | 📋 | 2h |
+| T2.7.14 | Integrate with Supabase pgvector | 📋 | 2h |
+| T2.7.15 | Add metadata indexing for search | 📋 | 2h |
+| T2.7.16 | Write unit tests for orchestrator | 📋 | 4h |
+| T2.7.17 | Write integration tests for full pipeline | 📋 | 4h |
+
+**Orchestrator Responsibilities:**
+
+| Function | Description |
+|:---------|:------------|
+| **Scheduling** | Load sources.yaml, respect check_frequency, priority-based execution |
+| **Execution** | Instantiate correct scraper class, execute scrape, download PDFs |
+| **Processing** | Parse content, match watchlist, classify categories, generate summaries |
+| **Deduplication** | Content hashing, skip duplicates, detect updates, track versions |
+| **Storage** | Store documents with embeddings in Supabase, index metadata |
+| **Alerting** | Route critical matches to immediate alerts, queue others for digest |
+| **Monitoring** | Log all operations, track success rates, handle errors with retry |
+
 ---
 
 ## E3: Analyst Layer (Intelligence) 📋
 
-**Status:** Backlog  
-**Sprint:** 5-6 (Feb 16 - Mar 15)  
+**Status:** Backlog
+**Sprint:** 5-6 (Feb 16 - Mar 15)
 **Owner:** Hans
 
 ### Features
@@ -307,8 +401,8 @@ flowchart LR
 
 ## E4: Synthesizer Layer (Output) 📋
 
-**Status:** Backlog  
-**Sprint:** Post v1.0 (v1.1)  
+**Status:** Backlog
+**Sprint:** Post v1.0 (v1.1)
 **Owner:** Hans
 
 ### Features
@@ -346,8 +440,8 @@ flowchart LR
 
 ## E5: Integration & Deployment 📋
 
-**Status:** Backlog  
-**Sprint:** 7 (Mar 16 - Apr 1)  
+**Status:** Backlog
+**Sprint:** 7 (Mar 16 - Apr 1)
 **Owner:** Hans
 
 ### Features
@@ -405,10 +499,27 @@ flowchart LR
 
 | ID | Task | Feature | Status | Assignee |
 |:---|:-----|:--------|:-------|:---------|
-| T2.2.1 | Analyze CivicClerk page structure | F2.2 | 🔵 Ready | Hans |
-| T2.2.2 | Implement meeting list extraction | F2.2 | 📋 Backlog | Hans |
-| T2.2.3 | Implement agenda item parsing | F2.2 | 📋 Backlog | Hans |
-| T2.6.1 | Implement content hashing | F2.6 | 📋 Backlog | Hans |
+| T2.2.1 | Analyze CivicClerk page structure | F2.2 | ✅ Done | Hans |
+| T2.2.2 | Implement meeting list extraction | F2.2 | ✅ Done | Hans |
+| T2.2.3 | Implement agenda item parsing | F2.2 | ✅ Done | Hans |
+| T2.2.4 | Implement PDF packet download (Firecrawl Actions) | F2.2 | ✅ Done | Hans |
+| T2.4.1 | Analyze floridapublicnotices.com structure | F2.4 | ✅ Done | Hans |
+| T2.4.2 | Implement county/newspaper filter | F2.4 | ✅ Done | Hans |
+| T2.4.3 | Implement notice extraction with modal iteration | F2.4 | ✅ Done | Hans |
+
+### Next Sprint: Sprint 4 (Feb 3 - Feb 17)
+
+**Focus: Hybrid Scraping Pipeline**
+
+| ID | Task | Feature | Status | Assignee |
+|:---|:-----|:--------|:-------|:---------|
+| T2.8.1 | Create scraped_meetings database table | F2.8 | 🔵 Ready | Hans |
+| T2.8.2 | Implement Discovery phase: scrape meeting list only | F2.8 | 🔵 Ready | Hans |
+| T2.8.3 | Add date filtering (days_back, days_forward) | F2.8 | 📋 Backlog | Hans |
+| T2.8.4 | Implement database comparison: NEW/UPDATED detection | F2.8 | 📋 Backlog | Hans |
+| T2.8.5 | Implement Detail phase: per-meeting PDF download | F2.8 | 📋 Backlog | Hans |
+| T2.8.8 | Modify Scout Agent to analyze PDF content | F2.8 | 📋 Backlog | Hans |
+| T2.7.1 | Create src/orchestrator.py with OrchestratorConfig | F2.7 | 📋 Backlog | Hans |
 
 ### Sprint Velocity
 
@@ -416,7 +527,7 @@ flowchart LR
 |:-------|:--------|:----------|:---------|
 | Sprint 1 | 20h | 20h | 100% |
 | Sprint 2 | 24h | 24h | 100% |
-| Sprint 3 | 24h | - | - |
+| Sprint 3 | 24h | 22h | 92% |
 
 ---
 
@@ -446,6 +557,12 @@ flowchart LR
 | 2026-01-29 | Use Firecrawl over Playwright | Managed service, handles anti-bot, returns markdown | Hans |
 | 2026-01-29 | Use Docling over pdfplumber | Better table extraction, IBM-backed, local execution | Hans |
 | 2026-01-29 | Use LangGraph over custom | State management, checkpointing, human-in-loop built-in | Hans |
+| 2026-01-31 | Use Firecrawl Actions API for SPAs | Click, scroll, wait actions handle React apps without Playwright | Hans |
+| 2026-01-31 | Create dedicated scraper classes per source | CivicClerkScraper, FloridaNoticesScraper - encapsulates source-specific logic | Hans |
+| 2026-01-31 | Build central Orchestrator | Coordinates all scrapers, handles scheduling, dedup, alerts, storage | Hans |
+| 2026-01-31 | Adopt Hybrid Scraping Pipeline | Three-phase approach (Discovery → Detail → Analysis) instead of full-page scraping. Scrape meeting list first, then per-meeting PDFs, then AI analysis. More reliable, efficient, and focused on actual content. | Hans |
+| 2026-01-31 | Date-bounded scraping (±30-60 days) | Focus on actionable timeframe. Past meetings for context, future for preparation. Avoids processing years of historical data. | Hans |
+| 2026-01-31 | PDF-focused content extraction | Agenda packets contain the real content. Page HTML is just summaries. Scout Agent should analyze PDF content, not page chrome. | Hans |
 
 ---
 
