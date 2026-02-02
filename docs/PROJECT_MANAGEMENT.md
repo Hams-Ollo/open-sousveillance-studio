@@ -42,30 +42,30 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | ID | Epic | Status | Progress |
 |:---|:-----|:-------|:---------|
 | E1 | Foundation & Infrastructure | ✅ Done | 100% |
-| E2 | Scout Layer (Data Collection) | 🟡 In Progress | 60% |
+| E2 | Scout Layer (Data Collection) | ✅ Done | 100% |
 | E3 | Analyst Layer (Intelligence) | 📋 Backlog | 0% |
 | E4 | Synthesizer Layer (Output) | 📋 Backlog | 0% |
-| E5 | Integration & Deployment | 📋 Backlog | 0% |
+| E5 | Integration & Deployment | � In Progress | 20% |
 
 ### Epic Progress Chart
 
 ```mermaid
 pie title Epic Progress
     "E1 Foundation" : 100
-    "E2 Scout Layer" : 60
+    "E2 Scout Layer" : 100
     "E3 Analyst Layer" : 0
     "E4 Synthesizer" : 0
-    "E5 Integration" : 0
+    "E5 Integration" : 20
 ```
 
 ### Epic Dependencies
 
 ```mermaid
 flowchart LR
-    E1[E1: Foundation ✅] --> E2[E2: Scout Layer 🟡]
+    E1[E1: Foundation ✅] --> E2[E2: Scout Layer ✅]
     E2 --> E3[E3: Analyst Layer]
     E3 --> E4[E4: Synthesizer]
-    E2 --> E5[E5: Integration]
+    E2 --> E5[E5: Integration 🟡]
     E3 --> E5
     E4 --> E5
 ```
@@ -217,44 +217,44 @@ flowchart LR
 | T2.5.3 | Create src/tasks/scout_tasks.py | ✅ | 2h |
 | T2.5.4 | Implement run_all_critical_scouts() | ✅ | 2h |
 
-#### F2.6: Change Detection 📋
+#### F2.6: Change Detection ✅
 
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
-| US2.6.1 | As a system, I want to detect changes so that I don't process duplicate content | 📋 | 🟠 |
+| US2.6.1 | As a system, I want to detect changes so that I don't process duplicate content | ✅ | 🟠 |
 
 **Tasks:**
 
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
-| T2.6.1 | Implement content hashing | 📋 | 2h |
-| T2.6.2 | Add hash storage to database | 📋 | 2h |
-| T2.6.3 | Implement deduplication logic | 📋 | 2h |
+| T2.6.1 | Implement content hashing | ✅ | 2h |
+| T2.6.2 | Add hash storage to database | ✅ | 2h |
+| T2.6.3 | Implement deduplication logic | ✅ | 2h |
 | T2.6.4 | Write unit tests | 📋 | 2h |
 
-#### F2.8: Hybrid Scraping Pipeline 🔵
+#### F2.8: Hybrid Scraping Pipeline ✅
 
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
-| US2.8.1 | As an operator, I want date-bounded scraping so that we only process relevant meetings (±30-60 days) | 🔵 | 🔴 |
-| US2.8.2 | As an operator, I want a discovery phase that scrapes meeting lists first so that we can filter before heavy processing | 🔵 | 🔴 |
-| US2.8.3 | As an operator, I want per-meeting PDF downloads so that we analyze actual agenda content, not page summaries | 📋 | 🔴 |
-| US2.8.4 | As an operator, I want database-driven state tracking so that we only process new/changed meetings | 📋 | 🟠 |
-| US2.8.5 | As a citizen, I want Scout analysis on PDF content so that I get accurate, detailed meeting intelligence | 📋 | 🟠 |
+| US2.8.1 | As an operator, I want date-bounded scraping so that we only process relevant meetings (±30-60 days) | ✅ | 🔴 |
+| US2.8.2 | As an operator, I want a discovery phase that scrapes meeting lists first so that we can filter before heavy processing | ✅ | 🔴 |
+| US2.8.3 | As an operator, I want per-meeting PDF downloads so that we analyze actual agenda content, not page summaries | ✅ | 🔴 |
+| US2.8.4 | As an operator, I want database-driven state tracking so that we only process new/changed meetings | ✅ | 🟠 |
+| US2.8.5 | As a citizen, I want Scout analysis on PDF content so that I get accurate, detailed meeting intelligence | ✅ | 🟠 |
 
 **Tasks:**
 
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
-| T2.8.1 | Create scraped_meetings database table for state tracking | 📋 | 2h |
-| T2.8.2 | Implement Discovery phase: scrape meeting list only | 📋 | 4h |
-| T2.8.3 | Add date filtering (configurable days_back, days_forward) | 📋 | 2h |
-| T2.8.4 | Implement database comparison: identify NEW/UPDATED meetings | 📋 | 2h |
-| T2.8.5 | Implement Detail phase: per-meeting PDF download | 📋 | 4h |
-| T2.8.6 | Integrate Docling for PDF content extraction | 📋 | 2h |
-| T2.8.7 | Store extracted content with meeting metadata | 📋 | 2h |
-| T2.8.8 | Modify Scout Agent to analyze PDF content instead of page | 📋 | 2h |
-| T2.8.9 | Implement content hashing for change detection | 📋 | 2h |
+| T2.8.1 | Create scraped_meetings database table for state tracking | ✅ | 2h |
+| T2.8.2 | Implement Discovery phase: scrape meeting list only | ✅ | 4h |
+| T2.8.3 | Add date filtering (configurable days_back, days_forward) | ✅ | 2h |
+| T2.8.4 | Implement database comparison: identify NEW/UPDATED meetings | ✅ | 2h |
+| T2.8.5 | Implement Detail phase: per-meeting PDF download | ✅ | 4h |
+| T2.8.6 | Integrate Docling for PDF content extraction | ✅ | 2h |
+| T2.8.7 | Store extracted content with meeting metadata | ✅ | 2h |
+| T2.8.8 | Modify Scout Agent to analyze PDF content instead of page | ✅ | 2h |
+| T2.8.9 | Implement content hashing for change detection | ✅ | 2h |
 | T2.8.10 | Write unit tests for hybrid pipeline | 📋 | 4h |
 | T2.8.11 | Write integration tests for full pipeline | 📋 | 4h |
 
@@ -281,13 +281,45 @@ Phase 3: ANALYSIS (AI processing, only new content)
 
 ---
 
-#### F2.7: Scraping Orchestrator 🔵
+#### F2.9: SRWMD Permit Scraper ✅
 
 | ID | User Story | Status | Priority |
 |:---|:-----------|:-------|:---------|
-| US2.7.1 | As an operator, I want a central orchestrator so that all scrapers run on schedule with proper coordination | 🔵 | 🔴 |
-| US2.7.2 | As an operator, I want the orchestrator to handle errors gracefully so that one failing source doesn't stop others | 📋 | 🔴 |
-| US2.7.3 | As an operator, I want the orchestrator to deduplicate content so that we don't reprocess unchanged documents | 📋 | 🟠 |
+| US2.9.1 | As a citizen, I want to monitor SRWMD permit applications so that I catch new development projects early | ✅ | 🔴 |
+| US2.9.2 | As a citizen, I want to monitor SRWMD permit issuances so that I know when permits are approved | ✅ | 🔴 |
+| US2.9.3 | As a citizen, I want to see permit details from E-Permitting portal so that I can review project documents | ✅ | 🟠 |
+
+**Tasks:**
+
+| ID | Task | Status | Estimate |
+|:---|:-----|:-------|:---------|
+| T2.9.1 | Create src/tools/srwmd_scraper.py | ✅ | 4h |
+| T2.9.2 | Implement permit applications scraping (/1616) | ✅ | 2h |
+| T2.9.3 | Implement permit issuances scraping (/1617) | ✅ | 2h |
+| T2.9.4 | Implement E-Permitting detail page scraping | ✅ | 4h |
+| T2.9.5 | Add county filtering (Alachua focus) | ✅ | 1h |
+| T2.9.6 | Add document list extraction from detail page | ✅ | 2h |
+| T2.9.7 | Add SRWMD sources to config/sources.yaml | ✅ | 1h |
+| T2.9.8 | Add SRWMD test function to Source Tester UI | ✅ | 2h |
+| T2.9.9 | Write unit tests for SRWMD scraper | 📋 | 4h |
+
+**SRWMD Permit Data Sources:**
+
+| Source | URL | Data |
+|:-------|:----|:-----|
+| Applications | `/1616/Notice-of-Receipt-of-Applications` | New permit applications received |
+| Issuances | `/1617/Notice-of-Permit-Issuance` | Approved/issued permits |
+| E-Permitting | `permitting.sjrwmd.com/srep/` | Full project details + documents |
+
+---
+
+#### F2.7: Scraping Orchestrator ✅
+
+| ID | User Story | Status | Priority |
+|:---|:-----------|:-------|:---------|
+| US2.7.1 | As an operator, I want a central orchestrator so that all scrapers run on schedule with proper coordination | ✅ | 🔴 |
+| US2.7.2 | As an operator, I want the orchestrator to handle errors gracefully so that one failing source doesn't stop others | ✅ | 🔴 |
+| US2.7.3 | As an operator, I want the orchestrator to deduplicate content so that we don't reprocess unchanged documents | ✅ | 🟠 |
 | US2.7.4 | As an operator, I want the orchestrator to trigger alerts so that critical matches are surfaced immediately | 📋 | 🟠 |
 | US2.7.5 | As an operator, I want the orchestrator to store documents with embeddings so that semantic search works | 📋 | 🟠 |
 
@@ -295,16 +327,16 @@ Phase 3: ANALYSIS (AI processing, only new content)
 
 | ID | Task | Status | Estimate |
 |:---|:-----|:-------|:---------|
-| T2.7.1 | Create src/orchestrator.py with OrchestratorConfig | 📋 | 4h |
-| T2.7.2 | Implement source config loading from sources.yaml | 📋 | 2h |
-| T2.7.3 | Implement dynamic scraper instantiation | 📋 | 2h |
-| T2.7.4 | Add priority-based scheduling logic | 📋 | 2h |
-| T2.7.5 | Implement error handling with exponential backoff | 📋 | 2h |
+| T2.7.1 | Create src/orchestrator.py with OrchestratorConfig | ✅ | 4h |
+| T2.7.2 | Implement source config loading from sources.yaml | ✅ | 2h |
+| T2.7.3 | Implement dynamic scraper instantiation | ✅ | 2h |
+| T2.7.4 | Add priority-based scheduling logic | ✅ | 2h |
+| T2.7.5 | Implement error handling with exponential backoff | ✅ | 2h |
 | T2.7.6 | Add dead letter queue for failed items | 📋 | 2h |
 | T2.7.7 | Add health check endpoints | 📋 | 2h |
-| T2.7.8 | Integrate content hashing for deduplication | 📋 | 2h |
-| T2.7.9 | Implement change detection and version tracking | 📋 | 2h |
-| T2.7.10 | Integrate watchlist matching from entities.yaml | 📋 | 2h |
+| T2.7.8 | Integrate content hashing for deduplication | ✅ | 2h |
+| T2.7.9 | Implement change detection and version tracking | ✅ | 2h |
+| T2.7.10 | Integrate watchlist matching from entities.yaml | ✅ | 2h |
 | T2.7.11 | Implement alert routing (immediate vs digest) | 📋 | 2h |
 | T2.7.12 | Add notification channel support (email, webhook) | 📋 | 2h |
 | T2.7.13 | Generate embeddings on document store | 📋 | 2h |

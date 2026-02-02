@@ -1,6 +1,124 @@
 # Work Notes: Alachua Civic Intelligence Reporting Studio
 
-**Session Date:** 2026-01-29
+---
+
+## Session: 2026-02-01 - Phase 2 Complete + Code Review Fixes
+
+**Session Focus:** Hybrid Scraping Pipeline, SRWMD Scraper, Orchestrator, Code Review
+
+---
+
+### Session Summary
+
+Completed Phase 2 of the project including:
+1. Hybrid scraping pipeline with Discovery + Detail phases
+2. SRWMD permit scraper (applications + issuances + E-Permitting detail)
+3. Central Orchestrator for pipeline coordination
+4. Comprehensive code review and fixes
+5. Streamlit UI improvements
+
+---
+
+### Major Implementations
+
+#### 1. SRWMD Permit Scraper (`src/tools/srwmd_scraper.py`)
+- **767 lines** of new code
+- Scrapes permit applications from `/1616/Notice-of-Receipt-of-Applications`
+- Scrapes permit issuances from `/1617/Notice-of-Permit-Issuance`
+- E-Permitting portal detail page scraping with document list extraction
+- County filtering (Alachua focus)
+- Data classes: `PermitNotice`, `PermitDetail`, `PermitDocument`
+
+#### 2. Orchestrator (`src/orchestrator.py`)
+- **630 lines** - Central pipeline coordinator
+- Job scheduling based on source frequency
+- Source-specific job runners (CivicClerk, Florida Notices, SRWMD)
+- Scout Agent integration for analysis
+- Pipeline run tracking with `JobResult` and `PipelineRun` dataclasses
+- CLI interface for command-line execution
+
+#### 3. Orchestrator UI (`src/ui/pages/orchestrator_panel.py`)
+- Dashboard with source status
+- Run Pipeline tab with source selection
+- History tab for past runs
+- Fixed nested expander Streamlit bug
+
+#### 4. Source Configuration (`config/sources.yaml`)
+- Added `srwmd-permit-applications` (critical, daily)
+- Added `srwmd-permit-issuances` (critical, daily)
+- Updated with custom scraper references
+
+#### 5. Streamlit Sidebar Cleanup
+- Removed redundant auto-generated navigation
+- Added Target Data Sources section with link buttons
+- Created `.streamlit/config.toml` with `showSidebarNavigation = false`
+
+---
+
+### Code Review Fixes
+
+#### High Priority (Fixed)
+
+1. **Removed unused `asyncio` import** in `src/orchestrator.py`
+2. **Fixed hardcoded `site_id`** - Now extracted from source URL config
+3. **Added URL validation** in `src/tools/firecrawl_client.py`:
+   - `ALLOWED_DOMAINS` allowlist for security
+   - `_validate_url()` method
+   - Validation in `scrape_page()`, `scrape_pdf()`, `map_site()`
+4. **Added `SourceType` constants** for consistent source matching
+
+#### Medium Priority (Noted for future)
+
+- Add scraper unit tests with mocked responses
+- Add database FK constraints
+- Implement async/parallel scraping
+- Add connection pooling for production
+
+---
+
+### Files Created
+
+| File | Lines | Purpose |
+|:-----|:------|:--------|
+| `src/tools/srwmd_scraper.py` | 767 | SRWMD permit scraper |
+| `src/orchestrator.py` | 630 | Pipeline orchestrator |
+| `src/ui/pages/orchestrator_panel.py` | 292 | Orchestrator UI |
+| `.streamlit/config.toml` | 9 | Streamlit config |
+
+### Files Modified
+
+| File | Changes |
+|:-----|:--------|
+| `config/sources.yaml` | Added SRWMD sources |
+| `src/ui/app.py` | Added Orchestrator tab, updated sidebar |
+| `src/ui/pages/source_tester.py` | Added SRWMD test function |
+| `src/tools/firecrawl_client.py` | Added URL validation |
+| `migrations/001_scraped_meetings.sql` | Already existed, reviewed |
+
+---
+
+### Target Data Sources (Active)
+
+| Source | URL | Scraper | Status |
+|:-------|:----|:--------|:-------|
+| CivicClerk | `https://alachuafl.portal.civicclerk.com/` | `CivicClerkScraper` | ✅ Ready |
+| Florida Public Notices | `https://floridapublicnotices.com/` | `FloridaNoticesScraper` | ✅ Ready |
+| SRWMD Applications | `https://www.mysuwanneeriver.com/1616/` | `SRWMDScraper` | ✅ Ready |
+| SRWMD Issuances | `https://www.mysuwanneeriver.com/1617/` | `SRWMDScraper` | ✅ Ready |
+
+---
+
+### Next Steps
+
+1. Add scraper unit tests
+2. Test full pipeline with real data
+3. Phase 3: Intelligent Evolution (learning, pattern detection)
+
+---
+---
+
+## Session: 2026-01-29 (Previous)
+
 **Session Focus:** P0 and P1 Bug Fixes and Core Implementation
 
 ---

@@ -14,7 +14,6 @@ Pipeline Flow:
     Sources → Discovery → Database Sync → Analysis → Reports → Notifications
 """
 
-import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
@@ -29,6 +28,14 @@ from src.tools.florida_notices_scraper import FloridaNoticesScraper
 from src.tools.srwmd_scraper import SRWMDScraper
 
 logger = get_logger("orchestrator")
+
+
+# Source type constants for consistent matching
+class SourceType:
+    """Constants for source type identification."""
+    CIVICCLERK = "civicclerk"
+    FLORIDA_NOTICES = "florida-public-notices"
+    SRWMD = "srwmd"
 
 
 class JobStatus(Enum):
@@ -135,23 +142,45 @@ class Orchestrator:
         return sources
 
     def _init_scrapers(self) -> Dict[str, Any]:
-        """Initialize scraper instances."""
-        return {
-            'civicclerk': CivicClerkScraper(site_id="alachuafl"),
-            'florida_notices': FloridaNoticesScraper(),
-            'srwmd': SRWMDScraper()
-        }
+        """Initialize scraper instances based on configured sources."""
+        scrapers = {}
+
+        # Find CivicClerk source and extract site_id from URL
+        for source in self.sources.values():
+            if SourceType.CIVICCLERK in source.id.lower():
+                # Extract site_id from URL like https://alachuafl.portal.civicclerk.com/
+                site_id = self._extract_civicclerk_site_id(source.url)
+                scrapers[SourceType.CIVICCLERK] = CivicClerkScraper(site_id=site_id)
+                break
+
+        # Default if no CivicClerk source found
+        if SourceType.CIVICCLERK not in scrapers:
+            scrapers[SourceType.CIVICCLERK] = CivicClerkScraper(site_id="alachuafl")
+
+        scrapers[SourceType.FLORIDA_NOTICES] = FloridaNoticesScraper()
+        scrapers[SourceType.SRWMD] = SRWMDScraper()
+
+        return scrapers
+
+    def _extract_civicclerk_site_id(self, url: str) -> str:
+        """Extract site_id from CivicClerk URL."""
+        # URL format: https://{site_id}.portal.civicclerk.com/
+        import re
+        match = re.search(r'https?://([^.]+)\.portal\.civicclerk\.com', url)
+        if match:
+            return match.group(1)
+        return "alachuafl"  # Default fallback
 
     def _get_scraper_for_source(self, source: SourceConfig) -> Optional[Any]:
         """Get the appropriate scraper for a source."""
         source_id = source.id.lower()
 
-        if 'civicclerk' in source_id:
-            return self.scrapers['civicclerk']
-        elif 'florida-public-notices' in source_id:
-            return self.scrapers['florida_notices']
-        elif 'srwmd' in source_id:
-            return self.scrapers['srwmd']
+        if SourceType.CIVICCLERK in source_id:
+            return self.scrapers.get(SourceType.CIVICCLERK)
+        elif SourceType.FLORIDA_NOTICES in source_id:
+            return self.scrapers.get(SourceType.FLORIDA_NOTICES)
+        elif SourceType.SRWMD in source_id:
+            return self.scrapers.get(SourceType.SRWMD)
 
         return None
 

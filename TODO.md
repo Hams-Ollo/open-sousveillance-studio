@@ -1,7 +1,7 @@
 # TODO: Alachua Civic Intelligence Reporting Studio
 
-**Last Updated:** 2026-01-30
-**Status:** Active Development
+**Last Updated:** 2026-02-01
+**Status:** Phase 2 Complete - Active Development
 
 ---
 
@@ -11,6 +11,45 @@
 - 🟠 **P1 - High:** Core functionality gaps, should fix before new features
 - 🟡 **P2 - Medium:** Important improvements, can work around temporarily
 - 🟢 **P3 - Low:** Nice to have, polish items
+
+---
+
+## ✅ Phase 2 Completed (2026-02-01)
+
+### [x] Hybrid Scraping Pipeline
+- Discovery phase (meeting/notice list scraping)
+- Detail phase (PDF download and extraction)
+- Database state tracking for incremental updates
+
+### [x] SRWMD Permit Scraper
+- `src/tools/srwmd_scraper.py` - 767 lines
+- Scrapes permit applications and issuances
+- E-Permitting portal detail page scraping
+- Document list extraction
+- County filtering (Alachua focus)
+
+### [x] Orchestrator Implementation
+- `src/orchestrator.py` - 630 lines
+- Central pipeline coordinator
+- Job scheduling based on source frequency
+- Source-specific job runners
+- Scout Agent integration
+- CLI interface
+
+### [x] Orchestrator UI
+- `src/ui/pages/orchestrator_panel.py`
+- Dashboard, Run Pipeline, History tabs
+
+### [x] Code Review Fixes
+- Removed unused `asyncio` import
+- Fixed hardcoded `site_id` - now from config
+- Added URL validation with domain allowlist
+- Added `SourceType` constants
+
+### [x] Streamlit Sidebar Cleanup
+- Removed redundant navigation
+- Added Target Data Sources links
+- Created `.streamlit/config.toml`
 
 ---
 
@@ -457,32 +496,50 @@ def get_db():
 
 ## 🔜 Next Priority Items
 
-### [ ] Supabase Integration Testing
+### [ ] Add Scraper Unit Tests (P1)
+
+- Mock Firecrawl responses for CivicClerk scraper
+- Mock Firecrawl responses for Florida Notices scraper
+- Mock Firecrawl responses for SRWMD scraper
+- Test hybrid pipeline with mocked database
+
+### [ ] Add Database FK Constraints (P2)
+
+- Add foreign key from `documents.meeting_id` to `scraped_meetings`
+- Update migration file
+
+### [ ] Implement Async/Parallel Scraping (P2)
+
+- Convert Orchestrator to use asyncio
+- Run independent source scrapes in parallel
+- Add concurrency limits
+
+### [ ] Supabase Integration Testing (P2)
 
 - Test database writes with real Supabase instance
 - Implement document storage for PDFs
 - Test vector embeddings with pgvector
 
-### [ ] Human-in-the-Loop Approval Flow
+### [ ] Human-in-the-Loop Approval Flow (P3)
 
 - Implement LangGraph interrupt/resume
 - Build approval UI in Streamlit
 - Email notifications for pending approvals
 
-### [ ] Florida Public Notices Scraper
+### [ ] Phase 3: Intelligent Evolution (Future)
 
-- Implement scraper for statewide public notices
-- Filter by Alachua County
-- Parse legal notice formats
+- Pattern detection across meetings
+- Learning from historical data
+- Anomaly detection for unusual items
 
 ---
 
 ## Notes
 
-- **Current State:** Core agents (Scout + Analyst) are working and tested via Streamlit Dev Console
+- **Current State:** Phase 2 complete - Hybrid scraping pipeline, Orchestrator, 3 scrapers working
 - **LLM:** Using native `google.genai` SDK (not LangChain) to avoid PyTorch dependency issues
 - **Testing:** 37 tests passing, 7 skipped (docling/NumPy compatibility)
-- **Next Focus:** Supabase integration, human-in-the-loop approval flow
+- **Next Focus:** Add scraper tests, test full pipeline with real data
 
 ---
 
@@ -493,16 +550,19 @@ def get_db():
 | `src/tools.py` | ✅ Working | Firecrawl + Tavily tools |
 | `src/models.py` | ✅ Working | Native google.genai SDK |
 | `src/config.py` | ✅ Working | YAML config loader |
-| `src/database.py` | ✅ Working | Lazy initialization |
+| `src/database.py` | ✅ Working | Meeting state tracking |
 | `src/schemas.py` | ✅ Working | All report types |
-| `src/exceptions.py` | ✅ New | Custom exception classes |
+| `src/exceptions.py` | ✅ Working | Custom exception classes |
+| `src/orchestrator.py` | ✅ New | Pipeline orchestrator (630 lines) |
 | `src/agents/base.py` | ✅ Working | BaseReport return type |
-| `src/agents/scout.py` | ✅ Working | Tested via Streamlit |
+| `src/agents/scout.py` | ✅ Working | Tiered PDF/metadata analysis |
 | `src/agents/analyst.py` | ✅ Working | Tested via Streamlit |
-| `src/ui/app.py` | ✅ Working | Streamlit Dev Console |
-| `pyproject.toml` | ✅ New | Black, Ruff, mypy, pytest config |
-| `.pre-commit-config.yaml` | ✅ New | Pre-commit hooks |
-| `docs/CODING_STANDARDS.md` | ✅ New | Development standards |
-| `docs/ARCHITECTURE.md` | ✅ New | System design & diagrams |
-| `docs/SYSTEM_OVERVIEW.md` | ✅ New | Workflow brainstorming |
-| `start-all.ps1` | ✅ Fixed | Starts FastAPI + Streamlit |
+| `src/tools/civicclerk_scraper.py` | ✅ Working | Hybrid pipeline support |
+| `src/tools/florida_notices_scraper.py` | ✅ Working | Hybrid pipeline support |
+| `src/tools/srwmd_scraper.py` | ✅ New | Permit scraper (767 lines) |
+| `src/tools/firecrawl_client.py` | ✅ Updated | URL validation added |
+| `src/ui/app.py` | ✅ Updated | Orchestrator tab, sidebar cleanup |
+| `src/ui/pages/orchestrator_panel.py` | ✅ New | Orchestrator control panel |
+| `config/sources.yaml` | ✅ Updated | SRWMD sources added |
+| `.streamlit/config.toml` | ✅ New | Hide sidebar nav |
+| `start-all.ps1` | ✅ Working | Starts FastAPI + Streamlit |

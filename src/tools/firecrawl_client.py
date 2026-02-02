@@ -6,14 +6,31 @@ Provides a high-level interface for web scraping with:
 - Actions support for React SPAs
 - Batch scraping
 - PDF extraction
+- URL validation for security
 """
 
 import os
 import time
-from typing import Optional
+import re
+from typing import Optional, List
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 from firecrawl import FirecrawlApp
+
+
+# Allowed domains for scraping (security measure against SSRF)
+ALLOWED_DOMAINS = [
+    "portal.civicclerk.com",
+    "floridapublicnotices.com",
+    "mysuwanneeriver.com",
+    "permitting.sjrwmd.com",
+    "alachuacounty.us",
+    "cityofalachua.com",
+    "alachuafl.gov",
+    "floridadep.gov",
+    "clerk.alachuacounty.us",
+]
 
 
 @dataclass
@@ -36,13 +53,21 @@ class FirecrawlClient:
         print(result.markdown)
     """
 
-    def __init__(self, api_key: Optional[str] = None, max_retries: int = 3):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        max_retries: int = 3,
+        validate_urls: bool = True,
+        allowed_domains: Optional[List[str]] = None
+    ):
         """
         Initialize Firecrawl client.
 
         Args:
             api_key: Firecrawl API key (defaults to FIRECRAWL_API_KEY env var)
             max_retries: Maximum retry attempts for failed requests
+            validate_urls: Whether to validate URLs against allowed domains
+            allowed_domains: Custom list of allowed domains (uses default if None)
         """
         self.api_key = api_key or os.getenv("FIRECRAWL_API_KEY")
         if not self.api_key:
@@ -50,6 +75,42 @@ class FirecrawlClient:
 
         self.client = FirecrawlApp(api_key=self.api_key)
         self.max_retries = max_retries
+        self.validate_urls = validate_urls
+        self.allowed_domains = allowed_domains or ALLOWED_DOMAINS
+
+    def _validate_url(self, url: str) -> bool:
+        """
+        Validate URL against allowed domains list.
+
+        Args:
+            url: URL to validate
+
+        Returns:
+            True if URL is allowed, False otherwise
+
+        Raises:
+            ValueError: If URL is not in allowed domains and validation is enabled
+        """
+        if not self.validate_urls:
+            return True
+
+        try:
+            parsed = urlparse(url)
+            domain = parsed.netloc.lower()
+
+            # Check if domain matches any allowed domain (including subdomains)
+            for allowed in self.allowed_domains:
+                if domain == allowed or domain.endswith('.' + allowed):
+                    return True
+
+            raise ValueError(
+                f"URL domain '{domain}' not in allowed list. "
+                f"Allowed domains: {', '.join(self.allowed_domains)}"
+            )
+        except Exception as e:
+            if isinstance(e, ValueError):
+                raise
+            raise ValueError(f"Invalid URL format: {url}") from e
 
     def _retry_with_backoff(self, func, *args, **kwargs):
         """Execute function with exponential backoff retry."""
@@ -83,6 +144,9 @@ class FirecrawlClient:
         Returns:
             ScrapeResult with markdown content
         """
+        # Validate URL against allowed domains
+        self._validate_url(url)
+
         formats = formats or ["markdown"]
 
         actions = [{"type": "wait", "milliseconds": wait_ms}]
@@ -130,6 +194,9 @@ class FirecrawlClient:
         Returns:
             ScrapeResult with extracted text as markdown
         """
+        # Validate URL against allowed domains
+        self._validate_url(url)
+
         try:
             result = self._retry_with_backoff(
                 self.client.scrape,
@@ -189,6 +256,9 @@ class FirecrawlClient:
         Returns:
             List of discovered URLs
         """
+        # Validate URL against allowed domains
+        self._validate_url(url)
+
         try:
             kwargs = {"url": url, "limit": limit}
             if search:
