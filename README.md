@@ -7,8 +7,8 @@
 [![Supabase](https://img.shields.io/badge/database-Supabase-green.svg)](https://supabase.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Version:** 0.3.0-dev
-**Status:** ✅ Phase 3 Intelligence Layer Active
+**Version:** 0.4.0-dev
+**Status:** ✅ Two-Layer Agent Architecture Operational
 **Origin:** 📍 Alachua County, Florida
 
 > *"Sousveillance"* (French: sous "from below" + veillance "watching") — the recording of an activity by a participant, in contrast to surveillance. **From clear seeing, right action.**
@@ -25,14 +25,15 @@ Open Sousveillance Studio is an **open-source AI agent platform** that monitors 
 
 ### Key Features
 
-- 🔍 **Comprehensive Coverage** — Scouts analyze ALL government activity, not just keyword matches
-- 🧠 **AI Analysis** — Gemini 2.5 Pro extracts insights from meeting agendas and permits
-- 🚨 **Watchdog Alerts** — 14 configurable rules for civic monitoring (rezoning, permits, environmental)
+- 🔍 **Two-Layer Agent System** — ScoutAgent (analysis) + AnalystAgent (deep research)
+- 🧠 **Dual Research Providers** — Tavily (fast) + Gemini Deep Research (thorough)
+- ⏰ **Scheduled Pipeline** — Daily runs at 4 AM EST via Celery Beat
+- 🚨 **Watchdog Alerts** — 14 configurable rules for civic monitoring
 - 🏷️ **Unified Events** — CivicEvent model normalizes data from all sources
 - ⚠️ **Change Detection** — Content hashing detects new and updated items
 - 📊 **Event Queries** — "What's new?", upcoming meetings, entity search
 - 🔧 **Config-Driven** — Deploy to any municipality by editing YAML files
-- 🖥️ **Dev Console** — Streamlit UI for testing and debugging
+- 🖥️ **Orchestrator Panel** — Streamlit UI for manual runs and monitoring
 
 ---
 
@@ -151,6 +152,7 @@ open-sousveillance-studio/
 │   │   ├── civicclerk_scraper.py
 │   │   ├── srwmd_scraper.py
 │   │   ├── florida_notices_scraper.py
+│   │   ├── gemini_research.py # 🆕 Gemini Deep Research client
 │   │   └── resource_cache.py
 │   ├── ui/                    # Streamlit Dev Console
 │   ├── api/                   # FastAPI routes
@@ -186,16 +188,18 @@ open-sousveillance-studio/
 ### Completed ✅
 - [x] **Phase 1 - Foundation:** Config, schemas, logging, Streamlit Dev Console
 - [x] **Phase 2 - Scout Layer:** Firecrawl integration, 3 scrapers, Orchestrator
-- [x] **Phase 3.1-3.3 - Intelligence Layer:** CivicEvent model, EventStore, Watchdog Rules
+- [x] **Phase 3 - Intelligence Layer:** CivicEvent model, EventStore, Watchdog Rules
+- [x] **Phase 3b - Analyst Layer:** Dual research providers (Tavily + Gemini Deep Research)
+- [x] **Scheduled Pipeline:** Daily 4 AM EST runs via Celery Beat
+- [x] **Orchestrator Panel:** Manual runs, async execution, skip options
 
 ### In Progress 🚧
-- [ ] **Phase 3.4:** Health metrics embedded in scrapers
-- [ ] **Phase 3.5:** User watchlists (topics, areas, keywords)
-- [ ] **Phase 3.6:** Entity extraction for cross-source linking
-- [ ] **Phase 3.7:** Cross-source search for investigation
+- [ ] **Health Metrics:** Self-healing scrapers with health tracking
+- [ ] **User Watchlists:** Subscribe to topics, areas, keywords
+- [ ] **Entity Extraction:** Cross-source linking for investigation
 
 ### Planned 📋
-- [ ] **Analyst Layer:** Deep research, pattern recognition, approvals
+- [ ] **Human-in-the-Loop:** Approval workflow for high-impact reports
 - [ ] **Synthesizer Layer:** Newsletters, social media content
 - [ ] **Production:** Docker deployment, multi-municipality support
 

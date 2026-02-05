@@ -2,6 +2,185 @@
 
 ---
 
+## Session: 2026-02-05 - Two-Layer Agent Architecture & Gemini Deep Research
+
+**Session Focus:** Integrate Gemini Deep Research, implement two-layer agent architecture, scheduled pipeline runs
+
+---
+
+### Session Summary
+
+Completed the two-layer agent architecture with dual research providers:
+1. Created Gemini Deep Research client wrapper
+2. Updated AnalystAgent to support Tavily + Gemini Deep Research
+3. Integrated AnalystAgent into Orchestrator pipeline
+4. Added 4 AM EST daily scheduled runs via Celery Beat
+5. Added manual run UI in Orchestrator Panel
+6. Comprehensive documentation updates
+
+---
+
+### Major Implementations
+
+#### 1. Gemini Deep Research Client (`src/tools/gemini_research.py`)
+
+New client wrapper for Google's Interactions API:
+- Uses `deep-research-pro-preview-12-2025` agent
+- Async polling with configurable timeout (default 5 min)
+- `ResearchStatus` enum: PENDING, IN_PROGRESS, COMPLETED, FAILED
+- `ResearchResult` dataclass with text, sources, status
+
+```python
+from src.tools.gemini_research import get_gemini_research_client
+
+client = get_gemini_research_client()
+result = client.research("Tara Forest development Alachua County", timeout_seconds=300)
+```
+
+#### 2. AnalystAgent Dual Research Providers
+
+Updated `src/agents/analyst.py` with:
+- `ResearchProvider` enum: TAVILY, GEMINI, BOTH
+- `_research_with_tavily()` - Fast web search
+- `_research_with_gemini()` - Comprehensive agentic research
+- `_execute_research()` - Combines results from both providers
+
+```python
+from src.agents.analyst import AnalystAgent, ResearchProvider
+
+# Use both providers (default)
+analyst = AnalystAgent(name="Analyst", research_provider=ResearchProvider.BOTH)
+```
+
+#### 3. Orchestrator Pipeline Integration
+
+Updated `src/orchestrator.py`:
+- Added `AnalystAgent` initialization with configurable research provider
+- Added `_run_deep_research()` method for Layer 2 analysis
+- Triggers on high-relevance items (≥0.7 score)
+- Added `skip_deep_research` parameter to `run_source()`
+
+#### 4. Celery Beat Scheduling
+
+Updated `src/tasks/celery_app.py`:
+- Daily orchestrator pipeline at **4:00 AM EST**
+- New `run_orchestrator_pipeline` task
+- New `run_single_source` task for manual triggers
+- Task routing to `orchestrator` queue
+
+#### 5. Orchestrator Panel UI Enhancements
+
+Updated `src/ui/pages/orchestrator_panel.py`:
+- Added schedule info display (4 AM EST)
+- Added "Skip Deep Research" checkbox
+- Added "Run in Background (Celery)" option
+- Shows task ID when queued for background execution
+
+#### 6. Database Deep Research Methods
+
+Updated `src/database.py`:
+- `get_high_relevance_reports()` - Find reports needing deep research
+- `save_deep_research_report()` - Save and link deep research results
+
+---
+
+### Files Created
+
+| File | Lines | Purpose |
+|:-----|:------|:--------|
+| `src/tools/gemini_research.py` | 235 | Gemini Deep Research client |
+
+### Files Modified
+
+| File | Changes |
+|:-----|:--------|
+| `src/agents/analyst.py` | Added dual research providers |
+| `src/orchestrator.py` | Added AnalystAgent integration, deep research |
+| `src/tasks/celery_app.py` | Added 4 AM schedule, orchestrator tasks |
+| `src/tasks/scout_tasks.py` | Added orchestrator pipeline tasks |
+| `src/database.py` | Added deep research methods |
+| `src/ui/pages/orchestrator_panel.py` | Added schedule info, async runs |
+| `src/tools/__init__.py` | Export Gemini research classes |
+| `requirements.txt` | Added google-genai==1.60.0 |
+| `.env.example` | Documented research providers |
+
+### Documentation Updated
+
+| File | Changes |
+|:-----|:--------|
+| `docs/ARCHITECTURE.md` | Two-layer agent framework, updated diagrams |
+| `docs/DEVELOPER_GUIDE.md` | Updated architecture section |
+| `docs/SYSTEM_OVERVIEW.md` | Dual research providers |
+| `docs/USER_GUIDE.md` | 4 AM schedule, Orchestrator Panel |
+| `docs/PROJECT_PLAN.md` | Phase 3 complete, deliverables |
+| `docs/PROJECT_MANAGEMENT.md` | E3 Analyst Layer complete |
+| `TODO.md` | Added Feb 5 completed items |
+
+---
+
+### Architecture: Two-Layer Agent System
+
+```mermaid
+flowchart TB
+    subgraph Orchestrator["🎯 ORCHESTRATOR (4 AM EST Daily)"]
+        CC[CivicClerk<br/>Scraper]
+        SR[SRWMD<br/>Scraper]
+        FN[Florida Notices<br/>Scraper]
+    end
+
+    subgraph Layer1["🔍 LAYER 1: ScoutAgent"]
+        S1[Analyze scraped content]
+        S2[Match against watchlist]
+        S3[Generate relevance scores<br/>0.0 - 1.0]
+    end
+
+    subgraph Layer2["🧠 LAYER 2: AnalystAgent"]
+        TAV[Tavily Search<br/>fast, cheap]
+        GEM[Gemini Deep Research<br/>thorough, agentic]
+        COMB[Combined Deep<br/>Research Report]
+        TAV --> COMB
+        GEM --> COMB
+    end
+
+    CC --> Layer1
+    SR --> Layer1
+    FN --> Layer1
+    Layer1 -->|"relevance ≥ 0.7"| Layer2
+```
+
+---
+
+### How to Use
+
+**Start Scheduled Runs:**
+```bash
+# Terminal 1: Celery worker
+celery -A src.tasks.celery_app worker --loglevel=info -Q orchestrator,scouts
+
+# Terminal 2: Celery Beat scheduler
+celery -A src.tasks.celery_app beat --loglevel=info
+```
+
+**Manual Runs:**
+```python
+from src.tasks.scout_tasks import run_orchestrator_pipeline
+
+# Queue full pipeline
+run_orchestrator_pipeline.delay(force=True)
+```
+
+---
+
+### Next Steps
+
+1. Test full pipeline with real data
+2. Add integration tests for deep research
+3. Implement human-in-the-loop approval flow
+4. Add email notifications for high-relevance items
+
+---
+---
+
 ## Session: 2026-02-02 - Phase 3 Intelligence Layer
 
 **Session Focus:** Intelligent Evolution - Event-driven architecture, CivicEvent model, adapters, EventStore, Watchdog Rules Engine

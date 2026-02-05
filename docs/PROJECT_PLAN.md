@@ -1,7 +1,7 @@
 # 📅 Project Plan: Open Sousveillance Studio
 
-**Version:** 1.1
-**Last Updated:** 2026-02-02
+**Version:** 1.2
+**Last Updated:** 2026-02-05
 **Project Lead:** Hans
 **Target Release:** v1.0.0
 
@@ -90,23 +90,34 @@ gantt
 
 #### Hybrid Scraping Architecture
 
-```
-Phase 1: DISCOVERY (Light scrape - meeting list only)
-├── Scrape meeting list → Extract: meeting_id, title, date, board, status
-├── Filter by date window (-30 to +60 days)
-└── Compare against database: Which meetings are NEW or UPDATED?
+```mermaid
+flowchart TB
+    subgraph Phase1["🔍 Phase 1: DISCOVERY"]
+        D1[Scrape meeting list]
+        D2[Extract: meeting_id, title, date, board, status]
+        D3[Filter by date window<br/>-30 to +60 days]
+        D4[Compare against DB:<br/>NEW or UPDATED?]
+        D1 --> D2 --> D3 --> D4
+    end
 
-Phase 2: DETAIL (Per-meeting scrape - only for new/updated)
-├── Check if agenda has been posted
-├── Download Agenda Packet PDF
-├── Extract PDF content with Docling/Firecrawl
-└── Store document with meeting metadata
+    subgraph Phase2["📄 Phase 2: DETAIL"]
+        DT1[Check if agenda posted]
+        DT2[Download Agenda Packet PDF]
+        DT3[Extract PDF content<br/>Docling/Firecrawl]
+        DT4[Store document with metadata]
+        DT1 --> DT2 --> DT3 --> DT4
+    end
 
-Phase 3: ANALYSIS (AI processing - only for new content)
-├── Run Scout Agent on PDF content (not whole page)
-├── Match against watchlist
-├── Generate alerts for upcoming meetings
-└── Store ScoutReport
+    subgraph Phase3["🧠 Phase 3: ANALYSIS"]
+        A1[Run Scout Agent on PDF content]
+        A2[Match against watchlist]
+        A3[Generate alerts for upcoming meetings]
+        A4[Store ScoutReport]
+        A1 --> A2 --> A3 --> A4
+    end
+
+    Phase1 -->|New/Updated meetings| Phase2
+    Phase2 -->|New content| Phase3
 ```
 
 #### Deliverables
@@ -136,10 +147,10 @@ Phase 3: ANALYSIS (AI processing - only for new content)
 
 ---
 
-### Phase 3: Intelligent Evolution 🚧 (Current)
+### Phase 3: Intelligent Evolution ✅ (Complete)
 
-**Duration:** Feb 2 - Mar 15, 2026
-**Status:** In Progress
+**Duration:** Feb 2 - Feb 5, 2026
+**Status:** Complete
 
 **Approach:** Event-driven + User-centric (Option C hybrid)
 **Primary Use Case:** Grassroots civic watchdog monitoring for concerning activity
@@ -155,42 +166,43 @@ Phase 3: ANALYSIS (AI processing - only for new content)
 
 #### Architecture
 
-```
-┌───────────────────────────────────────────────────────────────┐
-│                      USER LAYER                                 │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
-│  │  Watchlist  │  │   Alerts    │  │    Investigation        │  │
-│  │  (topics,   │  │  (triggers, │  │    (search, explore)    │  │
-│  │   areas)    │  │   delivery) │  │                         │  │
-│  └──────┬──────┘  └──────┬──────┘  └────────────┬────────────┘  │
-└─────────┼────────────────┼──────────────────────┼───────────────┘
-          │                │                      │
-          ▼                ▼                      ▼
-┌───────────────────────────────────────────────────────────────┐
-│                    UNIFIED EVENT STREAM                         │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  CivicEvent(type, source, timestamp, data, tags, location)  ││
-│  └─────────────────────────────────────────────────────────┘│
-│         ▲                ▲                      ▲               │
-└─────────┼────────────────┼──────────────────────┼───────────────┘
-          │                │                      │
-   ┌──────┴──────┐  ┌──────┴──────┐  ┌───────────┴───────────┐
-   │ CivicClerk  │  │   SRWMD     │  │   Florida Notices     │
-   │  Adapter    │  │  Adapter    │  │      Adapter          │
-   └─────────────┘  └─────────────┘  └───────────────────────┘
+```mermaid
+flowchart TB
+    subgraph UserLayer["👤 USER LAYER"]
+        WL[📋 Watchlist<br/>topics, areas]
+        AL[🚨 Alerts<br/>triggers, delivery]
+        INV[🔍 Investigation<br/>search, explore]
+    end
+
+    subgraph EventStream["📊 UNIFIED EVENT STREAM"]
+        CE[CivicEvent<br/>type, source, timestamp,<br/>data, tags, location]
+    end
+
+    subgraph Adapters["🔄 SOURCE ADAPTERS"]
+        CC[CivicClerk<br/>Adapter]
+        SR[SRWMD<br/>Adapter]
+        FN[Florida Notices<br/>Adapter]
+    end
+
+    CC --> CE
+    SR --> CE
+    FN --> CE
+    CE --> WL
+    CE --> AL
+    CE --> INV
 ```
 
 #### Deliverables
 
 | Deliverable | Status | Target Date |
 |:------------|:-------|:------------|
-| **3.1 CivicEvent model + adapters** | 🔲 | Feb 8 |
-| **3.2 Event persistence + queries** | 🔲 | Feb 12 |
-| **3.3 Watchdog rules engine** | 🔲 | Feb 18 |
-| **3.4 Health metrics in scrapers** | 🔲 | Feb 22 |
-| **3.5 User watchlists** | 🔲 | Feb 28 |
-| **3.6 Entity extraction** | 🔲 | Mar 8 |
-| **3.7 Cross-source search** | 🔲 | Mar 15 |
+| **3.1 Two-layer agent architecture** | ✅ | Feb 5 |
+| **3.2 Orchestrator pipeline (4 AM EST)** | ✅ | Feb 5 |
+| **3.3 Dual research providers (Tavily + Gemini)** | ✅ | Feb 5 |
+| **3.4 Celery Beat scheduling** | ✅ | Feb 5 |
+| **3.5 Manual run UI (Orchestrator Panel)** | ✅ | Feb 5 |
+| **3.6 Deep research on high-relevance items** | ✅ | Feb 5 |
+| **3.7 Database methods for deep research** | ✅ | Feb 5 |
 
 #### Key Milestones
 
@@ -200,29 +212,29 @@ Phase 3: ANALYSIS (AI processing - only for new content)
 
 ---
 
-### Phase 3b: Analyst Layer
+### Phase 3b: Analyst Layer ✅ (Complete)
 
-**Duration:** Mar 16 - Apr 1, 2026
-**Status:** Planned
+**Duration:** Feb 2 - Feb 5, 2026
+**Status:** Complete
 
 #### Goals
 
-- Deep research via Tavily integration
+- Deep research via Tavily + Gemini Deep Research integration ✅
 - Pattern recognition across Scout data
-- Human-in-the-loop approval workflow
-- LangGraph workflow orchestration
+- Automatic triggering on high-relevance items (≥0.7 score)
+- Dual research provider architecture
 
 #### Deliverables
 
 | Deliverable | Status | Target Date |
 |:------------|:-------|:------------|
-| LangGraph workflow implementation | 🔲 | Mar 20 |
-| Tavily deep research integration | 🔲 | Mar 22 |
-| Supabase checkpointer for state | 🔲 | Mar 25 |
-| Human approval checkpoint (interrupt/resume) | 🔲 | Mar 28 |
+| AnalystAgent with dual providers | ✅ | Feb 5 |
+| Tavily deep research integration | ✅ | Feb 5 |
+| Gemini Deep Research integration | ✅ | Feb 5 |
+| ResearchProvider enum (TAVILY/GEMINI/BOTH) | ✅ | Feb 5 |
+| Orchestrator integration | ✅ | Feb 5 |
 | FastAPI approval endpoints | ✅ | Jan 29 |
-| Email notifications (Resend) | 🔲 | Mar 30 |
-| Analyst agent integration tests | 🔲 | Apr 1 |
+| Database deep research methods | ✅ | Feb 5 |
 
 #### Key Milestones
 

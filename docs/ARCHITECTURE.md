@@ -29,21 +29,13 @@ Open Sousveillance Studio deploys AI agents that watch 15+ government data sourc
 
 The system documents ALL government activity, not just keyword matches. Watchlist items are *flagged* for priority attention, not used to *filter* what gets reported.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    INSTANCE CONFIG                       │
-│  (Municipality-specific: sources, entities, watchlists) │
-└─────────────────────────────────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                    AGENT FRAMEWORK                       │
-│  (Generic: Scout, Analyst, Synthesizer patterns)        │
-└─────────────────────────────────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                    LLM INTELLIGENCE                      │
-│  (Dynamic: reasoning, pattern recognition, synthesis)   │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    IC["⚙️ INSTANCE CONFIG<br/>(Municipality-specific: sources, entities, watchlists)"]
+    AF["🤖 AGENT FRAMEWORK<br/>(Generic: Scout, Analyst patterns)"]
+    LLM["🧠 LLM INTELLIGENCE<br/>(Dynamic: reasoning, pattern recognition, synthesis)"]
+
+    IC --> AF --> LLM
 ```
 
 ```mermaid

@@ -30,39 +30,40 @@ The Alachua Civic Intelligence Reporting Studio is an AI-powered civic monitorin
 
 ## Architecture
 
-### Three-Layer Agent Framework
+### Two-Layer Agent Framework
 
+```mermaid
+flowchart TB
+    subgraph Layer1["🔍 LAYER 1: ScoutAgent"]
+        direction LR
+        S1[Analyze scraped content]
+        S2[Match against watchlist]
+        S3[Generate relevance scores]
+    end
+
+    subgraph Layer2["🧠 LAYER 2: AnalystAgent"]
+        direction LR
+        A1[Tavily<br/>Fast Search]
+        A2[Gemini Deep<br/>Research]
+        A3[Synthesize findings]
+    end
+
+    Layer1 -->|"relevance ≥ 0.7"| Layer2
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         LAYER 1: SCOUTS                              │
-│  A1: Meeting Intelligence    A2: Permit Applications                │
-│  A3: Legislative Monitor     A4: Document Tracker                   │
-│  (Daily execution - automated)                                       │
-└─────────────────────────────────────────────────────────────────────┘
-                                    ↓
-┌─────────────────────────────────────────────────────────────────────┐
-│                        LAYER 2: ANALYSTS                             │
-│  B1: Impact Assessment       B2: Procedural Integrity               │
-│  (Weekly execution - requires approval for sensitive content)       │
-└─────────────────────────────────────────────────────────────────────┘
-                                    ↓
-┌─────────────────────────────────────────────────────────────────────┐
-│                      LAYER 3: SYNTHESIZERS                           │
-│  C1: Daily Brief    C2: Weekly Digest    C3: Alert    C4: Deep Dive │
-│  (On-demand - requires human approval before publication)           │
-└─────────────────────────────────────────────────────────────────────┘
-```
+
+> **Note:** The system now uses a two-layer architecture. Layer 1 (ScoutAgent) runs daily at 4 AM EST. Layer 2 (AnalystAgent) triggers automatically on high-relevance items using dual research providers (Tavily + Gemini Deep Research).
 
 ### Data Flow
 
-```
-Government Portal → Firecrawl → Scout Agent → ScoutReport → Supabase
-                                                    ↓
-                                        Analyst Agent → AnalystReport
-                                                    ↓
-                                            [Human Approval]
-                                                    ↓
-                                        Synthesizer → Newsletter/Alert
+```mermaid
+flowchart LR
+    GP[Government Portal] --> FC[Firecrawl]
+    FC --> SA[ScoutAgent]
+    SA --> SR[ScoutReport]
+    SR --> DB[(Supabase)]
+    SR -->|"relevance ≥ 0.7"| AA[AnalystAgent]
+    AA --> DR[DeepResearchReport]
+    DR --> DB
 ```
 
 ---

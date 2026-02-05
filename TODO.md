@@ -1,7 +1,7 @@
 # TODO: Alachua Civic Intelligence Reporting Studio
 
-**Last Updated:** 2026-02-02
-**Status:** Phase 2 Complete - Phase 3 Planning
+**Last Updated:** 2026-02-05
+**Status:** Phase 3 Complete - Two-Layer Agent Architecture Operational
 
 ---
 
@@ -517,6 +517,43 @@ def get_db():
 
 ---
 
+## ✅ Recently Completed (2026-02-05)
+
+### [x] Two-Layer Agent Architecture
+
+- ScoutAgent (Layer 1): Analyzes scraped content against watchlist
+- AnalystAgent (Layer 2): Deep research on high-relevance items (≥0.7 score)
+- Dual research providers: Tavily (fast) + Gemini Deep Research (thorough)
+- `ResearchProvider` enum: TAVILY, GEMINI, BOTH
+
+### [x] Orchestrator Pipeline
+
+- Daily scheduled runs at 4 AM EST via Celery Beat
+- Manual runs via Streamlit Orchestrator Panel
+- `run_orchestrator_pipeline` and `run_single_source` Celery tasks
+- Skip analysis / skip deep research options
+
+### [x] Gemini Deep Research Integration
+
+- `src/tools/gemini_research.py` - Client wrapper for Interactions API
+- Uses `deep-research-pro-preview-12-2025` agent
+- Async polling with configurable timeout
+- Added `google-genai==1.60.0` to requirements.txt
+
+### [x] Database Deep Research Methods
+
+- `get_high_relevance_reports()` - Find reports needing deep research
+- `save_deep_research_report()` - Save and link deep research results
+
+### [x] Documentation Updates
+
+- Updated ARCHITECTURE.md with two-layer agent framework
+- Updated DEVELOPER_GUIDE.md with current architecture
+- Updated SYSTEM_OVERVIEW.md with dual research providers
+- Updated USER_GUIDE.md with 4 AM schedule info
+
+---
+
 ## 🔜 Next Priority Items
 
 ### [ ] Add Database FK Constraints (P2)
@@ -717,11 +754,12 @@ Optimize scrape timing based on learned patterns:
 
 ## Notes
 
-- **Current State:** Phase 3 in progress - Intelligence Layer (3.1-3.3) complete
+- **Current State:** Phase 3 complete - Two-layer agent architecture operational
 - **LLM:** Using native `google.genai` SDK (not LangChain) to avoid PyTorch dependency issues
 - **Testing:** 78 tests passing (39 scraper + 39 intelligence), 7 skipped (docling/NumPy)
-- **Next Focus:** Phase 3.4 - Health metrics in scrapers
-- **Architecture Decision:** Event-driven + user-centric approach (simpler, faster to value)
+- **Orchestrator:** Runs daily at 4 AM EST via Celery Beat
+- **Research Providers:** Dual providers (Tavily + Gemini Deep Research) for Layer 2
+- **Architecture Decision:** Two-layer agent system (Scout + Analyst) with Orchestrator coordination
 
 ---
 

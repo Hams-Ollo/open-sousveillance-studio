@@ -1,7 +1,7 @@
 # Project Management: Open Sousveillance Studio
 
-**Version:** 1.0
-**Last Updated:** 2026-01-29
+**Version:** 1.1
+**Last Updated:** 2026-02-05
 **Project Lead:** Hans
 
 ---
@@ -43,9 +43,9 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 |:---|:-----|:-------|:---------|
 | E1 | Foundation & Infrastructure | ✅ Done | 100% |
 | E2 | Scout Layer (Data Collection) | ✅ Done | 100% |
-| E3 | Analyst Layer (Intelligence) | 📋 Backlog | 0% |
+| E3 | Analyst Layer (Intelligence) | ✅ Done | 100% |
 | E4 | Synthesizer Layer (Output) | 📋 Backlog | 0% |
-| E5 | Integration & Deployment | � In Progress | 20% |
+| E5 | Integration & Deployment | 🟡 In Progress | 40% |
 
 ### Epic Progress Chart
 
@@ -53,9 +53,9 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 pie title Epic Progress
     "E1 Foundation" : 100
     "E2 Scout Layer" : 100
-    "E3 Analyst Layer" : 0
+    "E3 Analyst Layer" : 100
     "E4 Synthesizer" : 0
-    "E5 Integration" : 20
+    "E5 Integration" : 40
 ```
 
 ### Epic Dependencies
@@ -63,7 +63,7 @@ pie title Epic Progress
 ```mermaid
 flowchart LR
     E1[E1: Foundation ✅] --> E2[E2: Scout Layer ✅]
-    E2 --> E3[E3: Analyst Layer]
+    E2 --> E3[E3: Analyst Layer ✅]
     E3 --> E4[E4: Synthesizer]
     E2 --> E5[E5: Integration 🟡]
     E3 --> E5
@@ -260,23 +260,33 @@ flowchart LR
 
 **Hybrid Pipeline Architecture:**
 
-```
-Phase 1: DISCOVERY (Light scrape)
-├── Scrape meeting list → meeting_id, title, date, board, status
-├── Filter by date window (-30 to +60 days)
-└── Compare against DB: Which meetings are NEW or UPDATED?
+```mermaid
+flowchart TB
+    subgraph Phase1["🔍 Phase 1: DISCOVERY"]
+        D1[Scrape meeting list]
+        D2[Filter by date window<br/>-30 to +60 days]
+        D3[Compare against DB:<br/>NEW or UPDATED?]
+        D1 --> D2 --> D3
+    end
 
-Phase 2: DETAIL (Per-meeting, only new/updated)
-├── Check if agenda posted
-├── Download Agenda Packet PDF
-├── Extract PDF content (Docling/Firecrawl)
-└── Store document with metadata
+    subgraph Phase2["📄 Phase 2: DETAIL"]
+        DT1[Check if agenda posted]
+        DT2[Download Agenda Packet PDF]
+        DT3[Extract PDF content]
+        DT4[Store document with metadata]
+        DT1 --> DT2 --> DT3 --> DT4
+    end
 
-Phase 3: ANALYSIS (AI processing, only new content)
-├── Run Scout Agent on PDF content
-├── Match against watchlist
-├── Generate alerts for upcoming meetings
-└── Store ScoutReport
+    subgraph Phase3["🧠 Phase 3: ANALYSIS"]
+        A1[Run Scout Agent on PDF content]
+        A2[Match against watchlist]
+        A3[Generate alerts]
+        A4[Store ScoutReport]
+        A1 --> A2 --> A3 --> A4
+    end
+
+    Phase1 -->|New/Updated| Phase2
+    Phase2 -->|New content| Phase3
 ```
 
 ---
