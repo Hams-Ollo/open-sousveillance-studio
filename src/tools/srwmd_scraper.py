@@ -22,6 +22,8 @@ from enum import Enum
 
 from src.logging_config import get_logger
 from src.tools.firecrawl_client import FirecrawlClient, ScrapeResult
+from src.tools.resource_cache import get_resource_cache, ResourceCache
+from src.intelligence.health import get_health_service, HealthService
 
 logger = get_logger("tools.srwmd")
 
@@ -208,14 +210,50 @@ class SRWMDScraper:
     BASE_URL = "https://www.mysuwanneeriver.com"
     EPERMIT_BASE = "https://permitting.sjrwmd.com/srep/#/ep"
 
-    def __init__(self, firecrawl_client: Optional[FirecrawlClient] = None):
+    def __init__(
+        self,
+        firecrawl_client: Optional[FirecrawlClient] = None,
+        resource_cache: Optional[ResourceCache] = None
+    ):
         """
         Initialize SRWMD scraper.
 
         Args:
             firecrawl_client: Optional pre-configured Firecrawl client
+            resource_cache: Optional ResourceCache for discovered resources
         """
         self.client = firecrawl_client or FirecrawlClient()
+
+        # Load discovered resources cache
+        self.resource_cache = resource_cache or get_resource_cache()
+
+        # Source IDs for different SRWMD pages
+        self.source_ids = {
+            "applications": "srwmd-applications",
+            "issuances": "srwmd-issuances",
+            "epermitting": "srwmd-epermitting"
+        }
+
+        # Health tracking
+        self.health_service = get_health_service()
+        self.scraper_id = "srwmd"
+
+        # Load known permit IDs from cache
+        self._known_permit_ids = {
+            "applications": set(self.resource_cache.get_ids(self.source_ids["applications"], "permit_ids")),
+            "issuances": set(self.resource_cache.get_ids(self.source_ids["issuances"], "permit_ids")),
+        }
+        self._known_document_ids = set(
+            self.resource_cache.get_ids(self.source_ids["applications"], "document_ids") +
+            self.resource_cache.get_ids(self.source_ids["issuances"], "document_ids")
+        )
+
+        logger.info(
+            "SRWMDScraper initialized",
+            cached_app_permits=len(self._known_permit_ids["applications"]),
+            cached_iss_permits=len(self._known_permit_ids["issuances"]),
+            cached_documents=len(self._known_document_ids)
+        )
 
     def scrape_applications(self) -> SRWMDScrapeResult:
         """
@@ -224,6 +262,9 @@ class SRWMDScraper:
         Returns:
             SRWMDScrapeResult with application notices
         """
+        import time
+        start_time = time.perf_counter()
+
         logger.info("Scraping SRWMD permit applications", url=self.APPLICATIONS_URL)
 
         result = SRWMDScrapeResult(
@@ -237,7 +278,16 @@ class SRWMDScraper:
                 formats=["markdown", "links"]
             )
 
+            duration_ms = (time.perf_counter() - start_time) * 1000
+
             if not scrape_result.success:
+                self.health_service.record_scrape(
+                    scraper_id=f"{self.scraper_id}-applications",
+                    success=False,
+                    duration_ms=duration_ms,
+                    error_type="ScrapeError",
+                    error_message="Failed to scrape applications page",
+                )
                 result.success = False
                 result.error = "Failed to scrape applications page"
                 return result
@@ -248,6 +298,17 @@ class SRWMDScraper:
                 NoticeType.APPLICATION
             )
 
+            # Update resource cache with discovered IDs
+            self.update_resource_cache(result.notices, NoticeType.APPLICATION, scrape_result.markdown)
+
+            # Record successful scrape
+            self.health_service.record_scrape(
+                scraper_id=f"{self.scraper_id}-applications",
+                success=True,
+                items_found=result.notice_count,
+                duration_ms=duration_ms,
+            )
+
             logger.info(
                 "Scraped SRWMD applications",
                 total=result.notice_count,
@@ -255,6 +316,14 @@ class SRWMDScraper:
             )
 
         except Exception as e:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            self.health_service.record_scrape(
+                scraper_id=f"{self.scraper_id}-applications",
+                success=False,
+                duration_ms=duration_ms,
+                error_type=type(e).__name__,
+                error_message=str(e)[:500],
+            )
             logger.error("Failed to scrape SRWMD applications", error=str(e))
             result.success = False
             result.error = str(e)
@@ -268,6 +337,9 @@ class SRWMDScraper:
         Returns:
             SRWMDScrapeResult with issuance notices
         """
+        import time
+        start_time = time.perf_counter()
+
         logger.info("Scraping SRWMD permit issuances", url=self.ISSUANCES_URL)
 
         result = SRWMDScrapeResult(
@@ -281,7 +353,16 @@ class SRWMDScraper:
                 formats=["markdown", "links"]
             )
 
+            duration_ms = (time.perf_counter() - start_time) * 1000
+
             if not scrape_result.success:
+                self.health_service.record_scrape(
+                    scraper_id=f"{self.scraper_id}-issuances",
+                    success=False,
+                    duration_ms=duration_ms,
+                    error_type="ScrapeError",
+                    error_message="Failed to scrape issuances page",
+                )
                 result.success = False
                 result.error = "Failed to scrape issuances page"
                 return result
@@ -292,6 +373,17 @@ class SRWMDScraper:
                 NoticeType.ISSUANCE
             )
 
+            # Update resource cache with discovered IDs
+            self.update_resource_cache(result.notices, NoticeType.ISSUANCE, scrape_result.markdown)
+
+            # Record successful scrape
+            self.health_service.record_scrape(
+                scraper_id=f"{self.scraper_id}-issuances",
+                success=True,
+                items_found=result.notice_count,
+                duration_ms=duration_ms,
+            )
+
             logger.info(
                 "Scraped SRWMD issuances",
                 total=result.notice_count,
@@ -299,6 +391,14 @@ class SRWMDScraper:
             )
 
         except Exception as e:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            self.health_service.record_scrape(
+                scraper_id=f"{self.scraper_id}-issuances",
+                success=False,
+                duration_ms=duration_ms,
+                error_type=type(e).__name__,
+                error_message=str(e)[:500],
+            )
             logger.error("Failed to scrape SRWMD issuances", error=str(e))
             result.success = False
             result.error = str(e)
@@ -545,6 +645,112 @@ class SRWMDScraper:
                 continue
 
         return notices
+
+    # =========================================================================
+    # RESOURCE CACHE METHODS
+    # =========================================================================
+
+    def extract_permit_ids_from_notices(self, notices: List[PermitNotice]) -> List[str]:
+        """
+        Extract permit IDs from parsed notices.
+
+        Args:
+            notices: List of PermitNotice objects
+
+        Returns:
+            List of permit number strings
+        """
+        return [n.permit_number for n in notices if n.permit_number]
+
+    def extract_document_ids_from_markdown(self, markdown: str) -> List[int]:
+        """
+        Extract document IDs from scraped markdown content.
+
+        Looks for URLs like ImageRepository/Document?documentID=17942
+
+        Args:
+            markdown: Scraped markdown content
+
+        Returns:
+            List of document IDs found
+        """
+        pattern = r'documentID=(\d+)'
+        matches = re.findall(pattern, markdown)
+        return [int(m) for m in set(matches)]
+
+    def update_resource_cache(self, notices: List[PermitNotice], notice_type: NoticeType, markdown: str = None):
+        """
+        Extract and cache newly discovered permit and document IDs.
+
+        Args:
+            notices: List of parsed permit notices
+            notice_type: Type of notices (application or issuance)
+            markdown: Optional raw markdown for document ID extraction
+        """
+        source_key = "applications" if notice_type == NoticeType.APPLICATION else "issuances"
+        source_id = self.source_ids[source_key]
+
+        # Update permit IDs
+        new_permit_ids = self.extract_permit_ids_from_notices(notices)
+        if new_permit_ids:
+            before_count = len(self._known_permit_ids[source_key])
+            self._known_permit_ids[source_key].update(new_permit_ids)
+            after_count = len(self._known_permit_ids[source_key])
+
+            self.resource_cache.add_ids(source_id, "permit_ids", new_permit_ids)
+
+            if after_count > before_count:
+                logger.info(
+                    "Discovered new permit IDs",
+                    source=source_key,
+                    new_count=after_count - before_count,
+                    total=after_count
+                )
+
+        # Update document IDs if markdown provided
+        if markdown:
+            new_doc_ids = self.extract_document_ids_from_markdown(markdown)
+            if new_doc_ids:
+                before_count = len(self._known_document_ids)
+                self._known_document_ids.update(new_doc_ids)
+                after_count = len(self._known_document_ids)
+
+                self.resource_cache.add_ids(source_id, "document_ids", new_doc_ids)
+
+                if after_count > before_count:
+                    logger.info(
+                        "Discovered new document IDs",
+                        new_count=after_count - before_count,
+                        total=after_count
+                    )
+
+        self.resource_cache.save()
+
+    def get_known_permit_ids(self, notice_type: str = "all") -> List[str]:
+        """
+        Get known permit IDs from cache.
+
+        Args:
+            notice_type: "applications", "issuances", or "all"
+
+        Returns:
+            List of permit ID strings
+        """
+        if notice_type == "all":
+            return list(self._known_permit_ids["applications"] | self._known_permit_ids["issuances"])
+        return list(self._known_permit_ids.get(notice_type, set()))
+
+    def get_known_document_urls(self) -> List[str]:
+        """
+        Get URLs for all known documents from cache.
+
+        Returns:
+            List of document URLs
+        """
+        return [
+            f"{self.BASE_URL}/ImageRepository/Document?documentID={doc_id}"
+            for doc_id in sorted(self._known_document_ids)
+        ]
 
     # =========================================================================
     # HYBRID PIPELINE METHODS

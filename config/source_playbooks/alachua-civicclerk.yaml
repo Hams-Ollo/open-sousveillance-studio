@@ -1,0 +1,77 @@
+source_id: alachua-civicclerk
+source_name: City of Alachua - CivicClerk Portal
+base_url: https://alachuafl.portal.civicclerk.com/
+analyzed_at: '2026-02-02T10:48:26.601017'
+page_structure:
+  type: react_spa
+  requires_javascript: true
+  load_time_ms: 4000
+  elements_found:
+  - selector: .event-card
+    tag: div
+    count: 68
+    description: Meeting event cards (68 events found)
+    sample_text: null
+    sample_href: null
+navigation:
+  list_to_detail:
+  - action: click
+    selector: .event-card, .meeting-item
+    value: null
+    wait_ms: 500
+    description: Click meeting card
+  detail_to_document:
+  - action: click
+    selector: '[aria-label=''Download Files from this Event'']'
+    value: null
+    wait_ms: 500
+    description: ''
+  - action: click
+    selector: text='Agenda Packet (PDF)'
+    value: null
+    wait_ms: 1000
+    description: ''
+  direct_access:
+  - action: navigate
+    selector: null
+    value: null
+    wait_ms: 500
+    description: Direct URL to event files
+documents:
+  patterns:
+  - type: event_files
+    url_pattern: https://alachuafl.portal.civicclerk.com/event/{event_id}/files
+    file_type: pdf
+    requires_auth: false
+    sample_urls:
+    - https://alachuafl.portal.civicclerk.com/event/838/files
+    - https://alachuafl.portal.civicclerk.com/event/795/files
+    - https://alachuafl.portal.civicclerk.com/event/856/files
+  discovered_links: []
+api_endpoints: []
+links:
+  internal_count: 68
+  external_count: 0
+  document_count: 0
+  sample_internal:
+  - https://alachuafl.portal.civicclerk.com/event/710/files
+  - https://alachuafl.portal.civicclerk.com/event/623/files
+  - https://alachuafl.portal.civicclerk.com/event/585/files
+  - https://alachuafl.portal.civicclerk.com/event/631/files
+  - https://alachuafl.portal.civicclerk.com/event/711/files
+  - https://alachuafl.portal.civicclerk.com/event/598/files
+  - https://alachuafl.portal.civicclerk.com/event/669/files
+  - https://alachuafl.portal.civicclerk.com/event/833/files
+  - https://alachuafl.portal.civicclerk.com/event/832/files
+  - https://alachuafl.portal.civicclerk.com/event/586/files
+  sample_external: []
+scout_instructions: "# Scout Instructions for City of Alachua - CivicClerk Portal\n\
+  \n**Source ID:** `alachua-civicclerk`\n**Base URL:** https://alachuafl.portal.civicclerk.com/\n\
+  **Page Type:** react_spa\n**Requires JS:** Yes\n\n## Navigation\n\n### List To Detail\n\
+  1. **click** `.event-card, .meeting-item`\n   - Click meeting card\n\n### Detail\
+  \ To Document\n1. **click** `[aria-label='Download Files from this Event']`\n2.\
+  \ **click** `text='Agenda Packet (PDF)'`\n   - Wait 1000ms\n\n### Direct Access\n\
+  1. **navigate** `None`\n   - Direct URL to event files\n\n## Accessing Documents\n\
+  \n**event_files:**\n- Pattern: `https://alachuafl.portal.civicclerk.com/event/{event_id}/files`\n\
+  - Example: `https://alachuafl.portal.civicclerk.com/event/838/files`"
+warnings: []

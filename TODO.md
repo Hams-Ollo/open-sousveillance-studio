@@ -1,7 +1,7 @@
 # TODO: Alachua Civic Intelligence Reporting Studio
 
-**Last Updated:** 2026-02-01
-**Status:** Phase 2 Complete - Active Development
+**Last Updated:** 2026-02-02
+**Status:** Phase 2 Complete - Phase 3 Planning
 
 ---
 
@@ -494,14 +494,30 @@ def get_db():
 
 ---
 
+## ✅ Recently Completed (2026-02-02)
+
+### [x] Add Scraper Unit Tests (P1)
+
+- 39 tests passing for CivicClerk, Florida Notices, SRWMD scrapers
+- Mock Firecrawl responses
+- URL validation tests
+- Integration workflow tests
+
+### [x] Source Discovery & Playbooks
+
+- `scripts/discover_sitemaps.py` - Firecrawl map_site API integration
+- `scripts/analyze_sources.py` - Deep content sampling, playbook generation
+- `config/source_playbooks/` - 5 YAML playbooks generated
+
+### [x] Resource Cache System
+
+- `config/discovered_resources.yaml` - Persistent cache of discovered IDs
+- `src/tools/resource_cache.py` - Read/write utility for scrapers
+- Integrated into all 3 scrapers (auto-update after scrapes)
+
+---
+
 ## 🔜 Next Priority Items
-
-### [ ] Add Scraper Unit Tests (P1)
-
-- Mock Firecrawl responses for CivicClerk scraper
-- Mock Firecrawl responses for Florida Notices scraper
-- Mock Firecrawl responses for SRWMD scraper
-- Test hybrid pipeline with mocked database
 
 ### [ ] Add Database FK Constraints (P2)
 
@@ -526,24 +542,192 @@ def get_db():
 - Build approval UI in Streamlit
 - Email notifications for pending approvals
 
-### [ ] Phase 3: Intelligent Evolution (Future)
+---
 
-- Pattern detection across meetings
-- Learning from historical data
-- Anomaly detection for unusual items
+## 🚀 Phase 3: Intelligent Evolution
+
+**Approach:** Event-driven + User-centric (Option C hybrid)
+**Primary Use Case:** Grassroots civic watchdog monitoring for concerning activity
+
+### Phase 3.1: CivicEvent Unified Model + Adapters
+
+**Status:** 🔲 Pending
+**Priority:** Critical
+**Effort:** Medium
+
+Create a unified event model that normalizes all scraper output:
+
+```python
+@dataclass
+class CivicEvent:
+    event_id: str
+    event_type: str          # "meeting", "permit_application", "permit_issued", "public_notice"
+    source_id: str
+    timestamp: datetime
+    discovered_at: datetime
+    title: str
+    description: Optional[str]
+    location: Optional[GeoLocation]
+    entities: List[Entity]   # People, orgs, addresses
+    documents: List[Document]
+    tags: List[str]          # For filtering
+    raw_data: Dict
+```
+
+Tasks:
+- [ ] Create `src/intelligence/models.py` with CivicEvent dataclass
+- [ ] Create `src/intelligence/adapters/civicclerk_adapter.py`
+- [ ] Create `src/intelligence/adapters/srwmd_adapter.py`
+- [ ] Create `src/intelligence/adapters/florida_notices_adapter.py`
+- [ ] Add entity extraction (basic: names, addresses, orgs)
+- [ ] Add automatic tagging based on content
+
+### Phase 3.2: Event Persistence + Basic Queries
+
+**Status:** 🔲 Pending
+**Priority:** Critical
+**Effort:** Low
+
+Store events and enable simple queries:
+
+- [ ] Create `src/intelligence/event_store.py`
+- [ ] Implement `save_event()`, `get_events()`, `get_by_id()`
+- [ ] Add "what's new" query (events from last N hours)
+- [ ] Add tag-based filtering
+- [ ] Add source-based filtering
+- [ ] Detect new vs updated events at scrape time
+
+### Phase 3.3: Watchdog Rules Engine
+
+**Status:** 🔲 Pending
+**Priority:** High
+**Effort:** Medium
+
+Rule-based alerts for civic watchdog use cases:
+
+```yaml
+# config/watchdog_rules.yaml
+rules:
+  - name: "Late Agenda Warning"
+    condition: "agenda posted <24hrs before meeting"
+    severity: "warning"
+
+  - name: "New Alachua Permit"
+    condition: "permit_application AND county=Alachua"
+    severity: "info"
+
+  - name: "Rezoning Alert"
+    condition: "tags contains 'rezoning'"
+    severity: "notable"
+```
+
+Tasks:
+- [ ] Create `config/watchdog_rules.yaml` with initial rules
+- [ ] Create `src/intelligence/rules_engine.py`
+- [ ] Implement rule parsing and evaluation
+- [ ] Add alert generation with severity levels
+- [ ] Integrate with event persistence (evaluate on save)
+
+### Phase 3.4: Health Metrics in Scrapers
+
+**Status:** 🔲 Pending
+**Priority:** High
+**Effort:** Low
+
+Embed health tracking directly in scrapers (self-healing foundation):
+
+- [ ] Create `src/intelligence/health.py` with ScraperHealth mixin
+- [ ] Add `record_attempt()` method to track success/failure
+- [ ] Add `health_status` property (healthy/degraded/failing)
+- [ ] Add `needs_attention` property for alerting
+- [ ] Integrate into CivicClerk, SRWMD, Florida Notices scrapers
+- [ ] Add health dashboard endpoint
+
+### Phase 3.5: User Watchlists
+
+**Status:** 🔲 Pending
+**Priority:** Medium
+**Effort:** Medium
+
+Allow users to subscribe to topics, areas, keywords:
+
+- [ ] Create `src/intelligence/watchlist.py`
+- [ ] Define watchlist schema (keywords, tags, entities, locations)
+- [ ] Implement matching against CivicEvents
+- [ ] Add "alert me when..." functionality
+- [ ] Store watchlists in database
+- [ ] Add Streamlit UI for managing watchlists
+
+### Phase 3.6: Entity Extraction for Linking
+
+**Status:** 🔲 Pending
+**Priority:** Medium
+**Effort:** High
+
+Extract entities to enable cross-source linking:
+
+- [ ] Create `src/intelligence/entity_extractor.py`
+- [ ] Extract person names (applicants, owners, officials)
+- [ ] Extract organization names (developers, consultants)
+- [ ] Extract addresses and parcels
+- [ ] Normalize entity names (fuzzy matching)
+- [ ] Store entity → event relationships
+
+### Phase 3.7: Cross-Source Search
+
+**Status:** 🔲 Pending
+**Priority:** Medium
+**Effort:** Medium
+
+Enable investigation across sources:
+
+- [ ] Create `src/intelligence/search.py`
+- [ ] Implement entity-based search ("show me everything about ABC Development")
+- [ ] Implement semantic search using embeddings
+- [ ] Add timeline view for entity history
+- [ ] Add Streamlit investigation UI
+
+### Future: Anomaly Detection
+
+**Status:** 🔲 Future
+**Priority:** Medium
+**Effort:** High
+
+Detect unusual patterns (after sufficient historical data):
+
+- Permit volume spikes in specific areas
+- Rushed approvals (faster than typical)
+- Repeat applicants with many active permits
+- Missing required public notices
+- Rezoning clusters in same area
+
+### Future: Intelligent Scheduling
+
+**Status:** 🔲 Future
+**Priority:** Low
+**Effort:** Medium
+
+Optimize scrape timing based on learned patterns:
+
+- Learn when sources typically update
+- Increase frequency before known meeting dates
+- Reduce unnecessary scrapes during quiet periods
 
 ---
 
 ## Notes
 
-- **Current State:** Phase 2 complete - Hybrid scraping pipeline, Orchestrator, 3 scrapers working
+- **Current State:** Phase 3 in progress - Intelligence Layer (3.1-3.3) complete
 - **LLM:** Using native `google.genai` SDK (not LangChain) to avoid PyTorch dependency issues
-- **Testing:** 37 tests passing, 7 skipped (docling/NumPy compatibility)
-- **Next Focus:** Add scraper tests, test full pipeline with real data
+- **Testing:** 78 tests passing (39 scraper + 39 intelligence), 7 skipped (docling/NumPy)
+- **Next Focus:** Phase 3.4 - Health metrics in scrapers
+- **Architecture Decision:** Event-driven + user-centric approach (simpler, faster to value)
 
 ---
 
 ## Quick Reference: File Status
+
+### Core Application
 
 | File | Status | Notes |
 |:-----|:-------|:------|
@@ -553,16 +737,61 @@ def get_db():
 | `src/database.py` | ✅ Working | Meeting state tracking |
 | `src/schemas.py` | ✅ Working | All report types |
 | `src/exceptions.py` | ✅ Working | Custom exception classes |
-| `src/orchestrator.py` | ✅ New | Pipeline orchestrator (630 lines) |
+| `src/orchestrator.py` | ✅ Working | Pipeline orchestrator (630 lines) |
+
+### Agents
+
+| File | Status | Notes |
+|:-----|:-------|:------|
 | `src/agents/base.py` | ✅ Working | BaseReport return type |
 | `src/agents/scout.py` | ✅ Working | Tiered PDF/metadata analysis |
 | `src/agents/analyst.py` | ✅ Working | Tested via Streamlit |
-| `src/tools/civicclerk_scraper.py` | ✅ Working | Hybrid pipeline support |
-| `src/tools/florida_notices_scraper.py` | ✅ Working | Hybrid pipeline support |
-| `src/tools/srwmd_scraper.py` | ✅ New | Permit scraper (767 lines) |
-| `src/tools/firecrawl_client.py` | ✅ Updated | URL validation added |
-| `src/ui/app.py` | ✅ Updated | Orchestrator tab, sidebar cleanup |
-| `src/ui/pages/orchestrator_panel.py` | ✅ New | Orchestrator control panel |
-| `config/sources.yaml` | ✅ Updated | SRWMD sources added |
-| `.streamlit/config.toml` | ✅ New | Hide sidebar nav |
+
+### Scrapers (with ResourceCache)
+
+| File | Status | Notes |
+|:-----|:-------|:------|
+| `src/tools/civicclerk_scraper.py` | ✅ Updated | ResourceCache integration |
+| `src/tools/florida_notices_scraper.py` | ✅ Updated | ResourceCache integration |
+| `src/tools/srwmd_scraper.py` | ✅ Updated | ResourceCache integration |
+| `src/tools/firecrawl_client.py` | ✅ Working | URL validation |
+| `src/tools/resource_cache.py` | ✅ New | Discovered resources cache |
+
+### Intelligence Layer (Phase 3)
+
+| File | Status | Notes |
+|:-----|:-------|:------|
+| `src/intelligence/__init__.py` | ✅ New | Module exports |
+| `src/intelligence/models.py` | ✅ New | CivicEvent, Entity, Document, Alert |
+| `src/intelligence/event_store.py` | ✅ New | Event persistence + queries |
+| `src/intelligence/rules_engine.py` | ✅ New | Watchdog alert generation |
+| `src/intelligence/adapters/base_adapter.py` | ✅ New | Entity/tag extraction |
+| `src/intelligence/adapters/civicclerk_adapter.py` | ✅ New | Meeting → CivicEvent |
+| `src/intelligence/adapters/srwmd_adapter.py` | ✅ New | Permit → CivicEvent |
+| `src/intelligence/adapters/florida_notices_adapter.py` | ✅ New | Notice → CivicEvent |
+
+### Configuration
+
+| File | Status | Notes |
+|:-----|:-------|:------|
+| `config/sources.yaml` | ✅ Working | All sources configured |
+| `config/discovered_resources.yaml` | ✅ New | Resource ID cache |
+| `config/watchdog_rules.yaml` | ✅ New | 14 civic alert rules |
+| `config/source_playbooks/` | ✅ New | 5 source playbooks |
+
+### UI & Scripts
+
+| File | Status | Notes |
+|:-----|:-------|:------|
+| `src/ui/app.py` | ✅ Working | Orchestrator tab |
+| `src/ui/pages/orchestrator_panel.py` | ✅ Working | Pipeline control |
+| `scripts/discover_sitemaps.py` | ✅ New | Firecrawl map_site |
+| `scripts/analyze_sources.py` | ✅ New | Playbook generator |
 | `start-all.ps1` | ✅ Working | Starts FastAPI + Streamlit |
+
+### Tests
+
+| File | Status | Notes |
+|:-----|:-------|:------|
+| `test/test_scrapers.py` | ✅ Working | 39 tests passing |
+| `test/test_intelligence.py` | ✅ New | 39 tests passing |

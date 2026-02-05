@@ -23,6 +23,8 @@ from pathlib import Path
 
 from src.logging_config import get_logger
 from src.tools.firecrawl_client import FirecrawlClient, ScrapeResult
+from src.tools.resource_cache import get_resource_cache, ResourceCache
+from src.intelligence.health import get_health_service, HealthService
 
 logger = get_logger("tools.florida_notices")
 
@@ -92,15 +94,37 @@ class FloridaNoticesScraper:
 
     BASE_URL = "https://floridapublicnotices.com/"
 
-    def __init__(self, firecrawl_client: Optional[FirecrawlClient] = None):
+    def __init__(
+        self,
+        firecrawl_client: Optional[FirecrawlClient] = None,
+        resource_cache: Optional[ResourceCache] = None
+    ):
         """
         Initialize Florida Public Notices scraper.
 
         Args:
             firecrawl_client: Optional pre-configured Firecrawl client
+            resource_cache: Optional ResourceCache for discovered resources
         """
         self.client = firecrawl_client or FirecrawlClient()
-        logger.info("FloridaNoticesScraper initialized")
+
+        # Load discovered resources cache
+        self.resource_cache = resource_cache or get_resource_cache()
+        self.source_id = "florida-public-notices"
+
+        # Health tracking
+        self.health_service = get_health_service()
+        self.scraper_id = "florida-notices"
+
+        # Load known notice IDs from cache
+        self._known_notice_ids = set(self.resource_cache.get_ids(self.source_id, "notice_ids"))
+        self._known_pdf_urls = set(self.resource_cache.get_ids(self.source_id, "pdf_urls"))
+
+        logger.info(
+            "FloridaNoticesScraper initialized",
+            cached_notices=len(self._known_notice_ids),
+            cached_pdfs=len(self._known_pdf_urls)
+        )
 
     def scrape_notices(
         self,
@@ -125,6 +149,9 @@ class FloridaNoticesScraper:
         Returns:
             FloridaNoticesScrapeResult with extracted notices
         """
+        import time
+        start_time = time.perf_counter()
+
         logger.info(
             "Scraping Florida Public Notices",
             newspaper=newspaper,
@@ -165,7 +192,16 @@ class FloridaNoticesScraper:
                 formats=["markdown", "links"]
             )
 
+            duration_ms = (time.perf_counter() - start_time) * 1000
+
             if not result.success:
+                self.health_service.record_scrape(
+                    scraper_id=self.scraper_id,
+                    success=False,
+                    duration_ms=duration_ms,
+                    error_type="ScrapeError",
+                    error_message=result.error,
+                )
                 return FloridaNoticesScrapeResult(
                     newspaper=newspaper,
                     county=county,
@@ -180,9 +216,20 @@ class FloridaNoticesScraper:
                 county=county
             )
 
+            # Update resource cache with discovered IDs
+            self.update_resource_cache(notices, result.markdown)
+
             # Extract total results count
             total_match = re.search(r'Showing \d+-\d+ of (\d+) results', result.markdown)
             total_results = int(total_match.group(1)) if total_match else len(notices)
+
+            # Record successful scrape
+            self.health_service.record_scrape(
+                scraper_id=self.scraper_id,
+                success=True,
+                items_found=len(notices),
+                duration_ms=duration_ms,
+            )
 
             logger.info(
                 "Scraped Florida Public Notices",
@@ -200,6 +247,14 @@ class FloridaNoticesScraper:
             )
 
         except Exception as e:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            self.health_service.record_scrape(
+                scraper_id=self.scraper_id,
+                success=False,
+                duration_ms=duration_ms,
+                error_type=type(e).__name__,
+                error_message=str(e)[:500],
+            )
             logger.error("Failed to scrape Florida Public Notices", error=str(e))
             return FloridaNoticesScrapeResult(
                 newspaper=newspaper,
@@ -370,6 +425,87 @@ class FloridaNoticesScraper:
         """
         logger.info("Scraping PDF", url=pdf_url)
         return self.client.scrape_pdf(pdf_url)
+
+    # =========================================================================
+    # RESOURCE CACHE METHODS
+    # =========================================================================
+
+    def extract_notice_ids_from_notices(self, notices: List[PublicNotice]) -> List[str]:
+        """
+        Extract notice IDs from parsed notices.
+
+        Args:
+            notices: List of PublicNotice objects
+
+        Returns:
+            List of notice ID strings
+        """
+        return [n.notice_id for n in notices if n.notice_id]
+
+    def update_resource_cache(self, notices: List[PublicNotice], markdown: str = None):
+        """
+        Extract and cache newly discovered notice IDs and PDF URLs.
+
+        Args:
+            notices: List of parsed public notices
+            markdown: Optional raw markdown for PDF URL extraction
+        """
+        # Update notice IDs
+        new_notice_ids = self.extract_notice_ids_from_notices(notices)
+        if new_notice_ids:
+            before_count = len(self._known_notice_ids)
+            self._known_notice_ids.update(new_notice_ids)
+            after_count = len(self._known_notice_ids)
+
+            self.resource_cache.add_ids(self.source_id, "notice_ids", new_notice_ids)
+
+            if after_count > before_count:
+                logger.info(
+                    "Discovered new notice IDs",
+                    new_count=after_count - before_count,
+                    total=after_count
+                )
+
+        # Update PDF URLs from notices
+        new_pdf_urls = [n.pdf_url for n in notices if n.pdf_url]
+
+        # Also extract from markdown if provided
+        if markdown:
+            new_pdf_urls.extend(self.extract_pdf_urls(markdown))
+
+        if new_pdf_urls:
+            before_count = len(self._known_pdf_urls)
+            self._known_pdf_urls.update(new_pdf_urls)
+            after_count = len(self._known_pdf_urls)
+
+            self.resource_cache.add_ids(self.source_id, "pdf_urls", list(set(new_pdf_urls)))
+
+            if after_count > before_count:
+                logger.info(
+                    "Discovered new PDF URLs",
+                    new_count=after_count - before_count,
+                    total=after_count
+                )
+
+        self.resource_cache.save()
+
+    def get_known_notice_ids(self) -> List[str]:
+        """
+        Get known notice IDs from cache.
+
+        Returns:
+            List of notice ID strings
+        """
+        return list(self._known_notice_ids)
+
+    def get_known_pdf_urls(self) -> List[str]:
+        """
+        Get known PDF URLs from cache.
+
+        Returns:
+            List of PDF URL strings
+        """
+        return list(self._known_pdf_urls)
 
     def iterate_notices_via_modal(
         self,

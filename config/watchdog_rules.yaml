@@ -1,0 +1,159 @@
+# Watchdog Rules Configuration
+# 
+# Rules define conditions that generate alerts when matched by CivicEvents.
+# Each rule can filter by event type, tags, source, county, and text patterns.
+#
+# Severity levels:
+#   - info: General awareness
+#   - notable: Worth paying attention to
+#   - warning: Requires attention soon
+#   - urgent: Immediate action needed
+
+version: "1.0"
+last_updated: "2026-02-02"
+
+rules:
+  # =========================================================================
+  # PERMIT ALERTS
+  # =========================================================================
+  
+  - name: "new-alachua-permit"
+    description: "Alert on new permit applications in Alachua County"
+    severity: "info"
+    message: "New permit application in Alachua County: {title}"
+    event_types:
+      - "permit_application"
+    counties:
+      - "Alachua"
+    enabled: true
+
+  - name: "permit-issued-alachua"
+    description: "Alert when permits are issued in Alachua County"
+    severity: "info"
+    message: "Permit issued in Alachua County: {title}"
+    event_types:
+      - "permit_issued"
+    counties:
+      - "Alachua"
+    enabled: true
+
+  # =========================================================================
+  # REZONING & LAND USE ALERTS
+  # =========================================================================
+  
+  - name: "rezoning-alert"
+    description: "Alert on any rezoning-related events"
+    severity: "notable"
+    message: "Rezoning activity detected: {title}"
+    required_tags:
+      - "rezoning"
+    enabled: true
+
+  - name: "comprehensive-plan-change"
+    description: "Alert on comprehensive plan amendments"
+    severity: "warning"
+    message: "Comprehensive plan change: {title}"
+    required_tags:
+      - "comprehensive-plan"
+    enabled: true
+
+  - name: "variance-request"
+    description: "Alert on variance or exception requests"
+    severity: "notable"
+    message: "Variance/exception request: {title}"
+    required_tags:
+      - "variance"
+    enabled: true
+
+  # =========================================================================
+  # ENVIRONMENTAL ALERTS
+  # =========================================================================
+  
+  - name: "environmental-concern"
+    description: "Alert on environmental-related items"
+    severity: "notable"
+    message: "Environmental item requiring attention: {title}"
+    any_tags:
+      - "environmental"
+      - "water"
+      - "aquifer"
+      - "wetland"
+      - "stormwater"
+    enabled: true
+
+  - name: "santa-fe-river"
+    description: "Alert on items mentioning Santa Fe River"
+    severity: "warning"
+    message: "Santa Fe River related: {title}"
+    title_contains:
+      - "Santa Fe"
+      - "Sante Fe"
+    enabled: true
+
+  # =========================================================================
+  # MEETING ALERTS
+  # =========================================================================
+  
+  - name: "upcoming-meeting-48h"
+    description: "Alert on meetings happening within 48 hours"
+    severity: "info"
+    message: "Meeting in next 48 hours: {title}"
+    event_types:
+      - "meeting"
+    upcoming_within_hours: 48
+    enabled: true
+
+  - name: "public-hearing"
+    description: "Alert on public hearings"
+    severity: "warning"
+    message: "Public hearing scheduled: {title}"
+    required_tags:
+      - "public-hearing"
+    enabled: true
+
+  - name: "planning-commission"
+    description: "Alert on Planning Commission meetings"
+    severity: "info"
+    message: "Planning Commission: {title}"
+    event_types:
+      - "meeting"
+    required_tags:
+      - "planning"
+    enabled: true
+
+  # =========================================================================
+  # DEVELOPMENT ALERTS
+  # =========================================================================
+  
+  - name: "large-development"
+    description: "Alert on large development projects"
+    severity: "notable"
+    message: "Development project: {title}"
+    required_tags:
+      - "development"
+    any_tags:
+      - "subdivision"
+      - "plat"
+    enabled: true
+
+  - name: "annexation"
+    description: "Alert on annexation requests"
+    severity: "warning"
+    message: "Annexation request: {title}"
+    required_tags:
+      - "annexation"
+    enabled: true
+
+  # =========================================================================
+  # PUBLIC NOTICE ALERTS
+  # =========================================================================
+  
+  - name: "legal-notice-alachua"
+    description: "Alert on legal notices in Alachua County"
+    severity: "info"
+    message: "Legal notice published: {title}"
+    event_types:
+      - "public_notice"
+    counties:
+      - "Alachua"
+    enabled: true

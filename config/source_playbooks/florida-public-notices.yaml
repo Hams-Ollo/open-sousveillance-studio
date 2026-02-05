@@ -1,0 +1,66 @@
+source_id: florida-public-notices
+source_name: Florida Public Notices
+base_url: https://floridapublicnotices.com/
+analyzed_at: '2026-02-02T10:49:05.110194'
+page_structure:
+  type: static
+  requires_javascript: false
+  load_time_ms: 2000
+  elements_found: []
+navigation:
+  apply_filters:
+  - action: click
+    selector: select[name='newspaper']
+    value: null
+    wait_ms: 300
+    description: ''
+  - action: click
+    selector: option:contains('Alachua')
+    value: null
+    wait_ms: 300
+    description: ''
+  - action: click
+    selector: button:contains('Update')
+    value: null
+    wait_ms: 2000
+    description: ''
+  list_to_detail:
+  - action: click
+    selector: .notice-card
+    value: null
+    wait_ms: 500
+    description: Click notice card to open modal
+  detail_to_document:
+  - action: click
+    selector: a:contains('View original file')
+    value: null
+    wait_ms: 500
+    description: Opens PDF
+documents:
+  patterns: []
+  discovered_links:
+  - https://floridapublicnotices.com/assets/user_agreement.pdf
+api_endpoints: []
+links:
+  internal_count: 8
+  external_count: 0
+  document_count: 1
+  sample_internal:
+  - https://floridapublicnotices.com/
+  - https://floridapublicnotices.com/why-public-notices
+  - https://floridapublicnotices.com/contact-us
+  - https://floridapublicnotices.com/sign-up
+  - https://floridapublicnotices.com/support-and-faq
+  - https://floridapublicnotices.com/assets/logo.png
+  - https://floridapublicnotices.com/assets/logo--dark.png
+  - https://floridapublicnotices.com/search/archived-notices
+  sample_external: []
+scout_instructions: "# Scout Instructions for Florida Public Notices\n\n**Source ID:**\
+  \ `florida-public-notices`\n**Base URL:** https://floridapublicnotices.com/\n**Page\
+  \ Type:** static\n**Requires JS:** No\n\n## Navigation\n\n### Apply Filters\n1.\
+  \ **click** `select[name='newspaper']`\n2. **click** `option:contains('Alachua')`\n\
+  3. **click** `button:contains('Update')`\n   - Wait 2000ms\n\n### List To Detail\n\
+  1. **click** `.notice-card`\n   - Click notice card to open modal\n\n### Detail\
+  \ To Document\n1. **click** `a:contains('View original file')`\n   - Opens PDF\n\
+  \n## Accessing Documents\n\n**Direct document links found:** 1"
+warnings: []

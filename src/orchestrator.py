@@ -23,6 +23,7 @@ from src.config import get_all_sources, SourceConfig, load_entities_config
 from src.database import Database
 from src.logging_config import get_logger
 from src.agents.scout import ScoutAgent
+from src.agents.analyst import AnalystAgent, ResearchProvider
 from src.tools.civicclerk_scraper import CivicClerkScraper
 from src.tools.florida_notices_scraper import FloridaNoticesScraper
 from src.tools.srwmd_scraper import SRWMDScraper
@@ -116,22 +117,29 @@ class Orchestrator:
         )
     """
 
-    def __init__(self, db: Optional[Database] = None):
+    def __init__(
+        self,
+        db: Optional[Database] = None,
+        research_provider: ResearchProvider = ResearchProvider.BOTH
+    ):
         """
         Initialize the Orchestrator.
 
         Args:
             db: Optional Database instance (creates one if not provided)
+            research_provider: Research provider for AnalystAgent (tavily, gemini, or both)
         """
         self.db = db or Database()
         self.sources = self._load_sources()
         self.scout = ScoutAgent(name="OrchestratorScout")
+        self.analyst = AnalystAgent(name="OrchestratorAnalyst", research_provider=research_provider)
         self.scrapers = self._init_scrapers()
 
         logger.info(
             "Orchestrator initialized",
             sources_count=len(self.sources),
-            scrapers=list(self.scrapers.keys())
+            scrapers=list(self.scrapers.keys()),
+            research_provider=research_provider.value
         )
 
     def _load_sources(self) -> Dict[str, SourceConfig]:
@@ -312,14 +320,16 @@ class Orchestrator:
     def run_source(
         self,
         source_id: str,
-        skip_analysis: bool = False
+        skip_analysis: bool = False,
+        skip_deep_research: bool = False
     ) -> JobResult:
         """
         Run the pipeline for a single source.
 
         Args:
             source_id: ID of the source to run
-            skip_analysis: If True, skip Scout Agent analysis
+            skip_analysis: If True, skip Scout Agent analysis (Layer 1)
+            skip_deep_research: If True, skip Analyst deep research (Layer 2)
 
         Returns:
             JobResult with execution details
@@ -365,6 +375,11 @@ class Orchestrator:
             if not skip_analysis and job.items_new > 0:
                 analyzed = self._run_analysis(source_id)
                 job.items_analyzed = analyzed
+
+                # Run deep research on high-relevance items (Layer 2)
+                if not skip_deep_research and analyzed > 0:
+                    deep_researched = self._run_deep_research(source_id)
+                    job.details['deep_researched'] = deep_researched
 
             job.status = JobStatus.COMPLETED
 
@@ -545,6 +560,76 @@ class Orchestrator:
             watchlist_items.append(f"- {person.get('name')} ({person.get('role', '')})")
 
         return "\n".join(watchlist_items) if watchlist_items else "No specific watchlist configured."
+
+    def _run_deep_research(self, source_id: str, relevance_threshold: float = 0.7) -> int:
+        """
+        Run AnalystAgent deep research on high-relevance items.
+
+        This is Layer 2 analysis - triggered after Scout (Layer 1) identifies
+        items of interest. Uses both Tavily and Gemini Deep Research.
+
+        Args:
+            source_id: Source ID to research items for
+            relevance_threshold: Minimum relevance score to trigger deep research
+
+        Returns:
+            Number of items researched
+        """
+        logger.info(
+            "Running deep research",
+            source_id=source_id,
+            threshold=relevance_threshold
+        )
+
+        try:
+            # Get high-relevance reports that haven't had deep research
+            high_relevance_reports = self.db.get_high_relevance_reports(
+                source_id=source_id,
+                min_relevance=relevance_threshold,
+                needs_deep_research=True
+            )
+
+            if not high_relevance_reports:
+                logger.info("No high-relevance items need deep research")
+                return 0
+
+            researched_count = 0
+            for report in high_relevance_reports[:3]:  # Limit to 3 per run (expensive)
+                try:
+                    # Extract topic from report
+                    topic = report.get('executive_summary', '')[:200]
+                    if not topic:
+                        continue
+
+                    logger.info(
+                        "Running deep research on topic",
+                        report_id=report.get('report_id'),
+                        topic=topic[:50]
+                    )
+
+                    # Run Analyst Agent with both providers
+                    deep_report = self.analyst.run({'topic': topic})
+
+                    # Save deep research report
+                    self.db.save_deep_research_report(
+                        original_report_id=report.get('report_id'),
+                        deep_report=deep_report
+                    )
+
+                    researched_count += 1
+
+                except Exception as e:
+                    logger.error(
+                        "Deep research failed for report",
+                        report_id=report.get('report_id'),
+                        error=str(e)
+                    )
+
+            return researched_count
+
+        except Exception as e:
+            logger.error("Deep research failed", source_id=source_id, error=str(e))
+            return 0
 
     # =========================================================================
     # REPORTING

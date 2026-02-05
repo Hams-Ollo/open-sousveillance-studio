@@ -7,14 +7,15 @@
 ## Table of Contents
 
 1. [System Overview](#system-overview)
-2. [Three-Layer Agent Framework](#three-layer-agent-framework)
-3. [Technology Stack](#technology-stack)
-4. [Data Flow](#data-flow)
-5. [Firecrawl Integration](#firecrawl-integration)
-6. [Docling Integration](#docling-integration)
-7. [Configuration System](#configuration-system)
-8. [Monitored Data Sources](#monitored-data-sources)
-9. [Streamlit Dev Console](#streamlit-dev-console)
+2. [Intelligence Layer](#intelligence-layer)
+3. [Three-Layer Agent Framework](#three-layer-agent-framework)
+4. [Technology Stack](#technology-stack)
+5. [Data Flow](#data-flow)
+6. [Firecrawl Integration](#firecrawl-integration)
+7. [Docling Integration](#docling-integration)
+8. [Configuration System](#configuration-system)
+9. [Monitored Data Sources](#monitored-data-sources)
+10. [Streamlit Dev Console](#streamlit-dev-console)
 
 ---
 
@@ -102,13 +103,166 @@ flowchart TB
 
 ---
 
-## 🤖 Three-Layer Agent Framework
+## � Intelligence Layer
 
-| Layer | Agents | Frequency | Purpose |
-|:------|:-------|:----------|:--------|
-| **Layer 1: Scouts** | A1-A4 | Daily | Data collection from government portals. Deterministic, fact-based extraction. |
-| **Layer 2: Analysts** | B1-B2 | Weekly | Pattern recognition across Scout data. Deep research via Tavily. |
-| **Layer 3: Synthesizers** | C1-C4 | Monthly | Public-facing content generation. Requires human approval before publishing. |
+**Phase 3: Intelligent Evolution** introduces an event-driven architecture that unifies all scraper output into a single queryable model.
+
+### Architecture Overview
+
+```mermaid
+flowchart TB
+    subgraph Sources["🕷️ Scrapers"]
+        CC[CivicClerk<br/>Scraper]
+        SR[SRWMD<br/>Scraper]
+        FN[Florida Notices<br/>Scraper]
+    end
+
+    subgraph Adapters["🔄 Adapters"]
+        CCA[CivicClerk<br/>Adapter]
+        SRA[SRWMD<br/>Adapter]
+        FNA[Florida Notices<br/>Adapter]
+    end
+
+    subgraph Intelligence["🧠 Intelligence Layer"]
+        CE[CivicEvent<br/>Unified Model]
+        ES[EventStore<br/>Persistence + Queries]
+        RE[RulesEngine<br/>Watchdog Alerts]
+    end
+
+    subgraph Output["📤 Output"]
+        WN["What's New?"]
+        AL[Alerts]
+        UP[Upcoming Events]
+    end
+
+    CC --> CCA
+    SR --> SRA
+    FN --> FNA
+
+    CCA --> CE
+    SRA --> CE
+    FNA --> CE
+
+    CE --> ES
+    ES --> RE
+
+    ES --> WN
+    RE --> AL
+    ES --> UP
+```
+
+### CivicEvent Model
+
+The unified event model normalizes output from all scrapers:
+
+```python
+@dataclass
+class CivicEvent:
+    event_id: str              # Unique identifier
+    event_type: EventType      # meeting, permit_application, permit_issued, public_notice
+    source_id: str             # Which scraper produced this
+    timestamp: datetime        # When the event occurs
+    title: str                 # Human-readable title
+    description: Optional[str]
+    location: Optional[GeoLocation]
+    entities: List[Entity]     # People, orgs, addresses (for linking)
+    documents: List[Document]  # Attached files
+    tags: List[str]            # For filtering (rezoning, environmental, etc.)
+    content_hash: str          # For change detection
+    raw_data: Dict             # Original source data
+```
+
+### EventStore Queries
+
+| Method | Purpose |
+|:-------|:--------|
+| `save_event()` | Persist event, detect new/updated/unchanged |
+| `get_whats_new(hours=24)` | Events discovered in last N hours |
+| `get_upcoming(days=7)` | Future meetings and hearings |
+| `get_events(source_id, tags, since)` | Filtered queries |
+| `get_by_entity(name)` | Find events mentioning an entity |
+| `get_by_county(county)` | Filter by geographic location |
+
+### Watchdog Rules Engine
+
+Rule-based alert generation for civic monitoring:
+
+```yaml
+# config/watchdog_rules.yaml
+rules:
+  - name: "rezoning-alert"
+    severity: "notable"
+    required_tags: ["rezoning"]
+    message: "Rezoning activity: {title}"
+
+  - name: "environmental-concern"
+    severity: "warning"
+    any_tags: ["water", "aquifer", "wetland"]
+    message: "Environmental item: {title}"
+```
+
+**14 Default Rules** covering:
+- Permit applications and issuances
+- Rezoning and land use changes
+- Environmental concerns (water, aquifer)
+- Upcoming meetings and public hearings
+- Development and annexation
+
+### Source Adapters
+
+| Adapter | Input | Output |
+|:--------|:------|:-------|
+| `CivicClerkAdapter` | Meeting data | CivicEvent with board entities, agenda docs |
+| `SRWMDAdapter` | Permit notices | CivicEvent with project entities, location |
+| `FloridaNoticesAdapter` | Public notices | CivicEvent with county, PDF documents |
+
+---
+
+## 🤖 Two-Layer Agent Framework
+
+The system uses a **two-layer agent architecture** with the Orchestrator coordinating execution:
+
+```mermaid
+flowchart TB
+    subgraph Orchestrator["🎯 Orchestrator (Daily 4 AM EST)"]
+        direction TB
+        SCHED[Celery Beat<br/>Scheduler]
+        PIPE[Pipeline<br/>Coordinator]
+    end
+
+    subgraph Layer1["🔍 Layer 1: ScoutAgent"]
+        direction LR
+        SC[ScoutAgent]
+        WL[Watchlist<br/>Matching]
+    end
+
+    subgraph Layer2["🧠 Layer 2: AnalystAgent"]
+        direction LR
+        AN[AnalystAgent]
+        TAV[Tavily<br/>Fast Search]
+        GEM[Gemini Deep<br/>Research]
+    end
+
+    subgraph Scrapers["🕷️ Scrapers"]
+        CC[CivicClerk]
+        SR[SRWMD]
+        FN[Florida Notices]
+    end
+
+    SCHED --> PIPE
+    PIPE --> Scrapers
+    Scrapers --> Layer1
+    Layer1 -->|relevance >= 0.7| Layer2
+    Layer1 --> DB[(Supabase)]
+    Layer2 --> DB
+    AN --> TAV
+    AN --> GEM
+```
+
+| Layer | Agent | Frequency | Purpose | Research Providers |
+|:------|:------|:----------|:--------|:-------------------|
+| **Layer 1** | `ScoutAgent` | Daily (4 AM) | Analyze scraped content against watchlist, generate relevance scores | Local LLM analysis |
+| **Layer 2** | `AnalystAgent` | On-demand | Deep research on high-relevance items (≥0.7 score) | Tavily + Gemini Deep Research |
 
 ---
 
@@ -172,36 +326,42 @@ graph LR
 ```mermaid
 sequenceDiagram
     participant CRON as ⏰ Celery Beat
-    participant SCOUT as 🔍 Scout Agent
+    participant ORCH as 🎯 Orchestrator
+    participant SCRAPER as 🕷️ Scraper
     participant SRC as 🌐 CivicClerk
-    participant PDF as 📄 Docling
+    participant PDF as 📄 PDF Processor
     participant DB as 💾 Supabase
-    participant ANALYST as 🧠 Analyst Agent
-    participant HUMAN as 👤 Human Reviewer
-    participant SYNTH as 📝 Synthesizer
-    participant EMAIL as 📧 Newsletter
+    participant SCOUT as 🔍 ScoutAgent
+    participant ANALYST as 🧠 AnalystAgent
+    participant TAV as � Tavily
+    participant GEM as 🤖 Gemini Deep Research
 
-    CRON->>SCOUT: Daily trigger (4 AM)
-    SCOUT->>SRC: Fetch meeting list (Firecrawl)
-    SRC-->>SCOUT: Markdown + PDF links
-    SCOUT->>PDF: Download agenda packets
-    PDF-->>SCOUT: Extracted text + tables
-    SCOUT->>DB: Store ScoutReport + embeddings
+    CRON->>ORCH: Daily trigger (4 AM EST)
+    ORCH->>SCRAPER: Run hybrid pipeline
+    SCRAPER->>SRC: Fetch meeting list (Firecrawl)
+    SRC-->>SCRAPER: Markdown + event IDs
+    SCRAPER->>SRC: Fetch event files pages
+    SRC-->>SCRAPER: PDF URLs
+    SCRAPER->>PDF: Download PDFs
+    PDF-->>SCRAPER: Extracted text
+    SCRAPER->>DB: Sync meetings (new/updated/unchanged)
 
     Note over DB: Deduplicate via content hash
-    Note over SCOUT: Scouts can also be manually triggered via API/CLI/Dev Console
 
-    CRON->>ANALYST: Weekly trigger (Monday 9 AM)
-    ANALYST->>DB: Query RED/YELLOW alerts
-    ANALYST->>ANALYST: Tavily deep research
-    ANALYST->>DB: Store AnalystReport
-    ANALYST->>HUMAN: interrupt() - Approval required
+    ORCH->>SCOUT: Analyze new items
+    SCOUT->>SCOUT: Match against watchlist
+    SCOUT->>DB: Store ScoutReport + relevance score
 
-    HUMAN-->>ANALYST: Approved ✓
+    Note over SCOUT: If relevance >= 0.7, trigger Layer 2
 
-    ANALYST->>SYNTH: Resume workflow
-    SYNTH->>SYNTH: Generate newsletter content
-    SYNTH->>EMAIL: Send via Resend API
+    ORCH->>ANALYST: Deep research on high-relevance items
+    ANALYST->>TAV: Tavily fast search
+    TAV-->>ANALYST: Web results
+    ANALYST->>GEM: Gemini Deep Research
+    GEM-->>ANALYST: Comprehensive analysis
+    ANALYST->>DB: Store DeepResearchReport
+
+    Note over ORCH: Manual runs available via Streamlit UI or CLI
 ```
 
 ---
@@ -543,13 +703,26 @@ open-sousveillance-studio/
 ├── config/                     # YAML configuration files
 │   ├── instance.yaml           # Instance identity & scheduling
 │   ├── sources.yaml            # Government data sources
-│   └── entities.yaml           # Watchlist (projects, orgs, keywords)
+│   ├── entities.yaml           # Watchlist (projects, orgs, keywords)
+│   ├── watchdog_rules.yaml     # 🆕 Civic alert rules (14 rules)
+│   ├── discovered_resources.yaml # 🆕 Resource ID cache
+│   └── source_playbooks/       # 🆕 Source-specific playbooks
 │
 ├── src/                        # Application source code
 │   ├── agents/                 # AI agent implementations
 │   │   ├── base.py             # BaseAgent abstract class
 │   │   ├── scout.py            # Layer 1: Scout agents (A1-A4)
 │   │   └── analyst.py          # Layer 2: Analyst agents (B1-B2)
+│   │
+│   ├── intelligence/           # 🆕 Event-driven intelligence layer
+│   │   ├── models.py           # CivicEvent, Entity, Document, Alert
+│   │   ├── event_store.py      # Persistence + queries
+│   │   ├── rules_engine.py     # Watchdog alert generation
+│   │   └── adapters/           # Source → CivicEvent converters
+│   │       ├── base_adapter.py
+│   │       ├── civicclerk_adapter.py
+│   │       ├── srwmd_adapter.py
+│   │       └── florida_notices_adapter.py
 │   │
 │   ├── api/                    # FastAPI routes
 │   │   └── routes/
@@ -563,10 +736,12 @@ open-sousveillance-studio/
 │   │
 │   ├── tools/                  # External service wrappers
 │   │   ├── firecrawl_client.py # Web scraping
-│   │   ├── docling_processor.py# PDF parsing
-│   │   ├── embeddings.py       # Gemini embeddings
-│   │   ├── vector_store.py     # pgvector operations
-│   │   └── rag_pipeline.py     # RAG interface
+│   │   ├── civicclerk_scraper.py # CivicClerk portal scraper
+│   │   ├── srwmd_scraper.py    # SRWMD permit scraper
+│   │   ├── florida_notices_scraper.py # Public notices scraper
+│   │   ├── gemini_research.py  # 🆕 Gemini Deep Research client
+│   │   ├── resource_cache.py   # Discovered resources cache
+│   │   └── docling_processor.py# PDF parsing
 │   │
 │   ├── workflows/              # LangGraph workflows
 │   │   └── graphs.py           # Workflow definitions
@@ -575,16 +750,16 @@ open-sousveillance-studio/
 │   │   ├── app.py              # Main Streamlit app
 │   │   └── pages/              # Tab pages
 │   │
-│   ├── prompts/                # Prompt loading utilities
-│   │   ├── loader.py           # PromptLoader
-│   │   └── context.py          # AgentContext
-│   │
 │   ├── app.py                  # FastAPI application
+│   ├── orchestrator.py         # 🆕 Pipeline coordinator
 │   ├── config.py               # Configuration loader
 │   ├── database.py             # Supabase client
 │   ├── schemas.py              # Pydantic models
-│   ├── models.py               # LLM configuration
-│   └── tools.py                # LangChain tool definitions
+│   └── models.py               # LLM configuration
+│
+├── scripts/                    # 🆕 Utility scripts
+│   ├── discover_sitemaps.py    # Source URL discovery
+│   └── analyze_sources.py      # Playbook generator
 │
 ├── prompt_library/             # Agent prompt templates
 │   ├── config/                 # Domain context files
@@ -592,7 +767,10 @@ open-sousveillance-studio/
 │   ├── layer-2-analysts/       # B1-B2 prompts
 │   └── layer-3-synthesizers/   # C1-C4 prompts
 │
-├── test/                       # Test files
+├── test/                       # Test files (78 tests)
+│   ├── test_scrapers.py        # Scraper tests (39)
+│   └── test_intelligence.py    # Intelligence tests (39)
+│
 ├── docs/                       # Documentation
 ├── data/                       # Generated reports
 │
@@ -605,3 +783,5 @@ open-sousveillance-studio/
 ---
 
 *For setup instructions, see [README.md](../README.md). For development guide, see [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md).*
+
+*Last updated: February 5, 2026*

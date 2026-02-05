@@ -537,7 +537,7 @@ def scrape_with_firecrawl(url: str, format: str) -> dict:
     from src.tools.firecrawl_client import FirecrawlClient
 
     client = FirecrawlClient()
-    result = client.scrape_page(url, wait_ms=2000)
+    result = client.scrape(url, wait_ms=2000)
 
     return {
         "method": "firecrawl",

@@ -50,21 +50,31 @@ celery_app.conf.update(
 
 # Beat schedule (periodic tasks)
 celery_app.conf.beat_schedule = {
-    # Daily scout runs at 6 AM Eastern
+    # Daily orchestrator pipeline at 4 AM Eastern
+    # Runs all scrapers, Scout analysis, and Analyst deep research
+    "daily-orchestrator-pipeline": {
+        "task": "src.tasks.scout_tasks.run_orchestrator_pipeline",
+        "schedule": crontab(hour=4, minute=0),
+        "kwargs": {
+            "skip_analysis": False,
+            "skip_deep_research": False,
+            "force": True  # Force run regardless of individual source schedules
+        },
+        "options": {"queue": "orchestrator"}
+    },
+    # Legacy: Daily scout runs at 6 AM Eastern (kept for backwards compatibility)
     "daily-scout-run": {
         "task": "src.tasks.scout_tasks.run_all_critical_scouts",
         "schedule": crontab(hour=6, minute=0),
         "options": {"queue": "scouts"}
     },
-    # TODO: Add analyst and synthesizer tasks when implemented
-    # "weekly-analyst-run": {...}
-    # "monthly-newsletter": {...}
 }
 
 # Task routing
 celery_app.conf.task_routes = {
+    "src.tasks.scout_tasks.run_orchestrator_pipeline": {"queue": "orchestrator"},
+    "src.tasks.scout_tasks.run_single_source": {"queue": "orchestrator"},
     "src.tasks.scout_tasks.*": {"queue": "scouts"},
-    # TODO: Add routing for analyst and synthesizer tasks when implemented
 }
 
 

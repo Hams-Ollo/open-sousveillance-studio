@@ -1,7 +1,7 @@
 # 📅 Project Plan: Open Sousveillance Studio
 
-**Version:** 1.0
-**Last Updated:** 2026-01-29
+**Version:** 1.1
+**Last Updated:** 2026-02-02
 **Project Lead:** Hans
 **Target Release:** v1.0.0
 
@@ -75,10 +75,10 @@ gantt
 
 ---
 
-### Phase 2: Scout Layer 🚧 (Current)
+### Phase 2: Scout Layer ✅ (Complete)
 
-**Duration:** Jan 21 - Feb 15, 2026
-**Status:** In Progress
+**Duration:** Jan 21 - Feb 2, 2026
+**Status:** Complete
 
 #### Goals
 
@@ -118,13 +118,15 @@ Phase 3: ANALYSIS (AI processing - only for new content)
 | Docling PDF processor | ✅ | Jan 29 |
 | CivicClerk scraper (basic) | ✅ | Jan 31 |
 | Florida Public Notices scraper (basic) | ✅ | Jan 31 |
-| **Hybrid scraping pipeline** | 🔲 | Feb 5 |
-| **Meeting state tracking (database)** | 🔲 | Feb 6 |
-| eScribe scraper (Alachua County) | 🔲 | Feb 8 |
-| **Scraping Orchestrator** | 🔲 | Feb 10 |
-| Change detection (content hashing) | 🔲 | Feb 12 |
+| **Hybrid scraping pipeline** | ✅ | Feb 1 |
+| **Meeting state tracking (database)** | ✅ | Feb 1 |
+| eScribe scraper (Alachua County) | 🔲 | Deferred |
+| **Scraping Orchestrator** | ✅ | Feb 1 |
+| Change detection (content hashing) | ✅ | Feb 1 |
 | Celery task scheduling | ✅ | Jan 29 |
-| Scout agent integration tests | 🔲 | Feb 15 |
+| **Scraper unit tests (39 passing)** | ✅ | Feb 2 |
+| **Source playbook generator** | ✅ | Feb 2 |
+| **Resource cache system** | ✅ | Feb 2 |
 
 #### Key Milestones
 
@@ -134,9 +136,73 @@ Phase 3: ANALYSIS (AI processing - only for new content)
 
 ---
 
-### Phase 3: Analyst Layer
+### Phase 3: Intelligent Evolution 🚧 (Current)
 
-**Duration:** Feb 16 - Mar 15, 2026
+**Duration:** Feb 2 - Mar 15, 2026
+**Status:** In Progress
+
+**Approach:** Event-driven + User-centric (Option C hybrid)
+**Primary Use Case:** Grassroots civic watchdog monitoring for concerning activity
+
+#### Goals
+
+- Unified CivicEvent model normalizing all scraper output
+- Change detection at scrape time (not batch comparison)
+- Watchdog rules engine for civic alerts
+- Self-healing scrapers with health metrics
+- Cross-source entity linking for investigation
+- User watchlists for personalized monitoring
+
+#### Architecture
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                      USER LAYER                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │  Watchlist  │  │   Alerts    │  │    Investigation        │  │
+│  │  (topics,   │  │  (triggers, │  │    (search, explore)    │  │
+│  │   areas)    │  │   delivery) │  │                         │  │
+│  └──────┬──────┘  └──────┬──────┘  └────────────┬────────────┘  │
+└─────────┼────────────────┼──────────────────────┼───────────────┘
+          │                │                      │
+          ▼                ▼                      ▼
+┌───────────────────────────────────────────────────────────────┐
+│                    UNIFIED EVENT STREAM                         │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  CivicEvent(type, source, timestamp, data, tags, location)  ││
+│  └─────────────────────────────────────────────────────────┘│
+│         ▲                ▲                      ▲               │
+└─────────┼────────────────┼──────────────────────┼───────────────┘
+          │                │                      │
+   ┌──────┴──────┐  ┌──────┴──────┐  ┌───────────┴───────────┐
+   │ CivicClerk  │  │   SRWMD     │  │   Florida Notices     │
+   │  Adapter    │  │  Adapter    │  │      Adapter          │
+   └─────────────┘  └─────────────┘  └───────────────────────┘
+```
+
+#### Deliverables
+
+| Deliverable | Status | Target Date |
+|:------------|:-------|:------------|
+| **3.1 CivicEvent model + adapters** | 🔲 | Feb 8 |
+| **3.2 Event persistence + queries** | 🔲 | Feb 12 |
+| **3.3 Watchdog rules engine** | 🔲 | Feb 18 |
+| **3.4 Health metrics in scrapers** | 🔲 | Feb 22 |
+| **3.5 User watchlists** | 🔲 | Feb 28 |
+| **3.6 Entity extraction** | 🔲 | Mar 8 |
+| **3.7 Cross-source search** | 🔲 | Mar 15 |
+
+#### Key Milestones
+
+- **Feb 12:** CivicEvent model operational, "what's new" query working
+- **Feb 22:** Watchdog alerts functional, scraper health dashboard
+- **Mar 15:** Cross-source investigation capability
+
+---
+
+### Phase 3b: Analyst Layer
+
+**Duration:** Mar 16 - Apr 1, 2026
 **Status:** Planned
 
 #### Goals
@@ -150,18 +216,18 @@ Phase 3: ANALYSIS (AI processing - only for new content)
 
 | Deliverable | Status | Target Date |
 |:------------|:-------|:------------|
-| LangGraph workflow implementation | 🔲 | Feb 22 |
-| Tavily deep research integration | 🔲 | Feb 25 |
-| Supabase checkpointer for state | 🔲 | Feb 28 |
-| Human approval checkpoint (interrupt/resume) | 🔲 | Mar 5 |
+| LangGraph workflow implementation | 🔲 | Mar 20 |
+| Tavily deep research integration | 🔲 | Mar 22 |
+| Supabase checkpointer for state | 🔲 | Mar 25 |
+| Human approval checkpoint (interrupt/resume) | 🔲 | Mar 28 |
 | FastAPI approval endpoints | ✅ | Jan 29 |
-| Email notifications (Resend) | 🔲 | Mar 10 |
-| Analyst agent integration tests | 🔲 | Mar 15 |
+| Email notifications (Resend) | 🔲 | Mar 30 |
+| Analyst agent integration tests | 🔲 | Apr 1 |
 
 #### Key Milestones
 
-- **Feb 28:** First end-to-end Scout → Analyst workflow
-- **Mar 15:** Human approval workflow functional
+- **Mar 25:** First end-to-end Scout → Analyst workflow
+- **Apr 1:** Human approval workflow functional
 
 ---
 
@@ -640,3 +706,4 @@ Phase 3: ANALYSIS (AI processing - only for new content)
 | 2026-01-29 | 1.0 | Initial project plan created |
 | 2026-01-30 | 1.1 | Added future agents roadmap, high-value features roadmap |
 | 2026-01-30 | 1.2 | Added community, analytics, proactive, accessibility features; Added Epics, Features, User Stories, Tasks |
+| 2026-02-02 | 1.3 | Phase 2 complete; Added Phase 3 Intelligent Evolution with event-driven architecture |

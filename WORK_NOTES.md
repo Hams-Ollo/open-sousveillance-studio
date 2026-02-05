@@ -2,6 +2,194 @@
 
 ---
 
+## Session: 2026-02-02 - Phase 3 Intelligence Layer
+
+**Session Focus:** Intelligent Evolution - Event-driven architecture, CivicEvent model, adapters, EventStore, Watchdog Rules Engine
+
+---
+
+### Session Summary
+
+Implemented Phase 3 "Intelligent Evolution" with an event-driven, user-centric architecture:
+1. Created unified CivicEvent model normalizing all scraper output
+2. Built source adapters for CivicClerk, SRWMD, and Florida Notices
+3. Implemented EventStore with persistence and query capabilities
+4. Created Watchdog Rules Engine with 14 configurable civic alert rules
+5. Integrated ResourceCache into all 3 scrapers
+6. Created source playbook generator and sitemap discovery scripts
+7. **78 tests passing** (39 scraper + 39 intelligence)
+
+---
+
+### Major Implementations
+
+#### 1. Intelligence Layer (`src/intelligence/`)
+
+New module providing event-driven intelligence capabilities:
+
+```
+src/intelligence/
+├── __init__.py              # Module exports
+├── models.py                # CivicEvent, Entity, Document, Alert (~300 lines)
+├── event_store.py           # Persistence + queries (~400 lines)
+├── rules_engine.py          # Watchdog alerts (~400 lines)
+└── adapters/
+    ├── __init__.py
+    ├── base_adapter.py      # Base class with entity/tag extraction
+    ├── civicclerk_adapter.py
+    ├── srwmd_adapter.py
+    └── florida_notices_adapter.py
+```
+
+**CivicEvent Model:**
+```python
+@dataclass
+class CivicEvent:
+    event_id: str
+    event_type: EventType      # meeting, permit_application, permit_issued, public_notice
+    source_id: str
+    timestamp: datetime
+    title: str
+    description: Optional[str]
+    location: Optional[GeoLocation]
+    entities: List[Entity]     # People, orgs, addresses
+    documents: List[Document]
+    tags: List[str]            # For filtering
+    content_hash: str          # For change detection
+    raw_data: Dict
+```
+
+#### 2. EventStore (`src/intelligence/event_store.py`)
+
+Persistent storage with query capabilities:
+- `save_event()` - Detects new vs updated vs unchanged
+- `get_events()` - Filter by source, type, tags, time range
+- `get_whats_new()` - Events discovered in last N hours
+- `get_upcoming()` - Future events (meetings, hearings)
+- `get_by_entity()` - Find events mentioning an entity
+- `get_by_county()` - Filter by county
+
+#### 3. Watchdog Rules Engine (`src/intelligence/rules_engine.py`)
+
+Rule-based alert generation for civic watchdog use cases:
+- Loads rules from `config/watchdog_rules.yaml`
+- Evaluates CivicEvents against configurable conditions
+- Generates alerts with severity levels (info, notable, warning, urgent)
+
+**14 Default Rules:**
+| Category | Rules |
+|:---------|:------|
+| Permits | new-alachua-permit, permit-issued-alachua |
+| Rezoning | rezoning-alert, comprehensive-plan-change, variance-request |
+| Environmental | environmental-concern, santa-fe-river |
+| Meetings | upcoming-meeting-48h, public-hearing, planning-commission |
+| Development | large-development, annexation |
+| Notices | legal-notice-alachua |
+
+#### 4. Source Adapters
+
+Convert scraper output to unified CivicEvent format:
+- **CivicClerkAdapter**: Meetings → CivicEvents with board entities, agenda documents
+- **SRWMDAdapter**: Permits → CivicEvents with project entities, location, permit type tags
+- **FloridaNoticesAdapter**: Notices → CivicEvents with county location, PDF documents
+
+#### 5. ResourceCache Integration
+
+All 3 scrapers now auto-update discovered resources cache:
+- `config/discovered_resources.yaml` - Persistent cache of known IDs
+- `src/tools/resource_cache.py` - Read/write utility
+- CivicClerk: 20 event IDs cached
+- SRWMD: Permit IDs and document IDs cached
+- Florida Notices: Notice IDs and PDF URLs cached
+
+#### 6. Source Discovery Scripts
+
+- `scripts/discover_sitemaps.py` - Firecrawl map_site API integration
+- `scripts/analyze_sources.py` - Deep content sampling, playbook generation
+- `config/source_playbooks/` - 5 YAML playbooks generated
+
+---
+
+### Architecture Decision
+
+**Chose Option C: Event-driven + User-centric hybrid**
+
+Instead of complex layered infrastructure, we built:
+1. **Unified CivicEvent model** - Single query interface across all sources
+2. **Change detection at scrape time** - Not batch snapshot comparison
+3. **Rule-based alerts** - Explicit, auditable, citizen-understandable
+4. **Simpler self-healing** - Health as scraper property, not separate system
+
+**Primary Use Case:** Grassroots civic watchdog monitoring for concerning activity
+
+---
+
+### Files Created
+
+| File | Lines | Purpose |
+|:-----|:------|:--------|
+| `src/intelligence/__init__.py` | 40 | Module exports |
+| `src/intelligence/models.py` | 300 | CivicEvent, Entity, Document, Alert |
+| `src/intelligence/event_store.py` | 400 | Event persistence and queries |
+| `src/intelligence/rules_engine.py` | 400 | Watchdog alert generation |
+| `src/intelligence/adapters/__init__.py` | 15 | Adapter exports |
+| `src/intelligence/adapters/base_adapter.py` | 140 | Base adapter with entity extraction |
+| `src/intelligence/adapters/civicclerk_adapter.py` | 250 | CivicClerk → CivicEvent |
+| `src/intelligence/adapters/srwmd_adapter.py` | 280 | SRWMD → CivicEvent |
+| `src/intelligence/adapters/florida_notices_adapter.py` | 270 | Florida Notices → CivicEvent |
+| `config/watchdog_rules.yaml` | 150 | 14 civic watchdog rules |
+| `config/discovered_resources.yaml` | 60 | Resource cache |
+| `src/tools/resource_cache.py` | 170 | Cache utility |
+| `scripts/discover_sitemaps.py` | 645 | Sitemap discovery |
+| `scripts/analyze_sources.py` | 872 | Playbook generator |
+| `test/test_intelligence.py` | 400 | 39 intelligence tests |
+
+### Files Modified
+
+| File | Changes |
+|:-----|:--------|
+| `src/tools/civicclerk_scraper.py` | Added ResourceCache integration |
+| `src/tools/srwmd_scraper.py` | Added ResourceCache integration |
+| `src/tools/florida_notices_scraper.py` | Added ResourceCache integration |
+| `src/tools/__init__.py` | Export ResourceCache |
+| `TODO.md` | Added Phase 3 items |
+| `docs/PROJECT_PLAN.md` | Added Phase 3 architecture |
+
+---
+
+### Test Results
+
+```
+78 passed in 2.54s
+- 39 scraper tests
+- 39 intelligence tests (21 model + 10 store + 8 rules)
+```
+
+---
+
+### Phase 3 Progress
+
+| Phase | Status | Description |
+|:------|:-------|:------------|
+| **3.1** | ✅ Complete | CivicEvent model + adapters |
+| **3.2** | ✅ Complete | EventStore + queries |
+| **3.3** | ✅ Complete | Watchdog rules engine |
+| **3.4** | 🔲 Pending | Health metrics in scrapers |
+| **3.5** | 🔲 Pending | User watchlists |
+| **3.6** | 🔲 Pending | Entity extraction for linking |
+| **3.7** | 🔲 Pending | Cross-source search |
+
+---
+
+### Next Steps
+
+1. Phase 3.4: Health metrics embedded in scrapers
+2. Phase 3.5: User watchlists
+3. Comprehensive documentation update
+
+---
+---
+
 ## Session: 2026-02-01 - Phase 2 Complete + Code Review Fixes
 
 **Session Focus:** Hybrid Scraping Pipeline, SRWMD Scraper, Orchestrator, Code Review

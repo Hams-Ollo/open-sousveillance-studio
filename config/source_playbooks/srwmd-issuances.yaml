@@ -1,0 +1,52 @@
+source_id: srwmd-issuances
+source_name: SRWMD - Permit Issuances
+base_url: https://www.mysuwanneeriver.com/1617/Notice-of-Permit-Issuance
+analyzed_at: '2026-02-02T10:52:53.345155'
+page_structure:
+  type: static
+  requires_javascript: false
+  load_time_ms: 2000
+  elements_found: []
+navigation:
+  list_to_detail:
+  - action: click
+    selector: a[href*='permitting.sjrwmd.com']
+    value: null
+    wait_ms: 500
+    description: Click permit number link
+  detail_to_document:
+  - action: scroll
+    selector: null
+    value: null
+    wait_ms: 500
+    description: Scroll to documents section
+  - action: click
+    selector: a[href*='.pdf']
+    value: null
+    wait_ms: 500
+    description: Click document link
+documents:
+  patterns: []
+  discovered_links: []
+api_endpoints: []
+links:
+  internal_count: 8
+  external_count: 0
+  document_count: 0
+  sample_internal:
+  - https://www.mysuwanneeriver.com/Common/images/ajax-loader.gif
+  - https://www.mysuwanneeriver.com/1617/Notice-of-Permit-Issuance#cceb3de415-28d3-451f-855e-d1e49170bffd
+  - https://www.mysuwanneeriver.com/ImageRepository/Document?documentID=17942
+  - https://www.mysuwanneeriver.com/
+  - https://www.mysuwanneeriver.com/505/Doing-Business
+  - https://www.mysuwanneeriver.com/8/Permits-Rules
+  - https://www.mysuwanneeriver.com/ImageRepository/Document?documentID=13351
+  - https://www.mysuwanneeriver.com/ImageRepository/Document?documentID=15269
+  sample_external: []
+scout_instructions: "# Scout Instructions for SRWMD - Permit Issuances\n\n**Source\
+  \ ID:** `srwmd-issuances`\n**Base URL:** https://www.mysuwanneeriver.com/1617/Notice-of-Permit-Issuance\n\
+  **Page Type:** static\n**Requires JS:** No\n\n## Navigation\n\n### List To Detail\n\
+  1. **click** `a[href*='permitting.sjrwmd.com']`\n   - Click permit number link\n\
+  \n### Detail To Document\n1. **scroll** `None`\n   - Scroll to documents section\n\
+  2. **click** `a[href*='.pdf']`\n   - Click document link"
+warnings: []

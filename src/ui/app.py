@@ -29,7 +29,7 @@ st.set_page_config(
 )
 
 # Import page modules
-from src.ui.pages import agent_runner, prompt_inspector, source_tester, config_viewer, orchestrator_panel
+from src.ui.pages import agent_runner, prompt_inspector, source_tester, config_viewer, orchestrator_panel, health_dashboard
 
 
 def check_api_keys() -> dict:
@@ -106,8 +106,9 @@ def main():
     # Main content area with tabs
     st.title("🔬 Open Sousveillance Studio - Developer Console")
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "🎯 Orchestrator",
+        "🏥 Health",
         "🤖 Agent Runner",
         "📝 Prompt Inspector",
         "🌐 Source Tester",
@@ -118,15 +119,18 @@ def main():
         orchestrator_panel.render()
 
     with tab2:
-        agent_runner.render()
+        health_dashboard.render()
 
     with tab3:
-        prompt_inspector.render()
+        agent_runner.render()
 
     with tab4:
-        source_tester.render()
+        prompt_inspector.render()
 
     with tab5:
+        source_tester.render()
+
+    with tab6:
         config_viewer.render()
 
 

@@ -213,6 +213,101 @@ class Database:
             logger.error("Error fetching document", document_id=document_id, error=str(e))
             return None
 
+    # =========================================================================
+    # Deep Research Reports (Layer 2 Analysis)
+    # =========================================================================
+
+    def get_high_relevance_reports(
+        self,
+        source_id: str,
+        min_relevance: float = 0.7,
+        needs_deep_research: bool = True
+    ) -> List[dict]:
+        """
+        Get reports with high relevance scores that may need deep research.
+
+        Args:
+            source_id: Source ID to filter by
+            min_relevance: Minimum relevance score (0.0-1.0)
+            needs_deep_research: If True, only return reports without deep research
+
+        Returns:
+            List of report dicts
+        """
+        try:
+            query = self.supabase.table("reports").select("*").eq("type", "scout")
+
+            # Filter by relevance in the JSON data
+            # Note: This assumes reports have data->relevance_score field
+            response = query.order("created_at", desc=True).limit(50).execute()
+
+            results = []
+            for report in response.data or []:
+                data = report.get('data', {})
+                relevance = data.get('relevance_score', 0)
+
+                # Check relevance threshold
+                if relevance < min_relevance:
+                    continue
+
+                # Check if deep research already done
+                if needs_deep_research and report.get('deep_research_id'):
+                    continue
+
+                results.append(report)
+
+            return results
+        except Exception as e:
+            logger.error("Error fetching high relevance reports", source_id=source_id, error=str(e))
+            return []
+
+    def save_deep_research_report(self, original_report_id: str, deep_report: "ScoutReport") -> bool:
+        """
+        Save a deep research report and link it to the original Scout report.
+
+        Args:
+            original_report_id: ID of the original Scout report
+            deep_report: The deep research ScoutReport
+
+        Returns:
+            True if successful
+        """
+        try:
+            import json
+
+            # Save the deep research report
+            data = json.loads(deep_report.model_dump_json())
+            deep_report_id = f"deep-{deep_report.report_id}"
+
+            payload = {
+                "id": deep_report_id,
+                "type": "deep_research",
+                "created_at": datetime.now().isoformat(),
+                "data": data,
+                "original_report_id": original_report_id
+            }
+
+            self.supabase.table("reports").upsert(payload).execute()
+
+            # Link the original report to this deep research
+            self.supabase.table("reports").update({
+                "deep_research_id": deep_report_id
+            }).eq("id", original_report_id).execute()
+
+            logger.info(
+                "Saved deep research report",
+                deep_report_id=deep_report_id,
+                original_report_id=original_report_id
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                "Error saving deep research report",
+                original_report_id=original_report_id,
+                error=str(e)
+            )
+            return False
+
 _db: Database | None = None
 
 def get_db() -> Database:

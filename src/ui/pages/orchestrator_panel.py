@@ -42,7 +42,19 @@ def render():
 
 def render_dashboard():
     """Render the main dashboard with source status."""
-    st.subheader("Source Status")
+
+    # Schedule info
+    st.subheader("⏰ Schedule")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info("**Daily Pipeline Run:** 4:00 AM EST")
+        st.caption("Runs all scrapers, Scout analysis, and Analyst deep research")
+    with col2:
+        st.write("**To start scheduled runs:**")
+        st.code("celery -A src.tasks.celery_app beat --loglevel=info", language="bash")
+
+    st.divider()
+    st.subheader("📊 Source Status")
 
     try:
         from src.orchestrator import Orchestrator
@@ -158,21 +170,35 @@ def render_run_panel():
 
         # Options
         st.write("### Options")
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
             skip_analysis = st.checkbox(
                 "Skip Analysis",
                 value=False,
-                help="Skip Scout Agent analysis (faster, discovery only)"
+                help="Skip Scout Agent analysis (Layer 1)"
             )
 
         with col2:
+            skip_deep_research = st.checkbox(
+                "Skip Deep Research",
+                value=False,
+                help="Skip Analyst deep research (Layer 2)"
+            )
+
+        with col3:
             force_run = st.checkbox(
                 "Force Run",
                 value=False,
                 help="Run even if sources are not due"
             )
+
+        # Execution mode
+        run_async = st.checkbox(
+            "🔄 Run in Background (Celery)",
+            value=False,
+            help="Queue task for background execution. Requires Celery worker running."
+        )
 
         # Run button
         st.write("---")
@@ -180,43 +206,74 @@ def render_run_panel():
         if st.button("🚀 Run Pipeline", type="primary", use_container_width=True):
             pipeline_result = None
             pipeline_error = None
+            task_id = None
 
-            with st.status("Running Pipeline...", expanded=True) as status:
+            # Determine source IDs
+            if run_mode == "Select Specific":
+                source_ids = selected_sources if selected_sources else None
+            elif run_mode == "All Active Sources":
+                source_ids = [
+                    sid for sid, s in orchestrator.sources.items()
+                    if orchestrator._get_scraper_for_source(s)
+                ]
+            else:
+                source_ids = None  # Will use due sources
+
+            if run_async:
+                # Queue as Celery task
                 try:
-                    # Determine source IDs
-                    if run_mode == "Select Specific":
-                        source_ids = selected_sources if selected_sources else None
-                    elif run_mode == "All Active Sources":
-                        source_ids = [
-                            sid for sid, s in orchestrator.sources.items()
-                            if orchestrator._get_scraper_for_source(s)
-                        ]
-                    else:
-                        source_ids = None  # Will use due sources
+                    from src.tasks.scout_tasks import run_orchestrator_pipeline
 
-                    st.write(f"📋 Sources to run: {source_ids or 'Due sources'}")
-                    st.write(f"⏭️ Skip analysis: {skip_analysis}")
-                    st.write(f"💪 Force run: {force_run}")
-
-                    # Run pipeline
-                    pipeline_result = orchestrator.run_pipeline(
+                    task = run_orchestrator_pipeline.delay(
                         source_ids=source_ids,
                         skip_analysis=skip_analysis,
+                        skip_deep_research=skip_deep_research,
                         force=force_run or (run_mode == "All Active Sources")
                     )
+                    task_id = task.id
+                    st.success(f"✅ Task queued! Task ID: `{task_id}`")
+                    st.info("Monitor progress in Celery logs or check back later.")
 
-                    # Store result
-                    if 'pipeline_runs' not in st.session_state:
-                        st.session_state['pipeline_runs'] = []
-                    st.session_state['pipeline_runs'].append(pipeline_result)
-
-                    status.update(label="Pipeline Complete!", state="complete")
+                    # Store task ID for tracking
+                    if 'queued_tasks' not in st.session_state:
+                        st.session_state['queued_tasks'] = []
+                    st.session_state['queued_tasks'].append({
+                        'task_id': task_id,
+                        'queued_at': datetime.now(),
+                        'source_ids': source_ids
+                    })
 
                 except Exception as e:
-                    status.update(label="Pipeline Failed", state="error")
-                    pipeline_error = str(e)
-                    import traceback
-                    pipeline_error_trace = traceback.format_exc()
+                    st.error(f"Failed to queue task: {str(e)}")
+                    st.warning("Is Celery worker running? Start with: `celery -A src.tasks.celery_app worker`")
+            else:
+                # Run synchronously
+                with st.status("Running Pipeline...", expanded=True) as status:
+                    try:
+                        st.write(f"📋 Sources to run: {source_ids or 'Due sources'}")
+                        st.write(f"⏭️ Skip analysis: {skip_analysis}")
+                        st.write(f"🔬 Skip deep research: {skip_deep_research}")
+                        st.write(f"💪 Force run: {force_run}")
+
+                        # Run pipeline
+                        pipeline_result = orchestrator.run_pipeline(
+                            source_ids=source_ids,
+                            skip_analysis=skip_analysis,
+                            force=force_run or (run_mode == "All Active Sources")
+                        )
+
+                        # Store result
+                        if 'pipeline_runs' not in st.session_state:
+                            st.session_state['pipeline_runs'] = []
+                        st.session_state['pipeline_runs'].append(pipeline_result)
+
+                        status.update(label="Pipeline Complete!", state="complete")
+
+                    except Exception as e:
+                        status.update(label="Pipeline Failed", state="error")
+                        pipeline_error = str(e)
+                        import traceback
+                        pipeline_error_trace = traceback.format_exc()
 
             # Show results OUTSIDE the status block to avoid nested expanders
             if pipeline_result:

@@ -1,270 +1,346 @@
-# 📚 Open Sousveillance Studio - Source Directory
+# Source Directory - Discovered Sitemaps
 
-**A living reference of all government transparency portals and civic data sources.**
+*Generated: 2026-02-02 10:24:36*
 
-> 🔄 **Last Updated:** January 2026  
-> 📍 **Primary Focus:** Alachua County, Florida  
-> 🌐 **Scope:** Municipal → County → State → Federal
+This document catalogs all discovered URLs from target data sources.
+Scout agents can reference this to find the best URLs for their tasks.
 
-This document serves as a quick-reference guide to all monitored data sources. For technical scraping configurations, see [`config/sources.yaml`](../config/sources.yaml).
+## Summary
 
----
-
-## 📋 Table of Contents
-
-- [Tier 1: Municipal (City Level)](#tier-1-municipal-city-level)
-- [Tier 2: County Level](#tier-2-county-level)
-- [Tier 3: Regional (Water Management)](#tier-3-regional-water-management)
-- [Tier 4: Legal Notices & Public Records](#tier-4-legal-notices--public-records)
-- [Tier 5: News & Civic Organizations](#tier-5-news--civic-organizations)
-- [Tier 6: Florida State Government](#tier-6-florida-state-government)
-- [Tier 7: US Federal Government](#tier-7-us-federal-government)
-- [Specialty Sources](#specialty-sources)
-- [Adding New Sources](#adding-new-sources)
+| Source | Total URLs | Documents | Meetings | Permits | APIs |
+|:-------|:-----------|:----------|:---------|:--------|:-----|
+| City of Alachua - CivicClerk Portal | 21 | 7 | 14 | 0 | 0 |
+| Florida Public Notices | 86 | 0 | 0 | 0 | 0 |
+| SRWMD - Main Site | 100 | 0 | 0 | 2 | 0 |
+| SRWMD - E-Permitting Portal | 97 | 3 | 0 | 0 | 33 |
+| Alachua County Government | 100 | 1 | 1 | 0 | 0 |
+| City of Alachua - Main Site | 0 | 0 | 0 | 0 | 0 |
+| Alachua County Clerk | 0 | 0 | 0 | 0 | 0 |
 
 ---
 
-## 🏘️ Tier 1: Municipal (City Level)
+## City of Alachua - CivicClerk Portal
 
-City councils, planning boards, and local permit offices. **Most granular and immediately actionable.**
+**Base URL:** https://alachuafl.portal.civicclerk.com/
+**Source ID:** `alachua-civicclerk`
+**Discovered:** 2026-02-02 10:23
+**Total URLs:** 21
 
-| Source | What It Contains | URL | Platform | Priority |
-|:-------|:-----------------|:----|:---------|:---------|
-| **City of Alachua - CivicClerk** | Commission & board agendas, minutes, video | https://alachuafl.portal.civicclerk.com/ | CivicClerk (SPA) | 🔴 Critical |
-| **City of Alachua - Calendar** | Upcoming meetings and events | https://www.cityofalachua.com/government/global-pages/calendar-month-view | Granicus | 🟡 High |
-| **City of Alachua - Development Map** | Active/proposed development projects | https://www.cityofalachua.com/government/planning-community-development/planning-zoning/land-use-map | ArcGIS | 🔴 Critical |
-| **City of High Springs** | City council meetings | https://www.highsprings.us/ | TBD | 🟡 High |
-| **City of Gainesville - Legistar** | City commission, CRA, boards | https://gainesville.legistar.com/ | Legistar | 🟢 Medium |
+### Document URLs (7)
 
-### Key Meeting Bodies (City of Alachua)
-- **City Commission** - Primary legislative body
-- **Planning & Zoning Board** - Development review
-- **Community Redevelopment Agency (CRA)** - Downtown/economic development
-- **Code Enforcement Board** - Violations and appeals
+**🔴 High Priority:**
+- https://alachuafl.portal.civicclerk.com/event/13/files/agenda/1115 (document)
+- https://alachuafl.portal.civicclerk.com/event/703/files/agenda/1320 (document)
+- https://alachuafl.portal.civicclerk.com/event/83/files/agenda/1041 (document)
 
----
+**Other:**
+- https://alachuafl.portal.civicclerk.com/event/673/files/attachment/1034
+- https://alachuafl.portal.civicclerk.com/event/613/files/attachment/802
+- https://alachuafl.portal.civicclerk.com/event/576/files/attachment/570
+- https://alachuafl.portal.civicclerk.com/event/608/files/report/210
 
-## 🏛️ Tier 2: County Level
+### Meeting URLs (14)
 
-County commission, advisory boards, and county-wide services.
-
-| Source | What It Contains | URL | Platform | Priority |
-|:-------|:-----------------|:----|:---------|:---------|
-| **Alachua County - eScribe** | BOCC, DRC, EPAC, Planning Commission | https://pub-alachuacounty.escribemeetings.com/ | eScribe | 🔴 Critical |
-| **Map Genius (County GIS)** | Development project tracker, parcel data | https://mapgenius.alachuacounty.us/development-projects/ | Custom | 🔴 Critical |
-| **Environmental Protection Dept** | Environmental regulations, monitoring | https://alachuacounty.us/Depts/epd/Pages/EPD.aspx | SharePoint | 🟡 High |
-| **Growth Management** | Comprehensive plan, land use | https://growth-management.alachuacounty.us/ | Custom | 🟡 High |
-
-### Key Meeting Bodies (Alachua County)
-- **Board of County Commissioners (BOCC)** - Primary legislative body
-- **Development Review Committee (DRC)** - Pre-application and technical review
-- **Environmental Protection Advisory Committee (EPAC)** - Environmental policy
-- **Planning Commission** - Comp plan amendments, rezonings
+**Other:**
+- https://alachuafl.portal.civicclerk.com
+- https://alachuafl.portal.civicclerk.com/event/595/files
+- https://alachuafl.portal.civicclerk.com/event/611/files
+- https://alachuafl.portal.civicclerk.com/event/751/files
+- https://alachuafl.portal.civicclerk.com/event/598/files
+- https://alachuafl.portal.civicclerk.com/event/627/files
+- https://alachuafl.portal.civicclerk.com/event/584/files
+- https://alachuafl.portal.civicclerk.com/event/849/files
+- https://alachuafl.portal.civicclerk.com/event/850/files
+- https://alachuafl.portal.civicclerk.com/event/639/files
+- *...and 4 more*
 
 ---
 
-## 🌊 Tier 3: Regional (Water Management)
+## Florida Public Notices
 
-Water Management Districts and regional environmental agencies.
+**Base URL:** https://floridapublicnotices.com/
+**Source ID:** `florida-public-notices`
+**Discovered:** 2026-02-02 10:23
+**Total URLs:** 86
 
-| Source | What It Contains | URL | Platform | Priority |
-|:-------|:-----------------|:----|:---------|:---------|
-| **SRWMD - Permits** | ERP, Water Use Permits, pre-application | https://www.mysuwanneeriver.com/8/Permits-Rules | CivicPlus | 🔴 Critical |
-| **SRWMD - E-Permitting** | Active permit applications | https://permitting.sjrwmd.com/srep/#/ep | Custom | 🔴 Critical |
-| **Florida DEP - Oculus** | State environmental permits | https://floridadep.gov/water/submerged-lands-environmental-resources-coordination/content/finding-erp-permit-dep-internet | Custom | 🟡 High |
-| **FDOT District 2** | State road projects, access permits | https://nflroads.com/ProjectList.aspx?r=6713 | Custom | 🟢 Medium |
+### Other URLs (86)
 
-### SRWMD Key Programs
-- **Environmental Resource Permits (ERP)** - Stormwater, wetland impacts
-- **Water Use Permits (WUP)** - Groundwater withdrawal
-- **Pre-Application Meetings** - Earliest signal of new projects!
-
----
-
-## ⚖️ Tier 4: Legal Notices & Public Records
-
-Official legal notices, court filings, and corporate records.
-
-| Source | What It Contains | URL | Platform | Priority |
-|:-------|:-----------------|:----|:---------|:---------|
-| **Florida Public Notices** | Statewide legal notice repository | https://floridapublicnotices.com/ | Custom | 🔴 Critical |
-| **Mainstreet Daily News** | Local certified publisher | https://www.mainstreetdailynews.com/public-notices | WordPress | 🔴 Critical |
-| **Florida Sunbiz** | Corporate registrations, annual reports | https://search.sunbiz.org/Inquiry/CorporationSearch/ByName | Custom | 🟡 High |
-| **Alachua County Clerk** | Court records, property, liens | https://www.alachuaclerk.org/court_records/index.cfm | Custom | 🟡 High |
-| **Property Appraiser** | Ownership, valuations, exemptions | https://www.acpafl.org/ | Custom | 🟡 High |
-
-### Notice Types to Watch
-- **Public Hearings** - Zoning changes, comp plan amendments
-- **Bid Notices** - Government contracts
-- **Foreclosure/Tax Sales** - Property ownership changes
-- **Name Changes (LLCs)** - Developer entity restructuring
+**🔴 High Priority:**
+- https://floridapublicnotices.com/notices/11059399
+- https://floridapublicnotices.com/notices/11457158
+- https://floridapublicnotices.com/notices/11455718
+- https://floridapublicnotices.com/notices/11457159
+- https://floridapublicnotices.com/notices/11457502
+- https://floridapublicnotices.com/notices/11457160
+- https://floridapublicnotices.com/notices/11448283
+- https://floridapublicnotices.com/notices/11457104
+- https://floridapublicnotices.com/notices/9818742
+- https://floridapublicnotices.com/notices/10978009
+- https://floridapublicnotices.com/notices/11249030
+- https://floridapublicnotices.com/notices/10917650
+- https://floridapublicnotices.com/notices/11471604
+- https://floridapublicnotices.com/notices/11028417
+- https://floridapublicnotices.com/notices/11092579
+- https://floridapublicnotices.com/notices/10456011
+- https://floridapublicnotices.com/notices/11034874
+- https://floridapublicnotices.com/notices/10946787
+- https://floridapublicnotices.com/notices/11331671
+- https://floridapublicnotices.com/notices/10944166
+- *...and 66 more*
 
 ---
 
-## 📰 Tier 5: News & Civic Organizations
+## SRWMD - Main Site
 
-Media and advocacy groups that provide analysis and break stories.
+**Base URL:** https://www.mysuwanneeriver.com/
+**Source ID:** `srwmd-main`
+**Discovered:** 2026-02-02 10:23
+**Total URLs:** 100
 
-| Source | What It Contains | URL | Platform | Priority |
-|:-------|:-----------------|:----|:---------|:---------|
-| **WUFT Environment** | Public media - environmental coverage | https://www.wuft.org/environment | WordPress (RSS) | 🟡 High |
-| **Our Santa Fe River** | Springs advocacy, technical reports | https://oursantaferiver.org/ | WordPress | 🟡 High |
-| **Gainesville Sun** | Regional newspaper | https://www.gainesville.com/ | Gannett | 🟢 Medium |
-| **Florida Springs Council** | Statewide springs policy | https://floridaspringscouncil.org/ | WordPress | 🟢 Medium |
+### Permit URLs (2)
 
----
+**🔴 High Priority:**
+- https://www.mysuwanneeriver.com/1616/Notice-of-Receipt-of-Applications (permit_list)
+- https://www.mysuwanneeriver.com/1617/Notice-of-Permit-Issuance (permit_list)
 
-## 🏛️ Tier 6: Florida State Government
+### Board URLs (1)
 
-Statewide agencies, legislature, and administrative bodies.
+**🔴 High Priority:**
+- https://www.mysuwanneeriver.com/137/Board-Meeting-Materials
 
-### Legislature & Rulemaking
+### Archive URLs (20)
 
-| Source | What It Contains | URL | API? | Priority |
-|:-------|:-----------------|:----|:-----|:---------|
-| **Florida House** | Bills, committees, votes | https://www.myfloridahouse.gov/ | No | 🟡 High |
-| **Florida Senate** | Bills, committees | https://www.flsenate.gov/ | No | 🟡 High |
-| **FL Administrative Register** | Proposed rules, agency notices | https://www.flrules.org/ | No | 🔴 Critical |
-| **Governor & Cabinet** | Cabinet meeting agendas | https://www.flgov.com/cabinet-meetings/ | No | 🟢 Medium |
+**🔴 High Priority:**
+- https://www.mysuwanneeriver.com/1632/Governing-Board-Public-Comment
 
-### Environmental Agencies
+**Other:**
+- https://www.mysuwanneeriver.com/1608/Who-We-Are
+- https://www.mysuwanneeriver.com/1625/2026-District-Photography-Competition
+- https://www.mysuwanneeriver.com/1600/Annual-Water-Use-Reports
+- https://www.mysuwanneeriver.com/1605/Water-Supply-Assessment-Plan
+- https://www.mysuwanneeriver.com/1619/Comprehensive-Plan-Amendments
+- https://www.mysuwanneeriver.com/1590/Lower-Santa-Fe-and-Ichetucknee-Rivers-an
+- https://www.mysuwanneeriver.com/1591/2015-LSFI-Rivers-MFL-Evaluation
+- https://www.mysuwanneeriver.com/1615/Upper-and-Middle-Suwannee-MFLs-Peer-Revi
+- https://www.mysuwanneeriver.com/1606/Lakes-Santa-Fe-and-Alto
+- https://www.mysuwanneeriver.com/1614/Cherry-Lake
+- *...and 9 more*
 
-| Source | What It Contains | URL | API? | Priority |
-|:-------|:-----------------|:----|:-----|:---------|
-| **FL DEP Public Notices** | Permits, enforcement, consent orders | https://floridadep.gov/ogc/ogc/content/public-notices | No | 🔴 Critical |
-| **FL Geological Survey** | Karst maps, sinkhole reports | https://floridadep.gov/fgs | No | 🟡 High |
-| **Division of Elections** | Campaign finance, initiatives | https://dos.myflorida.com/elections/ | No | 🟢 Medium |
+### Gis URLs (2)
 
-### Bill Tracking Keywords
-- `springs`, `aquifer`, `water management`
-- `comprehensive plan`, `development of regional impact`
-- `home rule`, `local government preemption`
+**Other:**
+- https://www.mysuwanneeriver.com/138/Maps
+- https://www.mysuwanneeriver.com/154/GIS-Data
 
----
+### Other URLs (75)
 
-## 🇺🇸 Tier 7: US Federal Government
+**🔴 High Priority:**
+- https://www.mysuwanneeriver.com/497/Water-Resource-Development-Work-Program
+- https://www.mysuwanneeriver.com/8/Permits-Rules
+- https://www.mysuwanneeriver.com/91/Environmental-Resource-Permit
+- https://www.mysuwanneeriver.com/392/Environmental-Resource-Permitting-Docume
+- https://www.mysuwanneeriver.com/89/Water-Use-Permit
+- https://www.mysuwanneeriver.com/133/Governing-Board
+- https://www.mysuwanneeriver.com/134/Current-Board-Members
 
-Federal agencies with oversight of environmental and water issues.
-
-### Regulatory & Rulemaking
-
-| Source | What It Contains | URL | API? | Priority |
-|:-------|:-----------------|:----|:-----|:---------|
-| **Federal Register** | Rules, proposed rules, notices | https://www.federalregister.gov/ | ✅ REST | 🟡 High |
-| **Regulations.gov** | Public comment on rules | https://www.regulations.gov/ | ✅ REST | 🟡 High |
-| **Congress.gov** | Bills, hearings, votes | https://www.congress.gov/ | ✅ REST | 🟢 Medium |
-| **GovInfo** | CFR, Congressional Record | https://www.govinfo.gov/ | ✅ REST | 🟢 Medium |
-
-### Environmental Oversight
-
-| Source | What It Contains | URL | API? | Priority |
-|:-------|:-----------------|:----|:-----|:---------|
-| **EPA ECHO** | Compliance, violations, enforcement | https://echo.epa.gov/ | ✅ REST | 🔴 Critical |
-| **USGS Water Resources** | Real-time well levels, aquifer data | https://waterdata.usgs.gov/nwis | ✅ REST | 🟡 High |
-| **Army Corps (Jacksonville)** | Section 404 wetland permits | https://www.saj.usace.army.mil/Missions/Regulatory/Public-Notices/ | No | 🔴 Critical |
-| **USASpending** | Federal grants and contracts | https://www.usaspending.gov/ | ✅ REST | 🟢 Medium |
-| **FOIA.gov** | FOIA request portal | https://www.foia.gov/ | No | 🟢 Low |
-
-### Federal API Keys Needed
-- **api.data.gov** - Regulations.gov, GovInfo (free, instant)
-- **api.congress.gov** - Congress.gov (free, instant)
-- No key needed for Federal Register, USGS, EPA ECHO
+**Other:**
+- https://www.mysuwanneeriver.com/1/Home
+- https://www.mysuwanneeriver.com/15/The-District
+- https://www.mysuwanneeriver.com/251/Careers
+- https://www.mysuwanneeriver.com/488/Resources
+- https://www.mysuwanneeriver.com/330/County-Property-Appraisers
+- https://www.mysuwanneeriver.com/331/Supporting-Agencies
+- https://www.mysuwanneeriver.com/340/District-Publications
+- https://www.mysuwanneeriver.com/84/Rules-Statutes
+- https://www.mysuwanneeriver.com/494/Core-Focus
+- https://www.mysuwanneeriver.com/495/Water-Supply
+- *...and 58 more*
 
 ---
 
-## 🔬 Specialty Sources
+## SRWMD - E-Permitting Portal
 
-### Karst & Hydrogeology
-| Source | Description | URL |
-|:-------|:------------|:----|
-| Florida Geological Survey | Sinkhole reports, karst maps | https://floridadep.gov/fgs |
-| USGS Floridan Aquifer | Scientific publications | https://www.usgs.gov/mission-areas/water-resources |
-| UF Water Institute | Academic research | https://waterinstitute.ufl.edu/ |
+**Base URL:** https://permitting.sjrwmd.com/
+**Source ID:** `srwmd-epermitting`
+**Discovered:** 2026-02-02 10:23
+**Total URLs:** 97
 
-### Development & Real Estate
-| Source | Description | URL |
-|:-------|:------------|:----|
-| Sunbiz LLC Search | Corporate registrations | https://search.sunbiz.org/ |
-| Property Appraiser | Ownership, valuations | https://www.acpafl.org/ |
-| Zillow/Redfin | Market activity signals | N/A (reference only) |
+### Document URLs (3)
 
-### Coalition Partners
-| Organization | Focus | URL |
-|:-------------|:------|:----|
-| Our Alachua Water | Mill Creek Sink protection | https://ouralachuawater.org/ |
-| Our Santa Fe River | Springs protection | https://oursantaferiver.org/ |
-| Sierra Club Florida | Environmental litigation | https://www.sierraclub.org/florida |
+**🔴 High Priority:**
+- https://permitting.sjrwmd.com/wlsshare/ep/help/SJR/SJR-ePermit-GettingStarted.pdf (pdf) [pdf]
+- https://permitting.sjrwmd.com/nwwlsshare/ep/help/NWF/NW-ePermit-GettingStarted.pdf (pdf) [pdf]
+- https://permitting.sjrwmd.com/srwlsshare/ep/help/SR/SR-ePermit-GettingStarted.pdf (pdf) [pdf]
 
----
+### Api URLs (33)
 
-## ➕ Adding New Sources
+**🔴 High Priority:**
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SJRWMD/EPermit_ERP/MapServer
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SRWMD/EPermit_ERP/MapServer
+- https://permitting.sjrwmd.com/arcgis02/rest/services/srvc/cclrs/MapServer
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SJRWMD/REF_SYS_UTM/MapServer
+- https://permitting.sjrwmd.com/arcgis02/rest/services/NWFWMD/EPermit_ERP/MapServer
+- https://permitting.sjrwmd.com/arcgis02/rest/services/NWFWMD/EPermit_CUP/MapServer
+- https://permitting.sjrwmd.com/arcgis02/rest/services/sjrRegMapICR/MapServer/14/iteminfo
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SRWMD/EPermit_CUP/MapServer/1
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SJRWMD/EPermit_ERP/MapServer/2
+- https://permitting.sjrwmd.com/arcgis02/rest/services/srvc/srRegMapNS/MapServer/1
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SRWMD/EPermit_ERP/MapServer/1
+- https://permitting.sjrwmd.com/arcgis02/rest/services/NWFWMD/EPermit_ERP/MapServer/0
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SRWMD/EPermit_ERP/MapServer/2
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SRWMD/EPermit_CUP/MapServer/2
+- https://permitting.sjrwmd.com/arcgis02/rest/services/proxy/wspm/MapServer/1
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SVC/wsk/MapServer/2
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SVC/wsd/MapServer/6
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SRWMD/EPermit_ERP/MapServer/0
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SVC/geocache/MapServer/identify
+- https://permitting.sjrwmd.com/arcgis02/rest/services/SVC/rain/MapServer/1
+- *...and 13 more*
 
-To add a new source:
+### Search URLs (15)
 
-1. **Add to this document** in the appropriate tier section
-2. **Add to `config/sources.yaml`** with full scraping configuration
-3. **Test the scraper** to ensure data extraction works
-4. **Document any special requirements** (login, API key, etc.)
+**🔴 High Priority:**
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZSearching.htm
+- https://permitting.sjrwmd.com/nwephelp/Search/Searching.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZ_Searching_by_Permit_Type.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZSearching_by_Project_Contacts.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZSearching_by_Project_Name.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZSearching_by_Application_Permit_Number.htm
+- https://permitting.sjrwmd.com/nwephelp/Search/Searching_by_Application_Permit_Number.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZBy_Well_Completion_Report.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZGIS_Permit_Search_Tool_.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZSearching_by_Contractor.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZ_Searching_by_Legacy_Permit_Number.htm
+- https://permitting.sjrwmd.com/nwephelp/Search/GIS_Permit_Search_Tool_.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZMitigation_Search_Tool.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZ_Download_Results.htm
+- https://permitting.sjrwmd.com/srephelp/Search/ZZZSearching_by_Section,_Township,_Range.htm
 
-### Template for New Source
+### Other URLs (46)
 
-```yaml
-- id: "unique-source-id"
-  name: "Human Readable Name"
-  description: "What this source contains"
-  jurisdiction: "City/County/State"
-  url: "https://example.gov/"
-  platform: "civicclerk|escribe|custom|api"
-  priority: "critical|high|medium|low"
-  check_frequency: "daily|weekly|monthly"
-  scraping:
-    method: "playwright|beautifulsoup|api"
-    requires_javascript: true|false
-  document_types:
-    - "agenda"
-    - "permit"
-  notes: "Any special instructions for maintainers"
-```
-
----
-
-## 📊 Source Statistics
-
-| Tier | Count | Critical | High | Medium | Low |
-|:-----|:------|:---------|:-----|:-------|:----|
-| 1 - Municipal | 5 | 2 | 2 | 1 | 0 |
-| 2 - County | 4 | 2 | 2 | 0 | 0 |
-| 3 - Regional | 4 | 1 | 2 | 1 | 0 |
-| 4 - Legal | 5 | 2 | 3 | 0 | 0 |
-| 5 - Civic | 4 | 0 | 2 | 2 | 0 |
-| 6 - State | 8 | 2 | 4 | 2 | 0 |
-| 7 - Federal | 9 | 2 | 3 | 3 | 1 |
-| **TOTAL** | **39** | **11** | **18** | **9** | **1** |
-
----
-
-## 🔗 Quick Links by Use Case
-
-### "I need to find a meeting agenda"
-→ [CivicClerk (City)](#tier-1-municipal-city-level) | [eScribe (County)](#tier-2-county-level)
-
-### "I need to check for new development permits"
-→ [SRWMD E-Permitting](#tier-3-regional-water-management) | [Army Corps Notices](#tier-7-us-federal-government)
-
-### "I need to research a developer/LLC"
-→ [Sunbiz](#tier-4-legal-notices--public-records) | [Property Appraiser](#tier-4-legal-notices--public-records)
-
-### "I need to track a state bill"
-→ [FL House](#tier-6-florida-state-government) | [FL Senate](#tier-6-florida-state-government)
-
-### "I need environmental compliance data"
-→ [EPA ECHO](#tier-7-us-federal-government) | [FL DEP Notices](#tier-6-florida-state-government)
-
-### "I need to file a public comment"
-→ [Regulations.gov (Federal)](#tier-7-us-federal-government) | [FL Admin Register (State)](#tier-6-florida-state-government)
+**🔴 High Priority:**
+- https://permitting.sjrwmd.com
+- https://permitting.sjrwmd.com/nwep
+- https://permitting.sjrwmd.com/srep
+- https://permitting.sjrwmd.com/ep
+- https://permitting.sjrwmd.com/nwephelp
+- https://permitting.sjrwmd.com/nwephelp/FAQs.htm
+- https://permitting.sjrwmd.com/srephelp/FAQs.htm
+- https://permitting.sjrwmd.com/nwephelp/New_Topic.htm
+- https://permitting.sjrwmd.com/nwephelp/Payment_Information/Fees.htm
+- https://permitting.sjrwmd.com/srephelp/Permitting/Water_Well_Construction.htm
+- https://permitting.sjrwmd.com/srephelp/Contractor_Licenses/Applying_for_a_New_License.htm
+- https://permitting.sjrwmd.com/srephelp/Permitting/Overview_of_the_Application_Process.htm
+- https://permitting.sjrwmd.com/srephelp/Payment_Information/Making_Online_Payments.htm
+- https://permitting.sjrwmd.com/srephelp/Contractor_Licenses/Applying_for_a_License_Renewal.htm
+- https://permitting.sjrwmd.com/nwephelp/Account_Information/Electronic_Signatures.htm
+- https://permitting.sjrwmd.com/srephelp/whgdata/whlstf3.htm
+- https://permitting.sjrwmd.com/nwephelp/whgdata/whlstf4.htm
+- https://permitting.sjrwmd.com/nwephelp/Account_Information/Creating_an_Account.htm
+- https://permitting.sjrwmd.com/nwephelp/Payment_Information/Making_Online_Payments.htm
+- https://permitting.sjrwmd.com/srephelp/Compliance/Well_Completion_Report.htm
+- *...and 26 more*
 
 ---
 
-**Last Updated:** January 2026  
-**Maintained By:** Open Sousveillance Studio Contributors  
-**License:** MIT
+## Alachua County Government
+
+**Base URL:** https://alachuacounty.us/
+**Source ID:** `alachua-county`
+**Discovered:** 2026-02-02 10:24
+**Total URLs:** 100
+
+### Document URLs (1)
+
+**🔴 High Priority:**
+- https://alachuacounty.us/Depts/Clerk/FinancialReports/2004/PopReport2004.pdf (pdf) [pdf]
+
+### Meeting URLs (1)
+
+**Other:**
+- https://alachuacounty.us:443/volunteering/Pages/CalendarTest.aspx
+
+### Board URLs (1)
+
+**🔴 High Priority:**
+- https://alachuacounty.us:443/Depts/Clerk/VAB/Pages/BoardMembers.aspx
+
+### Archive URLs (1)
+
+**Other:**
+- https://alachuacounty.us:443/Depts/CSS/CrisisCenter/Pages/History.aspx
+
+### Gis URLs (1)
+
+**Other:**
+- https://alachuacounty.us:443/Depts/CSS/CrisisCenter/Pages/MapDirections.aspx
+
+### Other URLs (95)
+
+**🔴 High Priority:**
+- https://growth-management.alachuacounty.us/building/e-permits
+- https://alachuacounty.us/news/Article/pages/12-10-25-County-Commission-and-City-of-Gainesville-Commission-Joint-Meeting.aspx
+- https://alachuacounty.us:443/Depts/CSS/SocialServices/Pages/ApplicationScreener.aspx
+- https://alachuacounty.us:443/Depts/epd/NaturalResources/Pages/Development-Review.aspx
+- https://alachuacounty.us:443/Businesses/Permitting
+- https://alachuacounty.us:443/Businesses/BusinessDevelopment
+- https://alachuacounty.us:443/news/Article/Pages/1-27-26-County-Commission-Regular-Meeting.aspx
+- https://alachuacounty.us/news/Article/Pages/2-2-26-Metropolitan-Transportation-Planning-Organization-Meeting.aspx
+- https://alachuacounty.us:443/Depts/epd/Hazmat/Pages/hazmat-document-search.aspx
+- https://alachuacounty.us:443/Depts/Clerk/VAB/Pages/TaxImpactNotices.aspx
+- https://alachuacounty.us:443/Depts/Clerk/VAB/Pages/MeetingMinutes.aspx
+
+**Other:**
+- https://alachuacounty.us/Depts/Clerk/Pages/FinancialReports.aspx
+- https://www.alachuacounty.us/Depts/Clerk/pages/duties.aspx
+- https://growth-management.alachuacounty.us/building
+- https://growth-management.alachuacounty.us/building/forms
+- https://alachuacounty.us/Depts/ITS/Pages/ITS.aspx
+- https://alachuacounty.us/news/Article/Pages/Road-Closure-on-Southwest-24th-Avenue-for-Sinkhole-Repairs.aspx
+- https://alachuacounty.us/news/Article/Pages/Request-for-Proposals-Public-Private-Partnership-for-a-County-Administration-Building-RFP-22-319-LS.aspx
+- https://alachuacounty.us/Depts/Clerk/PublicRecords/pages/public-records-requests.aspx
+- https://alachuacounty.us/Depts/Clerk/PublicRecords/Pages/Disclaimer.aspx
+- https://alachuacounty.us:443/news/Article/Pages/1-14-26-Community-Update-Newsletter.aspx
+- *...and 74 more*
+
+---
+
+## City of Alachua - Main Site
+
+**Base URL:** https://www.cityofalachua.com/
+**Source ID:** `city-of-alachua`
+**Discovered:** 2026-02-02 10:24
+**Total URLs:** 0
+
+### ⚠️ Errors
+- No URLs returned from map_site API
+
+---
+
+## Alachua County Clerk
+
+**Base URL:** https://clerk.alachuacounty.us/
+**Source ID:** `alachua-clerk`
+**Discovered:** 2026-02-02 10:24
+**Total URLs:** 0
+
+### ⚠️ Errors
+- No URLs returned from map_site API
+
+---
+
+## Scout Agent Quick Reference
+
+### Finding Meeting Agendas
+1. Check `meeting` category for `meeting_list` URLs
+2. Navigate to specific meeting via `meeting_detail` URLs
+3. Download PDFs from `document` category
+
+### Finding Permit Information
+1. Check `permit` category for `permit_list` URLs
+2. Get details from `permit_detail` URLs
+3. Look for attached documents in `document` category
+
+### Accessing Historical Data
+1. Check `archive` category for past records
+2. Use `search` URLs with date filters

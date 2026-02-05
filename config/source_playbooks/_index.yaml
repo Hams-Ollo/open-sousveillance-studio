@@ -1,0 +1,43 @@
+generated_at: '2026-02-02T10:54:26.335196'
+playbook_count: 5
+sources:
+  alachua-civicclerk:
+    name: City of Alachua - CivicClerk Portal
+    url: https://alachuafl.portal.civicclerk.com/
+    page_type: react_spa
+    requires_javascript: true
+    internal_links: 68
+    document_links: 0
+    has_warnings: false
+  florida-public-notices:
+    name: Florida Public Notices
+    url: https://floridapublicnotices.com/
+    page_type: static
+    requires_javascript: false
+    internal_links: 8
+    document_links: 1
+    has_warnings: false
+  srwmd-applications:
+    name: SRWMD - Permit Applications
+    url: https://www.mysuwanneeriver.com/1616/Notice-of-Receipt-of-Applications
+    page_type: static
+    requires_javascript: false
+    internal_links: 0
+    document_links: 0
+    has_warnings: true
+  srwmd-issuances:
+    name: SRWMD - Permit Issuances
+    url: https://www.mysuwanneeriver.com/1617/Notice-of-Permit-Issuance
+    page_type: static
+    requires_javascript: false
+    internal_links: 8
+    document_links: 0
+    has_warnings: false
+  srwmd-epermitting:
+    name: SRWMD - E-Permitting Portal
+    url: https://permitting.sjrwmd.com/srep/#/ep
+    page_type: static
+    requires_javascript: false
+    internal_links: 10
+    document_links: 1
+    has_warnings: false

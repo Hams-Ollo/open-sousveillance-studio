@@ -21,6 +21,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from src.config import build_app_config
 from src.logging_config import configure_logging, get_logger, bind_context, clear_context
+from src.intelligence.health import get_health_service, HealthStatus
 
 
 # =============================================================================
@@ -188,6 +189,78 @@ async def root():
 async def health():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+@app.get("/health/scrapers")
+async def scraper_health():
+    """
+    Get health status of all scrapers.
+
+    Returns summary of scraper health including:
+    - Status counts (healthy, degraded, failing)
+    - Per-scraper metrics (success rate, last attempt, etc.)
+    - List of scrapers needing attention
+    """
+    health_service = get_health_service()
+    return health_service.get_summary()
+
+
+@app.get("/health/scrapers/{scraper_id}")
+async def scraper_health_detail(scraper_id: str):
+    """
+    Get detailed health status for a specific scraper.
+
+    Args:
+        scraper_id: Scraper identifier (e.g., "civicclerk-alachuafl", "srwmd-applications")
+
+    Returns:
+        Detailed health metrics including recent attempts
+    """
+    health_service = get_health_service()
+    health = health_service.get_health(scraper_id)
+
+    if health.status == HealthStatus.UNKNOWN:
+        raise HTTPException(status_code=404, detail=f"Scraper '{scraper_id}' not found")
+
+    return health.to_dict()
+
+
+@app.post("/health/scrapers/{scraper_id}/reset")
+async def reset_scraper_health(scraper_id: str):
+    """
+    Reset health data for a scraper.
+
+    Use after manual intervention to give the scraper a fresh start.
+
+    Args:
+        scraper_id: Scraper identifier
+    """
+    health_service = get_health_service()
+    health_service.reset_health(scraper_id)
+    return {"message": f"Health data reset for {scraper_id}"}
+
+
+@app.get("/health/alerts")
+async def health_alerts():
+    """
+    Get pending health alerts.
+
+    Returns list of status change alerts (degradations and recoveries).
+    """
+    health_service = get_health_service()
+    alerts = health_service.get_alerts()
+    return {
+        "count": len(alerts),
+        "alerts": [a.to_dict() for a in alerts]
+    }
+
+
+@app.delete("/health/alerts")
+async def clear_health_alerts():
+    """Clear all pending health alerts."""
+    health_service = get_health_service()
+    health_service.clear_alerts()
+    return {"message": "Alerts cleared"}
 
 
 @app.get("/info")

@@ -171,30 +171,32 @@ open-sousveillance-studio/
 ├── config/                     # YAML configuration files
 │   ├── instance.yaml           # Instance identity & scheduling
 │   ├── sources.yaml            # Government data sources
-│   ├── entities.yaml           # Watchlist with priority tiers (critical/high/medium/low)
-│   └── civic_categories.yaml   # Universal civic categories (shared across instances)
+│   ├── entities.yaml           # Watchlist with priority tiers
+│   ├── watchdog_rules.yaml     # 🆕 Civic alert rules (14 rules)
+│   └── discovered_resources.yaml # 🆕 Resource ID cache
 │
 ├── src/                        # Application source code
 │   ├── agents/                 # AI agent implementations
 │   │   ├── base.py             # BaseAgent abstract class
-│   │   ├── scout.py            # Layer 1: Scout agents (A1-A4)
-│   │   └── analyst.py          # Layer 2: Analyst agents (B1-B2)
+│   │   ├── scout.py            # Layer 1: Scout agents
+│   │   └── analyst.py          # Layer 2: Analyst agents
 │   │
-│   ├── api/                    # FastAPI routes
-│   │   └── routes/
-│   │       ├── workflows.py    # POST /run, GET /status
-│   │       ├── approvals.py    # Human-in-the-loop endpoints
-│   │       └── streaming.py    # SSE real-time updates
+│   ├── intelligence/           # 🆕 Event-driven intelligence layer
+│   │   ├── models.py           # CivicEvent, Entity, Document, Alert
+│   │   ├── event_store.py      # Persistence + queries
+│   │   ├── rules_engine.py     # Watchdog alert generation
+│   │   └── adapters/           # Source → CivicEvent converters
 │   │
-│   ├── tasks/                  # Celery background tasks
-│   │   ├── celery_app.py       # Celery configuration
-│   │   ├── beat_schedule.py    # Cron schedules
-│   │   └── scout_tasks.py      # Scout task definitions
-│   │
-│   ├── tools/                  # External service wrappers
+│   ├── tools/                  # Scrapers & utilities
+│   │   ├── civicclerk_scraper.py
+│   │   ├── srwmd_scraper.py
+│   │   ├── florida_notices_scraper.py
+│   │   ├── resource_cache.py   # 🆕 Discovered resources cache
 │   │   ├── firecrawl_client.py # Web scraping
 │   │   └── docling_processor.py# PDF parsing
 │   │
+│   ├── api/                    # FastAPI routes
+│   ├── tasks/                  # Celery background tasks
 │   ├── workflows/              # LangGraph workflows
 │   │   ├── graphs.py           # Workflow definitions
 │   │   ├── checkpointer.py     # State persistence
@@ -428,11 +430,28 @@ pytest -v
 test/
 ├── test_config.py          # Configuration loading tests
 ├── test_schemas.py         # Pydantic model validation
+├── test_scrapers.py        # 🆕 Scraper tests (39 passing)
+├── test_intelligence.py    # 🆕 Intelligence layer tests (39 passing)
 ├── test_agents/
 │   ├── test_scout.py       # Scout agent tests
 │   └── test_analyst.py     # Analyst agent tests
 └── test_tools/
     └── test_firecrawl.py   # Firecrawl client tests
+```
+
+**Total: 78 tests passing**
+
+### Run Intelligence Tests
+
+```bash
+# Run scraper tests
+pytest test/test_scrapers.py -v
+
+# Run intelligence layer tests
+pytest test/test_intelligence.py -v
+
+# Run both
+pytest test/test_scrapers.py test/test_intelligence.py -v
 ```
 
 ---
@@ -508,24 +527,51 @@ class MyModel(BaseModel):
 
 ## 🏗️ Architecture Overview
 
-### Three-Layer Agent Framework
+### Two-Layer Agent Framework
 
+```mermaid
+flowchart LR
+    subgraph Orchestrator["🎯 Orchestrator"]
+        PIPE[Pipeline<br/>Coordinator]
+    end
+
+    subgraph Scrapers["🕷️ Scrapers"]
+        CC[CivicClerk]
+        SR[SRWMD]
+        FN[Florida Notices]
+    end
+
+    subgraph L1["🔍 Layer 1"]
+        SC[ScoutAgent]
+    end
+
+    subgraph L2["🧠 Layer 2"]
+        AN[AnalystAgent]
+        TAV[Tavily]
+        GEM[Gemini Deep Research]
+    end
+
+    PIPE --> Scrapers
+    Scrapers --> SC
+    SC -->|relevance ≥ 0.7| AN
+    AN --> TAV
+    AN --> GEM
 ```
-Layer 1: Scouts (Daily)     → Data collection, fact extraction
-Layer 2: Analysts (Weekly)  → Pattern recognition, deep research
-Layer 3: Synthesizers       → Public-facing content (requires approval)
-```
+
+| Layer | Agent | Trigger | Purpose |
+|:------|:------|:--------|:--------|
+| **Layer 1** | `ScoutAgent` | Daily 4 AM EST | Analyze scraped content against watchlist |
+| **Layer 2** | `AnalystAgent` | On high-relevance items | Deep research via Tavily + Gemini |
 
 ### Data Flow
 
 ```
-Government Portal → Firecrawl → Scout Agent → ScoutReport → Database
-                                                    ↓
-                                            Analyst Agent → AnalystReport
-                                                    ↓
-                                            [Human Approval]
-                                                    ↓
-                                            Synthesizer → Newsletter
+Orchestrator (4 AM) → Scrapers → Database Sync → ScoutAgent → ScoutReport
+                                                      ↓
+                                              [If relevance ≥ 0.7]
+                                                      ↓
+                                              AnalystAgent → DeepResearchReport
+                                              (Tavily + Gemini)
 ```
 
 ### Key Components

@@ -7,8 +7,8 @@
 [![Supabase](https://img.shields.io/badge/database-Supabase-green.svg)](https://supabase.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Version:** 0.2.0-dev
-**Status:** ✅ Comprehensive Civic Intelligence
+**Version:** 0.3.0-dev
+**Status:** ✅ Phase 3 Intelligence Layer Active
 **Origin:** 📍 Alachua County, Florida
 
 > *"Sousveillance"* (French: sous "from below" + veillance "watching") — the recording of an activity by a participant, in contrast to surveillance. **From clear seeing, right action.**
@@ -27,10 +27,10 @@ Open Sousveillance Studio is an **open-source AI agent platform** that monitors 
 
 - 🔍 **Comprehensive Coverage** — Scouts analyze ALL government activity, not just keyword matches
 - 🧠 **AI Analysis** — Gemini 2.5 Pro extracts insights from meeting agendas and permits
-- 🚨 **Smart Alerts** — RED/YELLOW/GREEN urgency levels for time-sensitive items
-- 🏷️ **Civic Categories** — 12 universal categories (Budget, Land Use, Environment, etc.)
-- ⚠️ **Priority Flagging** — Watchlist items highlighted without filtering other content
-- 📊 **Structured Reports** — JSON output ready for dashboards or newsletters
+- 🚨 **Watchdog Alerts** — 14 configurable rules for civic monitoring (rezoning, permits, environmental)
+- 🏷️ **Unified Events** — CivicEvent model normalizes data from all sources
+- ⚠️ **Change Detection** — Content hashing detects new and updated items
+- 📊 **Event Queries** — "What's new?", upcoming meetings, entity search
 - 🔧 **Config-Driven** — Deploy to any municipality by editing YAML files
 - 🖥️ **Dev Console** — Streamlit UI for testing and debugging
 
@@ -138,17 +138,29 @@ open-sousveillance-studio/
 │   ├── instance.yaml          # Deployment settings
 │   ├── entities.yaml          # Watchlist (instance-specific)
 │   ├── sources.yaml           # Data sources to monitor
-│   └── civic_categories.yaml  # Universal categories
+│   ├── watchdog_rules.yaml    # Civic alert rules (14 rules)
+│   └── discovered_resources.yaml  # Resource cache
 ├── src/
 │   ├── agents/                # Scout & Analyst agents
-│   ├── prompts/               # Context & prompt loading
-│   ├── schemas.py             # Pydantic models (CivicCategory, Significance, etc.)
+│   ├── intelligence/          # 🆕 Event-driven intelligence layer
+│   │   ├── models.py          # CivicEvent, Entity, Document, Alert
+│   │   ├── event_store.py     # Persistence + queries
+│   │   ├── rules_engine.py    # Watchdog alert generation
+│   │   └── adapters/          # Source → CivicEvent converters
+│   ├── tools/                 # Scrapers & utilities
+│   │   ├── civicclerk_scraper.py
+│   │   ├── srwmd_scraper.py
+│   │   ├── florida_notices_scraper.py
+│   │   └── resource_cache.py
 │   ├── ui/                    # Streamlit Dev Console
 │   ├── api/                   # FastAPI routes
-│   └── app.py                 # Main application
+│   └── orchestrator.py        # Pipeline coordinator
+├── scripts/                   # Utility scripts
+│   ├── discover_sitemaps.py   # Source URL discovery
+│   └── analyze_sources.py     # Playbook generator
 ├── prompt_library/            # Agent prompts & context
 ├── docs/                      # Documentation
-└── test/                      # Test suite
+└── test/                      # Test suite (78 tests)
 ```
 
 ---
@@ -157,9 +169,11 @@ open-sousveillance-studio/
 
 | Document | Description |
 |:---------|:------------|
+| 📖 [USER_GUIDE.md](docs/USER_GUIDE.md) | Non-technical guide with visual diagrams |
+| 📋 [LOGGING.md](docs/LOGGING.md) | **NEW** Logging system & debugging guide |
 | 🏗️ [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, diagrams, technology stack |
-| � [SYSTEM_OVERHAUL.md](docs/SYSTEM_OVERHAUL.md) | **NEW** Comprehensive coverage architecture |
-| �📏 [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) | Development standards, style guide |
+| 🔄 [SYSTEM_OVERHAUL.md](docs/SYSTEM_OVERHAUL.md) | Comprehensive coverage architecture |
+| 📏 [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) | Development standards, style guide |
 | 👩‍💻 [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | Setup, testing, contributing |
 | 📅 [PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | Roadmap, epics, features, user stories |
 | 🔄 [SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md) | Workflow design, data flow |
@@ -169,20 +183,21 @@ open-sousveillance-studio/
 
 ## 🗺️ Roadmap
 
-### Completed
-- [x] **Foundation:** Config, schemas, logging, Streamlit Dev Console
-- [x] **Scout Layer:** Firecrawl integration, Gemini analysis
-- [x] **Comprehensive Coverage:** Analyze ALL items, not just keyword matches
-- [x] **Config-Driven Architecture:** YAML-based watchlists and categories
+### Completed ✅
+- [x] **Phase 1 - Foundation:** Config, schemas, logging, Streamlit Dev Console
+- [x] **Phase 2 - Scout Layer:** Firecrawl integration, 3 scrapers, Orchestrator
+- [x] **Phase 3.1-3.3 - Intelligence Layer:** CivicEvent model, EventStore, Watchdog Rules
 
-### In Progress
+### In Progress 🚧
+- [ ] **Phase 3.4:** Health metrics embedded in scrapers
+- [ ] **Phase 3.5:** User watchlists (topics, areas, keywords)
+- [ ] **Phase 3.6:** Entity extraction for cross-source linking
+- [ ] **Phase 3.7:** Cross-source search for investigation
+
+### Planned 📋
 - [ ] **Analyst Layer:** Deep research, pattern recognition, approvals
-- [ ] **Vector Search:** Query past reports for context
-
-### Planned
 - [ ] **Synthesizer Layer:** Newsletters, social media content
-- [ ] **Feedback System:** User ratings to improve relevance
-- [ ] **Production:** Monitoring, Docker deployment, multi-municipality
+- [ ] **Production:** Docker deployment, multi-municipality support
 
 ---
 

@@ -17,7 +17,17 @@
 ## 🏗️ Three-Layer Agent Architecture
 
 ```mermaid
+%%{init: { 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'Segoe UI, Arial', 'primaryColor': '#222', 'edgeLabelBackground':'#fff' } } }%%
 flowchart TB
+    %% MMO color hierarchy: gold, purple, blue, green, white
+    classDef gold fill:#FFD700,stroke:#B8860B,stroke-width:2px,color:#222;
+    classDef purple fill:#A259E6,stroke:#6C3483,stroke-width:2px,color:#222;
+    classDef blue fill:#4FC3F7,stroke:#1565C0,stroke-width:2px,color:#222;
+    classDef green fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#222;
+    classDef white fill:#fff,stroke:#bbb,stroke-width:2px,color:#222;
+    classDef db fill:#fff8e1,stroke:#b8860b,stroke-width:2px,color:#222;
+    classDef output fill:#f5f5f5,stroke:#888,stroke-width:2px,color:#222;
+
     subgraph Layer1["Layer 1: SCOUTS (Daily)"]
         direction LR
         A1[A1: Meeting Scout<br/>Agendas & Minutes]
@@ -25,12 +35,14 @@ flowchart TB
         A3[A3: Legislative Monitor<br/>Code Changes]
         A4[A4: Public Notice Scout<br/>Legal Notices]
     end
+    class A1,A2,A3,A4 green;
 
     subgraph Layer2["Layer 2: ANALYSTS (Weekly)"]
         direction LR
         B1[B1: Impact Analyst<br/>Environmental/Community]
         B2[B2: Procedural Analyst<br/>Process Violations]
     end
+    class B1,B2 blue;
 
     subgraph Layer3["Layer 3: SYNTHESIZERS (Monthly)"]
         direction LR
@@ -39,12 +51,15 @@ flowchart TB
         C3[C3: Alert Broadcaster]
         C4[C4: Quarterly Scorecard]
     end
+    class C1,C2,C3,C4 purple;
 
     Layer1 -->|ScoutReports| DB[(Supabase)]
+    class DB db;
     DB -->|Query| Layer2
     Layer2 -->|AnalystReports| DB
     DB -->|Human Approval| Layer3
     Layer3 -->|Publish| Output[Citizens]
+    class Output output;
 ```
 
 ---
@@ -86,40 +101,55 @@ class ScoutReport(BaseReport):
 
 ---
 
-## 🧠 Layer 2: Analysts — Pattern Recognition
+## 🧠 Layer 2: Analysts — Deep Research
 
 ### Purpose
 
-Take Scout data, perform deep research, identify patterns across multiple reports.
+Perform comprehensive research on high-relevance items identified by Scout agents.
 
 ### Current Implementation
 
 - `AnalystAgent` in `src/agents/analyst.py`
-- Queries Supabase for recent ScoutReports
-- Uses Tavily for web research on flagged items
-- Produces `AnalystReport` with sections and recommendations
+- **Dual research providers:**
+  - **Tavily**: Fast web search for recent news and articles
+  - **Gemini Deep Research**: Comprehensive agentic research via Google's Interactions API
+- Triggered automatically when Scout reports have relevance score ≥ 0.7
+- Produces enriched `ScoutReport` with external context
+
+### Research Provider Configuration
+
+```python
+from src.agents.analyst import AnalystAgent, ResearchProvider
+
+# Use both providers (default)
+analyst = AnalystAgent(name="Analyst", research_provider=ResearchProvider.BOTH)
+
+# Use only Tavily (faster, cheaper)
+analyst = AnalystAgent(name="Analyst", research_provider=ResearchProvider.TAVILY)
+
+# Use only Gemini Deep Research (more thorough)
+analyst = AnalystAgent(name="Analyst", research_provider=ResearchProvider.GEMINI)
+```
 
 ### Data Flow
 
-```
-ScoutReports (from DB) → Filter RED/YELLOW → Tavily Research → Gemini Analysis → AnalystReport
-```
-
-### AnalystReport Schema
-
-```python
-class AnalystReport(BaseReport):
-    topic: str                    # "Tara Development Update"
-    scout_report_ids: List[str]   # Source reports
-    sections: List[AnalysisSection]  # Analysis with confidence scores
-    recommendations: List[str]    # Actionable items
+```mermaid
+flowchart LR
+    SR[ScoutReport<br/>relevance ≥ 0.7] --> AN[AnalystAgent]
+    AN --> TAV[Tavily<br/>Fast Search]
+    AN --> GEM[Gemini Deep<br/>Research]
+    TAV --> SYNTH[Synthesize<br/>Results]
+    GEM --> SYNTH
+    SYNTH --> DR[DeepResearchReport]
 ```
 
-### Open Questions
+### Trigger Conditions
 
-1. What triggers an Analyst run? Weekly schedule, or when X number of RED alerts accumulate?
-2. Should Analysts have access to historical data (RAG over past reports)?
-3. How deep should Tavily research go? (cost vs. thoroughness)
+| Condition | Action |
+|:----------|:-------|
+| Scout relevance ≥ 0.7 | Automatic deep research |
+| Manual trigger via UI | User-initiated research |
+| Celery task | Programmatic trigger |
 
 ---
 
@@ -273,10 +303,16 @@ projects:
 **Enhancement:** RED alerts should trigger immediate notification.
 
 ```mermaid
+%%{init: { 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'Segoe UI, Arial', 'primaryColor': '#222', 'edgeLabelBackground':'#fff' } } }%%
 flowchart LR
-    Scout -->|RED| Immediate[SMS/Email Alert]
-    Scout -->|YELLOW| Queue[Weekly Analyst Queue]
-    Scout -->|GREEN| Log[Archive Only]
+    classDef red fill:#FFD700,stroke:#B8860B,stroke-width:2px,color:#222,filter:drop-shadow(0px 2px 4px #b8860b);
+    classDef yellow fill:#FFF176,stroke:#FBC02D,stroke-width:2px,color:#222,filter:drop-shadow(0px 2px 4px #fbc02d);
+    classDef green fill:#81C784,stroke:#388E3C,stroke-width:2px,color:#222,filter:drop-shadow(0px 2px 4px #388e3c);
+    classDef black fill:#222,stroke:#bbb,stroke-width:2px,color:#fff;
+
+    Scout:::black -->|RED| Immediate[SMS/Email Alert]:::red
+    Scout:::black -->|YELLOW| Queue[Weekly Analyst Queue]:::yellow
+    Scout:::black -->|GREEN| Log[Archive Only]:::green
 ```
 
 ### 3. Source Health Monitoring
@@ -307,6 +343,7 @@ flowchart LR
 **Scenario:** City of Alachua posts a new Planning & Zoning meeting agenda.
 
 ```mermaid
+%%{init: { 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'Segoe UI, Arial', 'primaryColor': '#222', 'actorTextColor': '#222', 'actorBorder': '#FFD700', 'actorBkg': '#FFF8DC', 'noteBkgColor': '#FFF8DC', 'noteTextColor': '#222' } } }%%
 sequenceDiagram
     participant Celery as ⏰ Scheduler
     participant Scout as 🔍 A1 Scout

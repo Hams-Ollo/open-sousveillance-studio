@@ -1,0 +1,56 @@
+source_id: srwmd-epermitting
+source_name: SRWMD - E-Permitting Portal
+base_url: https://permitting.sjrwmd.com/srep/#/ep
+analyzed_at: '2026-02-02T10:54:15.516271'
+page_structure:
+  type: static
+  requires_javascript: false
+  load_time_ms: 2000
+  elements_found: []
+navigation:
+  list_to_detail:
+  - action: click
+    selector: a[href*='permitting.sjrwmd.com']
+    value: null
+    wait_ms: 500
+    description: Click permit number link
+  detail_to_document:
+  - action: scroll
+    selector: null
+    value: null
+    wait_ms: 500
+    description: Scroll to documents section
+  - action: click
+    selector: a[href*='.pdf']
+    value: null
+    wait_ms: 500
+    description: Click document link
+documents:
+  patterns: []
+  discovered_links:
+  - https://permitting.sjrwmd.com/srwlsshare/ep/help/SR/SR-ePermit-GettingStarted.pdf
+api_endpoints: []
+links:
+  internal_count: 10
+  external_count: 0
+  document_count: 1
+  sample_internal:
+  - https://permitting.sjrwmd.com/srep/#innerContent
+  - https://permitting.sjrwmd.com/srep/assets/images/SRWMD-25.jpg
+  - https://permitting.sjrwmd.com/srep/assets/images/SRWMD-50.jpg
+  - https://permitting.sjrwmd.com/srep/assets/images/SRWMD-75.jpg
+  - https://permitting.sjrwmd.com/srep/#/eplogin
+  - https://permitting.sjrwmd.com/srep/#/epCreate
+  - https://permitting.sjrwmd.com/srep/assets/images/erp.jpg
+  - https://permitting.sjrwmd.com/srep/assets/images/cup.jpg
+  - https://permitting.sjrwmd.com/srep/assets/images/wwc.jpg
+  - mailto:resourcemanagement@srwmd.org
+  sample_external: []
+scout_instructions: "# Scout Instructions for SRWMD - E-Permitting Portal\n\n**Source\
+  \ ID:** `srwmd-epermitting`\n**Base URL:** https://permitting.sjrwmd.com/srep/#/ep\n\
+  **Page Type:** static\n**Requires JS:** No\n\n## Navigation\n\n### List To Detail\n\
+  1. **click** `a[href*='permitting.sjrwmd.com']`\n   - Click permit number link\n\
+  \n### Detail To Document\n1. **scroll** `None`\n   - Scroll to documents section\n\
+  2. **click** `a[href*='.pdf']`\n   - Click document link\n\n## Accessing Documents\n\
+  \n**Direct document links found:** 1"
+warnings: []

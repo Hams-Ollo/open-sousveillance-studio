@@ -23,6 +23,8 @@ from pathlib import Path
 
 from src.logging_config import get_logger
 from src.tools.firecrawl_client import FirecrawlClient, ScrapeResult
+from src.tools.resource_cache import get_resource_cache, ResourceCache
+from src.intelligence.health import get_health_service, HealthService
 
 logger = get_logger("tools.civicclerk")
 
@@ -35,6 +37,9 @@ class CivicClerkMeeting:
     meeting_id: str  # Generated from title + date hash
     title: str
     date: datetime
+
+    # CivicClerk-specific
+    event_id: Optional[int] = None  # CivicClerk event ID for API/URL access
     time: Optional[str] = None
 
     # Location and board
@@ -108,7 +113,8 @@ class CivicClerkScraper:
         self,
         site_id: str,
         firecrawl_client: Optional[FirecrawlClient] = None,
-        download_dir: Optional[Path] = None
+        download_dir: Optional[Path] = None,
+        resource_cache: Optional[ResourceCache] = None
     ):
         """
         Initialize CivicClerk scraper.
@@ -117,6 +123,7 @@ class CivicClerkScraper:
             site_id: CivicClerk site ID (e.g., "alachuafl")
             firecrawl_client: Optional pre-configured Firecrawl client
             download_dir: Directory to save downloaded PDFs
+            resource_cache: Optional ResourceCache for discovered resources
         """
         self.site_id = site_id
         self.base_url = f"https://{site_id}.portal.civicclerk.com/"
@@ -124,7 +131,22 @@ class CivicClerkScraper:
         self.download_dir = download_dir or Path("data/downloads/civicclerk")
         self.download_dir.mkdir(parents=True, exist_ok=True)
 
-        logger.info("CivicClerkScraper initialized", site_id=site_id, base_url=self.base_url)
+        # Load discovered resources cache
+        self.resource_cache = resource_cache or get_resource_cache()
+        self.source_id = "alachua-civicclerk"  # Cache key
+
+        # Health tracking
+        self.health_service = get_health_service()
+        self.scraper_id = f"civicclerk-{site_id}"
+
+        # Load known event IDs from cache
+        self._known_event_ids = set(self.resource_cache.get_ids(self.source_id, "event_ids"))
+        logger.info(
+            "CivicClerkScraper initialized",
+            site_id=site_id,
+            base_url=self.base_url,
+            cached_events=len(self._known_event_ids)
+        )
 
     def scrape_meetings(
         self,
@@ -153,6 +175,9 @@ class CivicClerkScraper:
 
         logger.info("Scraping CivicClerk meetings", url=url, scroll_count=scroll_count)
 
+        import time
+        start_time = time.perf_counter()
+
         try:
             # Use Firecrawl with scroll actions to load more events
             result = self.client.scrape_civicclerk_with_scroll(
@@ -160,7 +185,17 @@ class CivicClerkScraper:
                 scroll_count=scroll_count
             )
 
+            duration_ms = (time.perf_counter() - start_time) * 1000
+
             if not result.success:
+                # Record failed scrape
+                self.health_service.record_scrape(
+                    scraper_id=self.scraper_id,
+                    success=False,
+                    duration_ms=duration_ms,
+                    error_type="ScrapeError",
+                    error_message=result.error,
+                )
                 return CivicClerkScrapeResult(
                     site_id=self.site_id,
                     url=url,
@@ -170,6 +205,17 @@ class CivicClerkScraper:
 
             # Parse meetings from markdown
             meetings = self._parse_meetings_from_markdown(result.markdown)
+
+            # Update resource cache with discovered event IDs
+            self.update_resource_cache(result.markdown)
+
+            # Record successful scrape
+            self.health_service.record_scrape(
+                scraper_id=self.scraper_id,
+                success=True,
+                items_found=len(meetings),
+                duration_ms=duration_ms,
+            )
 
             logger.info(
                 "Scraped CivicClerk meetings",
@@ -187,6 +233,17 @@ class CivicClerkScraper:
             )
 
         except Exception as e:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+
+            # Record exception
+            self.health_service.record_scrape(
+                scraper_id=self.scraper_id,
+                success=False,
+                duration_ms=duration_ms,
+                error_type=type(e).__name__,
+                error_message=str(e)[:500],
+            )
+
             logger.error("Failed to scrape CivicClerk", error=str(e))
             return CivicClerkScrapeResult(
                 site_id=self.site_id,
@@ -277,11 +334,18 @@ class CivicClerkScraper:
                     except ValueError:
                         pass
 
+                # Extract event ID from URLs like /event/838/files
+                event_id = None
+                event_id_match = re.search(r'/event/(\d+)(?:/files)?', meeting_text)
+                if event_id_match:
+                    event_id = int(event_id_match.group(1))
+
                 # Create meeting object
                 meeting = CivicClerkMeeting(
                     meeting_id="",  # Will be generated
                     title=title,
                     date=meeting_date,
+                    event_id=event_id,
                     time=time_str,
                     board=board,
                     board_tag=board,
@@ -400,9 +464,61 @@ class CivicClerkScraper:
         Returns:
             List of PDF URLs found in the content
         """
-        import re
         pdf_pattern = r'https?://[^\s\)]+\.pdf'
         return re.findall(pdf_pattern, markdown, re.IGNORECASE)
+
+    def extract_event_ids_from_markdown(self, markdown: str) -> List[int]:
+        """
+        Extract event IDs from scraped markdown content.
+
+        Looks for URLs like /event/838/files and extracts the ID.
+
+        Args:
+            markdown: Scraped markdown content
+
+        Returns:
+            List of event IDs found
+        """
+        pattern = r'/event/(\d+)/files'
+        matches = re.findall(pattern, markdown)
+        return [int(m) for m in set(matches)]
+
+    def update_resource_cache(self, markdown: str):
+        """
+        Extract and cache newly discovered event IDs from scraped content.
+
+        Args:
+            markdown: Scraped markdown content
+        """
+        new_ids = self.extract_event_ids_from_markdown(markdown)
+        if new_ids:
+            # Add to in-memory set
+            before_count = len(self._known_event_ids)
+            self._known_event_ids.update(new_ids)
+            after_count = len(self._known_event_ids)
+
+            # Persist to cache
+            self.resource_cache.add_ids(self.source_id, "event_ids", new_ids)
+            self.resource_cache.save()
+
+            if after_count > before_count:
+                logger.info(
+                    "Discovered new event IDs",
+                    new_count=after_count - before_count,
+                    total=after_count
+                )
+
+    def get_known_event_urls(self) -> List[str]:
+        """
+        Get URLs for all known events from cache.
+
+        Returns:
+            List of event file URLs
+        """
+        return [
+            f"{self.base_url}event/{eid}/files"
+            for eid in sorted(self._known_event_ids)
+        ]
 
     def get_board_categories(self) -> dict:
         """
@@ -420,6 +536,113 @@ class CivicClerkScraper:
             "Education Task Force": None,
         }
 
+    def scrape_event_files_page(self, event_id: int) -> dict:
+        """
+        Scrape the event files page to extract actual PDF download URLs.
+
+        Args:
+            event_id: CivicClerk event ID
+
+        Returns:
+            Dict with 'success', 'agenda_pdf_url', 'agenda_packet_pdf_url', 'error'
+        """
+        url = f"{self.base_url}event/{event_id}/files"
+        logger.info("Scraping event files page", event_id=event_id, url=url)
+
+        result = {
+            'success': False,
+            'event_id': event_id,
+            'agenda_pdf_url': None,
+            'agenda_packet_pdf_url': None,
+            'minutes_url': None,
+            'all_files': [],
+            'error': None
+        }
+
+        try:
+            scrape_result = self.client.scrape(url, wait_ms=2000, scroll=False)
+
+            if not scrape_result.success:
+                result['error'] = scrape_result.error
+                return result
+
+            markdown = scrape_result.markdown or ""
+
+            # Extract PDF links from markdown
+            # Look for patterns like [Agenda Packet (PDF)](url) or [Agenda (PDF)](url)
+            pdf_links = []
+
+            # Pattern for markdown links: [text](url)
+            link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+            for match in re.finditer(link_pattern, markdown):
+                link_text = match.group(1).strip()
+                link_url = match.group(2).strip()
+
+                # Check if it's a PDF or file link
+                if '.pdf' in link_url.lower() or '/files/' in link_url.lower() or 'download' in link_url.lower():
+                    pdf_links.append({'text': link_text, 'url': link_url})
+
+                    # Categorize by type
+                    text_lower = link_text.lower()
+                    if 'agenda packet' in text_lower:
+                        result['agenda_packet_pdf_url'] = link_url
+                    elif 'agenda' in text_lower and 'packet' not in text_lower:
+                        result['agenda_pdf_url'] = link_url
+                    elif 'minutes' in text_lower:
+                        result['minutes_url'] = link_url
+
+            # Also look for direct PDF URLs in the content
+            direct_pdf_pattern = r'https?://[^\s\)\"\']+\.pdf'
+            direct_pdfs = re.findall(direct_pdf_pattern, markdown, re.IGNORECASE)
+            for pdf_url in direct_pdfs:
+                if pdf_url not in [p['url'] for p in pdf_links]:
+                    pdf_links.append({'text': 'Direct PDF', 'url': pdf_url})
+
+            result['all_files'] = pdf_links
+            result['success'] = True
+
+            logger.info(
+                "Extracted files from event page",
+                event_id=event_id,
+                files_found=len(pdf_links),
+                has_agenda=bool(result['agenda_pdf_url']),
+                has_packet=bool(result['agenda_packet_pdf_url'])
+            )
+
+        except Exception as e:
+            logger.error("Failed to scrape event files page", event_id=event_id, error=str(e))
+            result['error'] = str(e)
+
+        return result
+
+    def fetch_pdf_urls_for_meeting(self, meeting: CivicClerkMeeting) -> CivicClerkMeeting:
+        """
+        Fetch and populate PDF URLs for a meeting by scraping its event files page.
+
+        Args:
+            meeting: Meeting object with event_id set
+
+        Returns:
+            Updated meeting with PDF URLs populated
+        """
+        if not meeting.event_id:
+            logger.warning("Cannot fetch PDF URLs - no event_id", meeting_id=meeting.meeting_id)
+            return meeting
+
+        files_result = self.scrape_event_files_page(meeting.event_id)
+
+        if files_result['success']:
+            meeting.agenda_pdf_url = files_result.get('agenda_pdf_url')
+            meeting.agenda_packet_pdf_url = files_result.get('agenda_packet_pdf_url')
+            meeting.minutes_url = files_result.get('minutes_url')
+
+            # Update has_agenda flags based on actual URLs found
+            if meeting.agenda_pdf_url or meeting.agenda_packet_pdf_url:
+                meeting.has_agenda = True
+            if meeting.agenda_packet_pdf_url:
+                meeting.has_agenda_packet = True
+
+        return meeting
 
     # =========================================================================
     # HYBRID PIPELINE METHODS
@@ -647,20 +870,33 @@ class CivicClerkScraper:
 
         # Phase 2: Detail (PDF downloads)
         if download_pdfs:
-            # Get meetings that need PDF download (new or updated, with agenda)
+            # Get meetings that need PDF download (new or updated, with agenda and event_id)
             meetings_to_download = [
                 m for m in meetings
                 if m.meeting_id in sync_result['new'] + sync_result['updated']
                 and (m.has_agenda or m.has_agenda_packet)
+                and m.event_id is not None
             ][:max_pdf_downloads]
 
             pdf_results = {
                 'attempted': len(meetings_to_download),
+                'detail_fetched': 0,
                 'success': 0,
                 'failed': 0
             }
 
             for meeting in meetings_to_download:
+                # First, fetch PDF URLs from the event files page
+                if not meeting.agenda_pdf_url and not meeting.agenda_packet_pdf_url:
+                    logger.info(
+                        "Fetching PDF URLs from event files page",
+                        meeting_id=meeting.meeting_id,
+                        event_id=meeting.event_id
+                    )
+                    meeting = self.fetch_pdf_urls_for_meeting(meeting)
+                    pdf_results['detail_fetched'] += 1
+
+                # Now attempt to download the PDF
                 content = self.download_meeting_pdf(meeting)
 
                 if content:

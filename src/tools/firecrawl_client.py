@@ -49,7 +49,7 @@ class FirecrawlClient:
 
     Usage:
         client = FirecrawlClient()
-        result = client.scrape_page("https://example.com")
+        result = client.scrape("https://example.com")
         print(result.markdown)
     """
 
@@ -125,7 +125,7 @@ class FirecrawlClient:
                     time.sleep(wait_time)
         raise last_error
 
-    def scrape_page(
+    def scrape(
         self,
         url: str,
         wait_ms: int = 2000,
@@ -237,7 +237,7 @@ class FirecrawlClient:
         Returns:
             ScrapeResult with meeting/agenda content
         """
-        return self.scrape_page(
+        return self.scrape(
             url,
             wait_ms=3000,  # CivicClerk needs more time
             scroll=True,
@@ -293,7 +293,7 @@ class FirecrawlClient:
         """
         results = []
         for url in urls:
-            result = self.scrape_page(url, wait_ms=wait_ms)
+            result = self.scrape(url, wait_ms=wait_ms)
             results.append(result)
         return results
 

@@ -78,6 +78,7 @@ Government Portal → Firecrawl → Scout Agent → ScoutReport → Supabase
 | `src/schemas.py` | Report schemas (ScoutReport, AnalystReport, etc.) |
 | `src/database.py` | Supabase client wrapper |
 | `src/models.py` | Gemini LLM initialization |
+| `src/orchestrator.py` | Pipeline coordinator |
 | `src/logging_config.py` | Structlog configuration |
 
 ### Agents
@@ -88,16 +89,28 @@ Government Portal → Firecrawl → Scout Agent → ScoutReport → Supabase
 | `src/agents/scout.py` | ScoutAgent for data collection |
 | `src/agents/analyst.py` | AnalystAgent for deep research |
 
-### Tools
+### Intelligence Layer (Phase 3)
 
 | File | Purpose |
 |:-----|:--------|
+| `src/intelligence/models.py` | CivicEvent, Entity, Document, Alert dataclasses |
+| `src/intelligence/event_store.py` | Event persistence + queries |
+| `src/intelligence/rules_engine.py` | Watchdog alert generation |
+| `src/intelligence/adapters/base_adapter.py` | Base adapter with entity extraction |
+| `src/intelligence/adapters/civicclerk_adapter.py` | Meeting → CivicEvent |
+| `src/intelligence/adapters/srwmd_adapter.py` | Permit → CivicEvent |
+| `src/intelligence/adapters/florida_notices_adapter.py` | Notice → CivicEvent |
+
+### Scrapers
+
+| File | Purpose |
+|:-----|:--------|
+| `src/tools/civicclerk_scraper.py` | CivicClerk portal scraper |
+| `src/tools/srwmd_scraper.py` | SRWMD permit scraper |
+| `src/tools/florida_notices_scraper.py` | Florida public notices scraper |
 | `src/tools/firecrawl_client.py` | Web scraping via Firecrawl API |
+| `src/tools/resource_cache.py` | Discovered resources cache |
 | `src/tools/docling_processor.py` | PDF document processing |
-| `src/tools/embeddings.py` | Gemini embedding service (1536 dims) |
-| `src/tools/chunking.py` | Document text chunking |
-| `src/tools/vector_store.py` | Supabase pgvector operations |
-| `src/tools/rag_pipeline.py` | Unified RAG interface |
 
 ### Tasks
 
@@ -118,6 +131,8 @@ Government Portal → Firecrawl → Scout Agent → ScoutReport → Supabase
 | `config/instance.yaml` | Instance identity, timezone, scheduling |
 | `config/sources.yaml` | Government data sources to monitor |
 | `config/entities.yaml` | Watchlist (projects, organizations, keywords) |
+| `config/watchdog_rules.yaml` | Civic alert rules (14 rules) |
+| `config/discovered_resources.yaml` | Resource ID cache |
 
 ### Environment Variables
 
@@ -225,6 +240,10 @@ pytest -k "test_scout"
 | `test/test_agents.py` | Agent classes |
 | `test/test_api.py` | FastAPI endpoints |
 | `test/test_tools.py` | Tool modules |
+| `test/test_scrapers.py` | Scraper tests (39 passing) |
+| `test/test_intelligence.py` | Intelligence layer tests (39 passing) |
+
+**Total: 78 tests passing**
 
 ---
 
@@ -287,4 +306,4 @@ prompt_library/
 
 ---
 
-*Last updated: 2026-01-30*
+*Last updated: 2026-02-02*

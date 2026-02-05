@@ -1,0 +1,26 @@
+source_id: srwmd-applications
+source_name: SRWMD - Permit Applications
+base_url: https://www.mysuwanneeriver.com/1616/Notice-of-Receipt-of-Applications
+analyzed_at: '2026-02-02T10:49:27.237642'
+page_structure:
+  type: static
+  requires_javascript: false
+  load_time_ms: 2000
+  elements_found: []
+navigation: {}
+documents:
+  patterns: []
+  discovered_links: []
+api_endpoints: []
+links:
+  internal_count: 0
+  external_count: 0
+  document_count: 0
+  sample_internal: []
+  sample_external: []
+scout_instructions: ''
+warnings:
+- 'Scrape failed: Internal Server Error: Failed to scrape. The URL failed to load
+  in the browser with error code "ERR_TIMED_OUT". The connection timed out. The server
+  is not responding or is too slow. Please verify the URL is correct and the website
+  is accessible. - No additional error details provided.'
