@@ -73,7 +73,7 @@ class ScrapeAttempt:
     duration_ms: float = 0.0
     error_type: Optional[str] = None
     error_message: Optional[str] = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -84,7 +84,7 @@ class ScrapeAttempt:
             "error_type": self.error_type,
             "error_message": self.error_message,
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ScrapeAttempt":
         """Create from dictionary."""
@@ -111,7 +111,7 @@ class ScraperHealth:
     consecutive_failures: int = 0
     total_attempts: int = 0
     attempts: list[ScrapeAttempt] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -126,7 +126,7 @@ class ScraperHealth:
             "total_attempts": self.total_attempts,
             "attempts": [a.to_dict() for a in self.attempts],
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ScraperHealth":
         """Create from dictionary."""
@@ -142,7 +142,7 @@ class ScraperHealth:
             total_attempts=data.get("total_attempts", 0),
             attempts=[ScrapeAttempt.from_dict(a) for a in data.get("attempts", [])],
         )
-    
+
     @property
     def recent_errors(self) -> list[str]:
         """Get recent error messages."""
@@ -150,7 +150,7 @@ class ScraperHealth:
             a.error_message for a in self.attempts[-5:]
             if not a.success and a.error_message
         ]
-    
+
     @property
     def needs_attention(self) -> bool:
         """Check if scraper needs manual attention."""
@@ -165,7 +165,7 @@ class HealthAlert:
     current_status: HealthStatus
     message: str
     timestamp: datetime = field(default_factory=datetime.now)
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -184,17 +184,17 @@ class HealthAlert:
 class HealthService:
     """
     Central service for tracking scraper health.
-    
+
     Features:
     - Records scrape attempts (success/failure)
     - Computes health status based on recent history
     - Persists health data to JSON file
     - Generates alerts on status changes
     - Provides retry logic with exponential backoff
-    
+
     Example:
         health = HealthService()
-        
+
         # Record a successful scrape
         health.record_scrape(
             scraper_id="civicclerk",
@@ -202,16 +202,16 @@ class HealthService:
             items_found=15,
             duration_ms=1234.5
         )
-        
+
         # Check health
         status = health.get_health("civicclerk")
         print(status.status)  # HealthStatus.HEALTHY
     """
-    
+
     def __init__(self, health_file: Path | str | None = None):
         """
         Initialize health service.
-        
+
         Args:
             health_file: Path to JSON file for persistence.
                         Defaults to config/scraper_health.json
@@ -220,7 +220,7 @@ class HealthService:
         self._health_data: dict[str, ScraperHealth] = {}
         self._alerts: list[HealthAlert] = []
         self._load()
-    
+
     def _load(self) -> None:
         """Load health data from file."""
         if self.health_file.exists():
@@ -239,7 +239,7 @@ class HealthService:
                     error=str(e)
                 )
                 self._health_data = {}
-    
+
     def _save(self) -> None:
         """Save health data to file."""
         try:
@@ -257,32 +257,32 @@ class HealthService:
             )
         except Exception as e:
             logger.error("Failed to save health data", error=str(e))
-    
+
     def _prune_old_attempts(self, health: ScraperHealth) -> None:
         """Remove attempts outside the health window."""
         cutoff = datetime.now() - timedelta(hours=HEALTH_WINDOW_HOURS)
-        
+
         # Keep attempts within time window, up to max count
         recent = [a for a in health.attempts if a.timestamp > cutoff]
         health.attempts = recent[-HEALTH_WINDOW_ATTEMPTS:]
-    
+
     def _compute_status(self, health: ScraperHealth) -> HealthStatus:
         """Compute health status from recent attempts."""
         if not health.attempts:
             return HealthStatus.UNKNOWN
-        
+
         # Check consecutive failures first (immediate signal)
         if health.consecutive_failures > MAX_CONSECUTIVE_FAILURES:
             return HealthStatus.FAILING
-        
+
         # Compute success rate
         successes = sum(1 for a in health.attempts if a.success)
         health.success_rate = successes / len(health.attempts)
-        
+
         # Compute average duration
         durations = [a.duration_ms for a in health.attempts if a.duration_ms > 0]
         health.avg_duration_ms = sum(durations) / len(durations) if durations else 0.0
-        
+
         # Determine status
         if health.success_rate >= HEALTHY_SUCCESS_RATE and health.consecutive_failures < 3:
             return HealthStatus.HEALTHY
@@ -290,7 +290,7 @@ class HealthService:
             return HealthStatus.DEGRADED
         else:
             return HealthStatus.FAILING
-    
+
     def record_scrape(
         self,
         scraper_id: str,
@@ -302,7 +302,7 @@ class HealthService:
     ) -> ScraperHealth:
         """
         Record a scrape attempt and update health status.
-        
+
         Args:
             scraper_id: Identifier for the scraper
             success: Whether the scrape succeeded
@@ -310,17 +310,17 @@ class HealthService:
             duration_ms: How long the scrape took
             error_type: Exception type if failed
             error_message: Error message if failed
-        
+
         Returns:
             Updated ScraperHealth for this scraper
         """
         # Get or create health record
         if scraper_id not in self._health_data:
             self._health_data[scraper_id] = ScraperHealth(scraper_id=scraper_id)
-        
+
         health = self._health_data[scraper_id]
         previous_status = health.status
-        
+
         # Create attempt record
         attempt = ScrapeAttempt(
             timestamp=datetime.now(),
@@ -330,23 +330,23 @@ class HealthService:
             error_type=error_type,
             error_message=error_message,
         )
-        
+
         # Update health record
         health.attempts.append(attempt)
         health.total_attempts += 1
         health.last_attempt = attempt.timestamp
-        
+
         if success:
             health.last_success = attempt.timestamp
             health.consecutive_failures = 0
         else:
             health.last_failure = attempt.timestamp
             health.consecutive_failures += 1
-        
+
         # Prune old attempts and recompute status
         self._prune_old_attempts(health)
         health.status = self._compute_status(health)
-        
+
         # Log the attempt
         log_method = logger.info if success else logger.warning
         log_method(
@@ -358,16 +358,16 @@ class HealthService:
             status=health.status.value,
             consecutive_failures=health.consecutive_failures,
         )
-        
+
         # Check for status change and generate alert
         if previous_status != health.status and previous_status != HealthStatus.UNKNOWN:
             self._generate_alert(scraper_id, previous_status, health.status)
-        
+
         # Persist
         self._save()
-        
+
         return health
-    
+
     def _generate_alert(
         self,
         scraper_id: str,
@@ -382,9 +382,9 @@ class HealthService:
             HealthStatus.FAILING: 2,
             HealthStatus.UNKNOWN: -1,
         }
-        
+
         is_degradation = status_order[current] > status_order[previous]
-        
+
         if is_degradation:
             message = f"Scraper '{scraper_id}' degraded from {previous.value} to {current.value}"
             logger.warning(
@@ -401,7 +401,7 @@ class HealthService:
                 previous_status=previous.value,
                 current_status=current.value,
             )
-        
+
         alert = HealthAlert(
             scraper_id=scraper_id,
             previous_status=previous,
@@ -409,43 +409,43 @@ class HealthService:
             message=message,
         )
         self._alerts.append(alert)
-    
+
     def get_health(self, scraper_id: str) -> ScraperHealth:
         """
         Get health status for a scraper.
-        
+
         Args:
             scraper_id: Identifier for the scraper
-        
+
         Returns:
             ScraperHealth with current status and metrics
         """
         if scraper_id not in self._health_data:
             return ScraperHealth(scraper_id=scraper_id, status=HealthStatus.UNKNOWN)
         return self._health_data[scraper_id]
-    
+
     def get_all_health(self) -> dict[str, ScraperHealth]:
         """Get health status for all known scrapers."""
         return self._health_data.copy()
-    
+
     def get_alerts(self, since: Optional[datetime] = None) -> list[HealthAlert]:
         """
         Get health alerts.
-        
+
         Args:
             since: Only return alerts after this time
-        
+
         Returns:
             List of HealthAlert objects
         """
         if since:
             return [a for a in self._alerts if a.timestamp > since]
         return self._alerts.copy()
-    
+
     def clear_alerts(self) -> None:
         """Clear all alerts."""
         self._alerts.clear()
-    
+
     def get_scrapers_needing_attention(self) -> list[str]:
         """Get list of scrapers that need manual attention."""
         return [
@@ -453,22 +453,22 @@ class HealthService:
             for scraper_id, health in self._health_data.items()
             if health.needs_attention
         ]
-    
+
     def reset_health(self, scraper_id: str) -> None:
         """
         Reset health data for a scraper.
-        
+
         Use after manual intervention to give scraper a fresh start.
         """
         if scraper_id in self._health_data:
             del self._health_data[scraper_id]
             self._save()
             logger.info("Reset health data", scraper_id=scraper_id)
-    
+
     def get_summary(self) -> dict[str, Any]:
         """
         Get summary of all scraper health.
-        
+
         Returns:
             Dictionary with health summary for API/dashboard
         """
@@ -483,12 +483,12 @@ class HealthService:
                 "consecutive_failures": health.consecutive_failures,
                 "needs_attention": health.needs_attention,
             })
-        
+
         # Count by status
         status_counts = {s.value: 0 for s in HealthStatus}
         for health in self._health_data.values():
             status_counts[health.status.value] += 1
-        
+
         return {
             "total_scrapers": len(self._health_data),
             "status_counts": status_counts,
@@ -515,9 +515,9 @@ def with_retry(
 ) -> Callable[[F], F]:
     """
     Decorator for automatic retry with exponential backoff.
-    
+
     Records attempts to health service and retries on failure.
-    
+
     Args:
         scraper_id: Identifier for health tracking
         health_service: HealthService instance (uses global if None)
@@ -525,7 +525,7 @@ def with_retry(
         initial_backoff: Initial wait time in seconds
         max_backoff: Maximum wait time in seconds
         backoff_multiplier: Multiplier for each retry
-    
+
     Example:
         @with_retry("civicclerk")
         def scrape_meetings(self):
@@ -537,14 +537,14 @@ def with_retry(
             service = health_service or get_health_service()
             backoff = initial_backoff
             last_error: Optional[Exception] = None
-            
+
             for attempt in range(max_retries + 1):
                 start_time = time.perf_counter()
-                
+
                 try:
                     result = func(*args, **kwargs)
                     duration_ms = (time.perf_counter() - start_time) * 1000
-                    
+
                     # Record success
                     items_found = len(result) if hasattr(result, "__len__") else 1
                     service.record_scrape(
@@ -553,13 +553,13 @@ def with_retry(
                         items_found=items_found,
                         duration_ms=duration_ms,
                     )
-                    
+
                     return result
-                    
+
                 except Exception as e:
                     duration_ms = (time.perf_counter() - start_time) * 1000
                     last_error = e
-                    
+
                     # Record failure
                     service.record_scrape(
                         scraper_id=scraper_id,
@@ -568,7 +568,7 @@ def with_retry(
                         error_type=type(e).__name__,
                         error_message=str(e)[:500],  # Truncate long messages
                     )
-                    
+
                     # Check if we should retry
                     if attempt < max_retries:
                         logger.warning(
@@ -585,10 +585,10 @@ def with_retry(
                             attempts=max_retries + 1,
                             error=str(e),
                         )
-            
+
             # All retries exhausted
             raise last_error  # type: ignore
-        
+
         return wrapper  # type: ignore
     return decorator
 
@@ -597,26 +597,32 @@ def with_retry(
 # SINGLETON ACCESS
 # =============================================================================
 
+import threading
+
 _health_service: Optional[HealthService] = None
+_health_lock = threading.Lock()
 
 
 def get_health_service(health_file: Path | str | None = None) -> HealthService:
     """
     Get the global HealthService instance.
-    
+
     Args:
         health_file: Optional path to health file (only used on first call)
-    
+
     Returns:
         HealthService singleton
     """
     global _health_service
     if _health_service is None:
-        _health_service = HealthService(health_file)
+        with _health_lock:
+            if _health_service is None:
+                _health_service = HealthService(health_file)
     return _health_service
 
 
 def reset_health_service() -> None:
     """Reset the global HealthService (for testing)."""
     global _health_service
-    _health_service = None
+    with _health_lock:
+        _health_service = None

@@ -27,6 +27,10 @@ from src.agents.analyst import AnalystAgent, ResearchProvider
 from src.tools.civicclerk_scraper import CivicClerkScraper
 from src.tools.florida_notices_scraper import FloridaNoticesScraper
 from src.tools.srwmd_scraper import SRWMDScraper
+from src.intelligence.adapters import CivicClerkAdapter, SRWMDAdapter, FloridaNoticesAdapter
+from src.intelligence.event_store import get_event_store
+from src.intelligence.rules_engine import get_rules_engine
+from src.intelligence.models import Alert
 
 logger = get_logger("orchestrator")
 
@@ -58,6 +62,8 @@ class JobResult:
     items_discovered: int = 0
     items_new: int = 0
     items_analyzed: int = 0
+    events_created: int = 0
+    alerts_generated: List[Alert] = field(default_factory=list)
     error: Optional[str] = None
     details: Dict[str, Any] = field(default_factory=dict)
 
@@ -135,10 +141,23 @@ class Orchestrator:
         self.analyst = AnalystAgent(name="OrchestratorAnalyst", research_provider=research_provider)
         self.scrapers = self._init_scrapers()
 
+        # Intelligence layer
+        self.event_store = get_event_store()
+        self.rules_engine = get_rules_engine()
+
+        # RAG pipeline (lazy — won't crash if vector store unavailable)
+        self._rag_pipeline = None
+        self.adapters = {
+            SourceType.CIVICCLERK: CivicClerkAdapter(site_id="alachuafl"),
+            SourceType.FLORIDA_NOTICES: FloridaNoticesAdapter(),
+            SourceType.SRWMD: SRWMDAdapter(),
+        }
+
         logger.info(
             "Orchestrator initialized",
             sources_count=len(self.sources),
             scrapers=list(self.scrapers.keys()),
+            adapters=list(self.adapters.keys()),
             research_provider=research_provider.value
         )
 
@@ -426,6 +445,9 @@ class Orchestrator:
         job.items_new = len(result.get('phase1_discovery', {}).get('new', []))
         job.details = result
 
+        # Bridge to intelligence layer
+        self._process_intelligence(SourceType.CIVICCLERK, result.get('raw_meetings', []), job)
+
         return job
 
     def _run_florida_notices_job(
@@ -446,6 +468,9 @@ class Orchestrator:
         job.items_discovered = result.get('phase1_discovery', {}).get('total_discovered', 0)
         job.items_new = len(result.get('phase1_discovery', {}).get('new', []))
         job.details = result
+
+        # Bridge to intelligence layer
+        self._process_intelligence(SourceType.FLORIDA_NOTICES, result.get('raw_notices', []), job)
 
         return job
 
@@ -479,7 +504,74 @@ class Orchestrator:
         job.items_new = len(result.get('permits_ready_for_analysis', []))
         job.details = result
 
+        # Bridge to intelligence layer
+        self._process_intelligence(SourceType.SRWMD, result.get('raw_notices', []), job)
+
         return job
+
+    # =========================================================================
+    # INTELLIGENCE LAYER
+    # =========================================================================
+
+    def _process_intelligence(self, source_type: str, raw_items: list, job: JobResult) -> None:
+        """
+        Bridge scraper output to the intelligence layer.
+
+        Converts raw scraper items to CivicEvents via the appropriate adapter,
+        persists them to the EventStore, and evaluates them against the
+        RulesEngine to generate watchdog alerts.
+
+        Args:
+            source_type: One of SourceType constants (civicclerk, florida-public-notices, srwmd)
+            raw_items: Raw scraper output objects (dataclass instances)
+            job: JobResult to update with event/alert counts
+        """
+        adapter = self.adapters.get(source_type)
+        if not adapter:
+            logger.warning("No adapter for source type", source_type=source_type)
+            return
+
+        if not raw_items:
+            return
+
+        try:
+            # 1. Adapt raw items → CivicEvents
+            events = adapter.adapt(raw_items)
+            if not events:
+                logger.info("Adapter produced no events", source_type=source_type)
+                return
+
+            # 2. Persist to EventStore
+            save_result = self.event_store.save_events(events)
+            job.events_created = save_result.get("new", 0) + save_result.get("updated", 0)
+
+            logger.info(
+                "Events saved to store",
+                source_type=source_type,
+                total=len(events),
+                new=save_result.get("new", 0),
+                updated=save_result.get("updated", 0),
+                unchanged=save_result.get("unchanged", 0),
+            )
+
+            # 3. Evaluate against RulesEngine for watchdog alerts
+            alerts = self.rules_engine.evaluate_batch(events)
+            job.alerts_generated = alerts
+
+            if alerts:
+                logger.info(
+                    "Watchdog alerts generated",
+                    source_type=source_type,
+                    alert_count=len(alerts),
+                    severities=[a.severity.value for a in alerts],
+                )
+
+        except Exception as e:
+            logger.error(
+                "Intelligence processing failed",
+                source_type=source_type,
+                error=str(e),
+            )
 
     # =========================================================================
     # ANALYSIS
@@ -508,11 +600,35 @@ class Orchestrator:
                     entities = load_entities_config()
                     watchlist = self._build_watchlist(entities)
 
+                    # Ingest PDF content into RAG pipeline (if available)
+                    pdf_content = meeting.get('pdf_content', '')
+                    if pdf_content:
+                        self._ingest_to_rag(
+                            text=pdf_content,
+                            document_id=f"meeting-{meeting.get('meeting_id', 'unknown')}",
+                            title=meeting.get('title', ''),
+                            metadata={
+                                'source_id': source_id,
+                                'meeting_id': meeting.get('meeting_id'),
+                                'meeting_date': meeting.get('meeting_date', ''),
+                                'type': 'meeting_agenda',
+                            }
+                        )
+
+                    # Retrieve cross-document context from RAG
+                    rag_context = self._retrieve_rag_context(
+                        meeting.get('title', '') or source_id
+                    )
+
                     # Run Scout Agent
-                    report = self.scout.run({
+                    run_input = {
                         'meeting': meeting,
                         'watchlist': watchlist
-                    })
+                    }
+                    if rag_context:
+                        run_input['rag_context'] = rag_context
+
+                    report = self.scout.run(run_input)
 
                     # Save report
                     self.db.save_report(report)
@@ -538,6 +654,62 @@ class Orchestrator:
         except Exception as e:
             logger.error("Analysis failed", source_id=source_id, error=str(e))
             return 0
+
+    # =========================================================================
+    # RAG PIPELINE INTEGRATION
+    # =========================================================================
+
+    def _get_rag(self):
+        """Lazy-load RAG pipeline. Returns None if unavailable."""
+        if self._rag_pipeline is None:
+            try:
+                from src.tools.rag_pipeline import get_rag_pipeline
+                self._rag_pipeline = get_rag_pipeline()
+                logger.info("RAG pipeline initialized")
+            except Exception as e:
+                logger.warning("RAG pipeline unavailable, skipping", error=str(e))
+                self._rag_pipeline = False  # Sentinel: tried and failed
+        return self._rag_pipeline if self._rag_pipeline is not False else None
+
+    def _ingest_to_rag(
+        self, text: str, document_id: str,
+        title: str = "", metadata: dict | None = None
+    ) -> None:
+        """Ingest document text into RAG pipeline. Failures are non-blocking."""
+        rag = self._get_rag()
+        if not rag:
+            return
+        try:
+            chunks_stored = rag.ingest_document(
+                text=text,
+                document_id=document_id,
+                title=title,
+                metadata=metadata
+            )
+            logger.info(
+                "RAG ingestion complete",
+                document_id=document_id,
+                chunks_stored=chunks_stored
+            )
+        except Exception as e:
+            logger.warning(
+                "RAG ingestion failed (non-blocking)",
+                document_id=document_id,
+                error=str(e)
+            )
+
+    def _retrieve_rag_context(self, query: str, top_k: int = 3) -> str:
+        """Retrieve cross-document context from RAG pipeline. Returns '' on failure."""
+        rag = self._get_rag()
+        if not rag:
+            return ""
+        try:
+            context = rag.retrieve_context(query=query, top_k=top_k)
+            if context and context != "No relevant context found.":
+                return context
+        except Exception as e:
+            logger.warning("RAG retrieval failed (non-blocking)", error=str(e))
+        return ""
 
     def _build_watchlist(self, entities: dict) -> str:
         """Build watchlist string from entities config."""
@@ -607,8 +779,14 @@ class Orchestrator:
                         topic=topic[:50]
                     )
 
+                    # Retrieve cross-document context from RAG
+                    rag_context = self._retrieve_rag_context(topic, top_k=5)
+
                     # Run Analyst Agent with both providers
-                    deep_report = self.analyst.run({'topic': topic})
+                    run_input = {'topic': topic}
+                    if rag_context:
+                        run_input['rag_context'] = rag_context
+                    deep_report = self.analyst.run(run_input)
 
                     # Save deep research report
                     self.db.save_deep_research_report(
@@ -645,6 +823,9 @@ class Orchestrator:
         Returns:
             Formatted summary string
         """
+        total_events = sum(j.events_created for j in pipeline_run.jobs)
+        total_alerts = sum(len(j.alerts_generated) for j in pipeline_run.jobs)
+
         lines = [
             f"# Pipeline Run Summary",
             f"**Run ID:** {pipeline_run.run_id}",
@@ -658,6 +839,8 @@ class Orchestrator:
             f"- **Items Discovered:** {pipeline_run.total_discovered}",
             f"- **New Items:** {pipeline_run.total_new}",
             f"- **Items Analyzed:** {pipeline_run.total_analyzed}",
+            f"- **Events Created:** {total_events}",
+            f"- **Alerts Generated:** {total_alerts}",
             "",
             "## Job Details",
         ]
@@ -677,8 +860,14 @@ class Orchestrator:
             lines.append(f"- Discovered: {job.items_discovered}")
             lines.append(f"- New: {job.items_new}")
             lines.append(f"- Analyzed: {job.items_analyzed}")
+            lines.append(f"- Events: {job.events_created}")
+            lines.append(f"- Alerts: {len(job.alerts_generated)}")
             if job.error:
                 lines.append(f"- Error: {job.error}")
+            if job.alerts_generated:
+                lines.append(f"- Alert Details:")
+                for alert in job.alerts_generated:
+                    lines.append(f"  - [{alert.severity.value.upper()}] {alert.message}")
             lines.append("")
 
         return "\n".join(lines)

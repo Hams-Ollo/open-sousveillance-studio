@@ -1,6 +1,6 @@
 [project]
 name = "open-sousveillance-studio"
-version = "0.1.0"
+version = "0.4.0-alpha"
 description = "AI-powered civic intelligence platform for monitoring local government"
 readme = "README.md"
 license = {text = "MIT"}

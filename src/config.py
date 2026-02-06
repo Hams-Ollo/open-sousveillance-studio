@@ -25,7 +25,7 @@ from functools import lru_cache
 
 import yaml
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 # Load env vars from .env file
 load_dotenv()
@@ -52,7 +52,7 @@ OUTPUT_DIR = BASE_DIR / "outputs"
 
 class APIKeys(BaseModel):
     """API keys loaded from environment variables."""
-    
+
     google_api_key: str = Field(description="Gemini API key (required)")
     tavily_api_key: Optional[str] = Field(default=None, description="Tavily search API key")
     firecrawl_api_key: Optional[str] = Field(default=None, description="Firecrawl scraping API key")
@@ -67,7 +67,7 @@ def load_api_keys() -> APIKeys:
     google_key = os.getenv("GOOGLE_API_KEY")
     if not google_key:
         raise ValueError("GOOGLE_API_KEY not found in environment variables.")
-    
+
     return APIKeys(
         google_api_key=google_key,
         tavily_api_key=os.getenv("TAVILY_API_KEY"),
@@ -88,7 +88,7 @@ def load_yaml_file(filename: str) -> dict[str, Any]:
     filepath = CONFIG_DIR / filename
     if not filepath.exists():
         raise FileNotFoundError(f"Configuration file not found: {filepath}")
-    
+
     with open(filepath, "r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
@@ -233,24 +233,24 @@ class OrganizationEntity(BaseModel):
 class AppConfig(BaseModel):
     """
     Unified application configuration.
-    
+
     Combines all YAML configs and API keys into a single validated object.
     """
-    
+
     # API keys from environment
     api_keys: APIKeys
-    
+
     # Instance configuration
     instance: InstanceIdentity
     jurisdiction: Jurisdiction
     schedule: Schedule
-    
+
     # Paths
     base_dir: Path = BASE_DIR
     config_dir: Path = CONFIG_DIR
     output_dir: Path = OUTPUT_DIR
     prompt_lib_dir: Path = PROMPT_LIB_DIR
-    
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -258,12 +258,12 @@ class AppConfig(BaseModel):
 def build_app_config() -> AppConfig:
     """
     Build the complete application configuration.
-    
+
     Loads all YAML files, validates with Pydantic, and combines with API keys.
     """
     api_keys = load_api_keys()
     instance_data = load_instance_config()
-    
+
     return AppConfig(
         api_keys=api_keys,
         instance=InstanceIdentity(**instance_data.get("instance", {})),
@@ -275,12 +275,12 @@ def build_app_config() -> AppConfig:
 def get_all_sources() -> list[SourceConfig]:
     """
     Get all configured sources across all tiers.
-    
+
     Returns a flat list of SourceConfig objects.
     """
     sources_data = load_sources_config()
     all_sources = []
-    
+
     # Iterate through all tier keys (updated to match sources.yaml structure)
     tier_keys = [
         "tier_1_municipal",     # City level
@@ -291,7 +291,7 @@ def get_all_sources() -> list[SourceConfig]:
         "tier_6_state",         # Florida state government
         "tier_7_federal",       # US federal government
     ]
-    
+
     for tier_key in tier_keys:
         tier_sources = sources_data.get(tier_key, [])
         for source in tier_sources:
@@ -304,14 +304,14 @@ def get_all_sources() -> list[SourceConfig]:
             if "boards" in source_copy:
                 source_copy["boards"] = [BoardConfig(**b) for b in source_copy["boards"]]
             all_sources.append(SourceConfig(**source_copy))
-    
+
     return all_sources
 
 
 def get_sources_by_tier(tier: int) -> list[SourceConfig]:
     """
     Get sources filtered by tier number (1-7).
-    
+
     Tier 1: Municipal, Tier 2: County, Tier 3: Regional,
     Tier 4: Legal, Tier 5: Civic, Tier 6: State, Tier 7: Federal
     """
@@ -327,7 +327,7 @@ def get_sources_by_tier(tier: int) -> list[SourceConfig]:
     tier_key = tier_map.get(tier)
     if not tier_key:
         return []
-    
+
     sources_data = load_sources_config()
     tier_sources = sources_data.get(tier_key, [])
     result = []
@@ -361,19 +361,19 @@ def get_organizations() -> list[OrganizationEntity]:
 def get_all_keywords() -> set[str]:
     """
     Get all keywords from projects and organizations for matching.
-    
+
     Returns a deduplicated set of all keywords and aliases.
     """
     keywords = set()
-    
+
     for project in get_projects():
         keywords.update(project.keywords)
         keywords.update(project.aliases)
-    
+
     for org in get_organizations():
         keywords.update(org.keywords)
         keywords.update(org.aliases)
-    
+
     return keywords
 
 

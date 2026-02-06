@@ -95,7 +95,11 @@ def render_sidebar():
         st.divider()
 
         # Version info
-        st.caption("Version: 0.2.0-dev")
+        try:
+            from src import __version__
+            st.caption(f"Version: {__version__}")
+        except ImportError:
+            st.caption("Version: unknown")
         st.caption(f"Project: {PROJECT_ROOT.name}")
 
 

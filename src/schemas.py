@@ -33,23 +33,23 @@ class Significance(str, Enum):
 
 class UrgencyAlert(BaseModel):
     level: UrgencyLevel = Field(..., description="Urgency level based on immediate deadlines or threats")
-    deadline: Optional[date] = Field(description="Specific deadline for action if applicable")
+    deadline: Optional[date] = Field(default=None, description="Specific deadline for action if applicable")
     action_item: str = Field(..., description="Specific action for citizens to take")
     context: str = Field(..., description="Context explaining why this is urgent")
 
 class MeetingItem(BaseModel):
     """A single agenda item with comprehensive analysis."""
-    agenda_id: Optional[str] = Field(description="Agenda item ID if available")
+    agenda_id: Optional[str] = Field(default=None, description="Agenda item ID if available")
     topic: str = Field(..., description="Brief title of the agenda item")
     summary: str = Field(..., description="2-3 sentence summary explaining what this item is about")
     category: CivicCategory = Field(..., description="Civic category for this item")
     significance: Significance = Field(..., description="How significant is this for citizens")
     related_to: List[str] = Field(..., description="Related entities, projects, or keywords")
-    outcome: Optional[str] = Field(description="Vote outcome or decision if meeting already occurred")
+    outcome: Optional[str] = Field(default=None, description="Vote outcome or decision if meeting already occurred")
 
     # Priority flagging for watchlist matches
     priority_flag: bool = Field(..., description="True if this item matches watchlist entities/keywords")
-    priority_reason: Optional[str] = Field(description="Why this item was flagged as priority")
+    priority_reason: Optional[str] = Field(default=None, description="Why this item was flagged as priority")
     watchlist_matches: List[str] = Field(..., description="Which watchlist items this matches")
 
 class BaseReport(BaseModel):
@@ -57,7 +57,7 @@ class BaseReport(BaseModel):
     report_id: str = Field(..., description="Unique ID for the report (e.g., A1-2026-01-28)")
     period_covered: str = Field(..., description="Date range covered by the report")
     executive_summary: str = Field(..., description="Concise summary of the most critical findings")
-    alerts: List[UrgencyAlert] = Field(..., description="List of actionable alerts")
+    alerts: List[UrgencyAlert] = Field(default_factory=list, description="List of actionable alerts")
 
     @property
     def urgency_level(self) -> UrgencyLevel:
@@ -70,7 +70,9 @@ class BaseReport(BaseModel):
 
 class ScoutReport(BaseReport):
     """Output from A1/A2 scouts - monitors government data sources."""
-    items: List[MeetingItem] = Field(..., description="List of relevant agenda items found")
+    items: List[MeetingItem] = Field(default_factory=list, description="List of relevant agenda items found")
+    raw_markdown: Optional[str] = Field(default=None, description="Raw markdown content if available")
+    date_generated: datetime = Field(default_factory=datetime.now, description="When this report was generated")
 
 
 class AnalysisSection(BaseModel):
@@ -97,7 +99,7 @@ class SynthesizerReport(BaseReport):
     target_audience: str = Field(..., description="Intended audience")
     headline: str = Field(..., description="Attention-grabbing headline")
     key_takeaways: List[str] = Field(..., description="Bullet-point takeaways")
-    call_to_action: Optional[str] = Field(description="What citizens should do")
+    call_to_action: Optional[str] = Field(default=None, description="What citizens should do")
     distribution_channels: List[str] = Field(..., description="Where to publish")
 
 
@@ -112,13 +114,13 @@ class ApprovalStatus(str, Enum):
 class ApprovalRequest(BaseModel):
     """Human-in-the-loop approval request for sensitive content."""
     id: str = Field(..., description="Unique approval request ID")
-    created_at: datetime = Field(..., description="When this request was created")
-    expires_at: Optional[datetime] = Field(description="When this approval expires")
-    status: ApprovalStatus = Field(..., description="Current status")
+    created_at: datetime = Field(default_factory=datetime.now, description="When this request was created")
+    expires_at: Optional[datetime] = Field(default=None, description="When this approval expires")
+    status: ApprovalStatus = Field(default=ApprovalStatus.PENDING, description="Current status")
     agent_id: str = Field(..., description="Agent that generated the content")
     report_id: str = Field(..., description="Associated report ID")
     reason: str = Field(..., description="Why approval is needed")
     summary: str = Field(..., description="Summary of content requiring approval")
-    reviewer: Optional[str] = Field(description="Who reviewed this")
-    decision_at: Optional[datetime] = Field(description="When decision was made")
-    comments: Optional[str] = Field(description="Reviewer comments")
+    reviewer: Optional[str] = Field(default=None, description="Who reviewed this")
+    decision_at: Optional[datetime] = Field(default=None, description="When decision was made")
+    comments: Optional[str] = Field(default=None, description="Reviewer comments")

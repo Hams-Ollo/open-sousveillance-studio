@@ -3,7 +3,7 @@ from typing import Dict, Any, Optional, List
 from src.agents.base import BaseAgent
 from src.schemas import ScoutReport
 from src.models import get_gemini_pro
-from src.tools import monitor_url  # This imports from src/tools.py module
+from src.tools import monitor_url
 from src.prompts import get_alachua_context
 
 

@@ -4,6 +4,8 @@ All custom exceptions should be defined here to maintain consistency
 and enable proper error handling across the application.
 """
 
+from typing import Any
+
 
 class OpenSousveillanceError(Exception):
     """Base exception for all Open Sousveillance Studio errors."""
@@ -61,7 +63,7 @@ class DatabaseError(OpenSousveillanceError):
 class ValidationError(OpenSousveillanceError):
     """Raised when data validation fails."""
 
-    def __init__(self, message: str, field: str = None, value: any = None):
+    def __init__(self, message: str, field: str = None, value: Any = None):
         super().__init__(message)
         self.field = field
         self.value = value

@@ -2,6 +2,356 @@
 
 ---
 
+## Session: 2026-02-06 (Morning) - P1 Sprint Complete: CR-06 through CR-13
+
+**Session Focus:** Complete all remaining P1 high-priority code review fixes
+
+---
+
+### Completed Items
+
+| CR | Fix | Files Modified/Created |
+|:---|:----|:-----------------------|
+| **CR-06** | Agent registry + `get_agent()` factory | `src/agents/__init__.py`, `src/app.py`, `src/main.py` |
+| **CR-09** | API key header auth on protected routes | `src/app.py`, `.env.example` |
+| **CR-08** | Redis-backed state store (in-memory fallback) | `src/state.py` (new), `src/app.py` |
+| **CR-11** | `threading.Lock` on all 12 singletons | 12 files across `src/`, `src/tools/`, `src/intelligence/` |
+| **CR-12** | Token-counting middleware + budget cap | `src/llm_cost.py` (new), `src/models.py`, `.env.example` |
+| **CR-13** | PID files + `stop-all.ps1` | `stop-all.ps1` (new), `start-all.ps1`, `.gitignore` |
+| **CR-10** | RAG pipeline wired into orchestrator | `src/orchestrator.py` |
+
+### Key Design Decisions
+
+- **CR-06:** Dict registry chosen over decorator auto-registration for simplicity. All 6 agents (A1-A4, B1-B2) registered with layer and description metadata. `get_agent()` does layer-based routing instead of string prefix matching.
+- **CR-08:** `RedisStateStore` falls back to in-memory dicts if Redis unavailable. Uses same Redis URL as Celery broker. Completed runs get 24h TTL, approvals 7d TTL.
+- **CR-09:** Auth disabled when `API_KEY` env var is blank (development mode). `/health`, `/info`, `/status`, `/agents`, `/stream` remain public.
+- **CR-11:** Double-checked locking pattern (`if x is None: with lock: if x is None:`) used on all 12 singletons for thread safety without unnecessary lock contention.
+- **CR-12:** Token-counting middleware chosen over simple call counter per user request. Model pricing table covers Gemini 2.5/2.0/1.5 variants. `BudgetExceededError` raised when daily cap hit. `/costs` endpoint exposes per-model breakdown.
+- **CR-13:** PID files in `.pids/` directory. `start-all.ps1` checks for existing PIDs before launching. `stop-all.ps1` stops process trees (parent + children).
+- **CR-10:** RAG pipeline lazy-loaded in orchestrator. Ingestion happens during analysis phase (PDF content). Retrieval provides cross-document context to both Scout and Analyst agents. All RAG calls non-blocking (try/except).
+
+### New Files Created
+
+- `src/state.py` — Redis-backed state store with in-memory fallback
+- `src/llm_cost.py` — Token counting, model pricing, daily budget enforcement
+- `stop-all.ps1` — Process shutdown script
+
+### New API Endpoints
+
+- `GET /agents` — List registered agents with metadata
+- `GET /costs` — Daily LLM cost summary (auth required)
+
+### New CLI Features
+
+- `python -m src.main --list-agents` — List all registered agents
+- `python -m src.main --agent B1 --topic "..."` — Explicit `--topic` flag for analysts
+
+### New Environment Variables
+
+- `API_KEY` — API authentication key (blank = disabled)
+- `LLM_DAILY_BUDGET_USD` — Daily LLM budget cap (0 = unlimited)
+
+### Test Results
+
+- **152 passed, 0 failures** after all changes
+- Benign `ValueError: I/O operation on closed file` from colorama/langsmith at exit (not a real error)
+
+---
+
+## Session: 2026-02-05 (Late Evening #2) - P1 Sprint Start: CR-05 & CR-07
+
+**Session Focus:** First two P1 code review fixes — eliminate tools.py collision and unify version numbers
+
+---
+
+### Session Summary
+
+Completed CR-05 and CR-07, the first two items of Sprint 6 (P1). The `importlib` hack in `src/tools/__init__.py` is removed — LangChain tools now live cleanly in `src/tools/langchain_tools.py`. All 4 scattered version strings are unified under `src/__init__.py` with `__version__ = "0.4.0-alpha"`. 152 tests passing, 0 failures.
+
+---
+
+### CR-05: Eliminate `src/tools.py` / `src/tools/` Package Collision
+
+**Problem:** `src/tools.py` (standalone module) and `src/tools/` (package directory) coexisted via a fragile `importlib.util` hack in `__init__.py` that dynamically loaded the standalone file at runtime.
+
+**Solution (Option A):** Moved contents to `src/tools/langchain_tools.py`, replaced hack with clean import.
+
+| Action | File |
+|:-------|:-----|
+| Created | `src/tools/langchain_tools.py` (131 lines — exact copy of tools.py) |
+| Replaced | `src/tools/__init__.py` — removed 20-line `importlib` hack, added 6-line clean import |
+| Deleted | `src/tools.py` |
+| Updated | `src/agents/scout.py` — removed stale comment about tools.py coexistence |
+
+**Import paths unchanged** — callers still use `from src.tools import monitor_url` (re-exported via `__init__.py`).
+
+---
+
+### CR-07: Unify Version Numbers
+
+**Problem:** 4 different version strings: `pyproject.toml` (0.1.0), `README.md` (v0.4.0), `src/app.py` (2.0.0), `src/ui/app.py` (0.2.0-dev).
+
+**Solution (Option A):** Single canonical `__version__` in `src/__init__.py`, imported everywhere.
+
+| Action | File | Change |
+|:-------|:-----|:-------|
+| Created | `src/__init__.py` | `__version__ = "0.4.0-alpha"` |
+| Updated | `pyproject.toml` | `version = "0.4.0-alpha"` |
+| Updated | `src/app.py` | `from src import __version__`; `version=__version__` in FastAPI |
+| Updated | `src/ui/app.py` | `from src import __version__`; `st.caption(f"Version: {__version__}")` |
+
+---
+
+### Test Results
+
+```
+152 passed, 0 failures in ~9s
+```
+
+---
+
+### Next Steps
+
+1. CR-06: Create agent registry/factory pattern (4h)
+2. CR-09: Add API authentication (2h)
+3. CR-08: Move run/approval state to Redis (4h)
+
+---
+---
+
+## Session: 2026-02-05 (Late Evening) - P0 Remediation Implementation
+
+**Session Focus:** Implement all 4 P0 critical code review fixes (CR-01 through CR-04)
+
+---
+
+### Session Summary
+
+Implemented all P0 critical fixes identified in the earlier code review session. All 4 items completed with 156 tests passing (0 failures). The intelligence layer is now bridged to the orchestrator, AnalystAgent uses the correct schema, import bugs are fixed, and agent tests are real.
+
+---
+
+### Implementations
+
+#### CR-03: Fix Missing Imports and Dependencies (5 single-line fixes)
+
+| File | Fix |
+|:-----|:----|
+| `src/app.py` | Added `import os` (used by `main()`) |
+| `requirements.txt` | Added `sse-starlette==2.2.1` |
+| `src/exceptions.py` | Fixed `any` → `Any` (added `from typing import Any`) |
+| `src/database.py` | Removed duplicate `import json` inside method |
+| `src/config.py` | Removed unused `field_validator` import |
+
+#### CR-02: Fix AnalystAgent Schema
+
+| File | Change |
+|:-----|:-------|
+| `src/agents/analyst.py` | Import `AnalystReport` instead of `ScoutReport` |
+| `src/agents/analyst.py` | `with_structured_output(AnalystReport)` |
+| `src/agents/analyst.py` | Updated prompt to reference AnalystReport fields |
+| `src/agents/analyst.py` | Updated return type annotation and logging |
+| `src/database.py` | Updated `save_deep_research_report` to accept `AnalystReport` |
+
+#### CR-01: Bridge Intelligence Layer to Orchestrator
+
+**Scraper modifications** (expose raw items for adapter consumption):
+
+| File | Change |
+|:-----|:-------|
+| `src/tools/civicclerk_scraper.py` | Added `raw_meetings` to pipeline result dict |
+| `src/tools/florida_notices_scraper.py` | Added `raw_notices` to pipeline result dict |
+| `src/tools/srwmd_scraper.py` | Added `raw_notices` to pipeline result dict |
+
+**Orchestrator modifications:**
+
+| File | Change |
+|:-----|:-------|
+| `src/orchestrator.py` | Added imports for adapters, EventStore, RulesEngine, Alert |
+| `src/orchestrator.py` | Initialized adapters dict, event_store, rules_engine in `__init__` |
+| `src/orchestrator.py` | Added `_process_intelligence()` method (adapt → save → evaluate) |
+| `src/orchestrator.py` | Wired `_process_intelligence()` into all 3 job runners |
+| `src/orchestrator.py` | Added `events_created`, `alerts_generated` to `JobResult` |
+| `src/orchestrator.py` | Updated `generate_summary()` with event/alert reporting |
+
+#### CR-04: Implement Real Agent Tests
+
+Replaced 7 skipped empty stubs with 11 real tests:
+
+| Test Class | Tests | What's Tested |
+|:-----------|:------|:-------------|
+| `TestBaseAgent` | 3 | Init/logging, run returns report, error propagation |
+| `TestScoutAgent` | 4 | Init, validation, PDF mode prompt, metadata mode prompt |
+| `TestAnalystAgent` | 4 | Init with AnalystReport schema, validation, Tavily flow, Tavily failure |
+
+**Bonus fixes during CR-04:**
+- Fixed all `Optional` fields in `src/schemas.py` — added `default=None` for Pydantic 2.x compat
+- Added `raw_markdown` and `date_generated` fields to `ScoutReport`
+- Added `default_factory` for `alerts` (BaseReport) and `items` (ScoutReport)
+- Added defaults for `created_at` and `status` on `ApprovalRequest`
+- Fixed `conftest.py` `sample_scout_report` fixture (MeetingItem missing required fields)
+- Fixed `test_schemas.py` test cases to provide all required fields
+
+---
+
+### Test Results
+
+```
+156 passed, 0 failures in ~12s
+- 11 agent tests (was 7 skipped stubs)
+- 39 scraper tests
+- 39 intelligence tests
+- 9 schema tests (was 4 failing)
+- 14 config tests
+- 12 API tests
+- 22 health tests
+- 10 other tests
+```
+
+---
+
+### Files Modified
+
+| File | Changes |
+|:-----|:--------|
+| `src/app.py` | Added `import os` |
+| `src/config.py` | Removed unused `field_validator` |
+| `src/database.py` | Removed duplicate import, updated `save_deep_research_report` |
+| `src/exceptions.py` | Fixed `any` → `Any` typing |
+| `src/schemas.py` | Fixed Optional defaults, added ScoutReport fields, ApprovalRequest defaults |
+| `src/agents/analyst.py` | AnalystReport schema, prompt, return type |
+| `src/orchestrator.py` | Intelligence layer bridge (imports, init, method, wiring, summary) |
+| `src/tools/civicclerk_scraper.py` | Exposed `raw_meetings` in pipeline result |
+| `src/tools/florida_notices_scraper.py` | Exposed `raw_notices` in pipeline result |
+| `src/tools/srwmd_scraper.py` | Exposed `raw_notices` in pipeline result |
+| `requirements.txt` | Added `sse-starlette==2.2.1` |
+| `test/test_agents.py` | 11 real tests replacing 7 skipped stubs |
+| `test/test_schemas.py` | Fixed MeetingItem test with required fields |
+| `test/conftest.py` | Fixed sample_scout_report fixture |
+
+---
+
+### Next Steps
+
+1. Start Sprint 6: P1 High-Priority fixes
+2. CR-05: Eliminate tools.py/tools/ package collision
+3. CR-07: Unify version numbers
+4. CR-10: Wire RAG pipeline into production
+
+---
+---
+
+## Session: 2026-02-05 (Evening) - Comprehensive Code Review
+
+**Session Focus:** Full codebase and documentation review, findings report, project plan updates
+
+---
+
+### Session Summary
+
+Performed a comprehensive code review of the entire codebase covering all architectural layers. Identified 29 actionable items (CR-01 to CR-29) organized by priority. Integrated all findings into project planning docs.
+
+---
+
+### Code Review Scope
+
+Reviewed every file in the project across these areas:
+
+| Area | Files Reviewed | Key Findings |
+|:-----|:---------------|:-------------|
+| Configuration | pyproject.toml, requirements.txt, docker-compose.yml, Dockerfile, .env.example | 4 different version strings, sse-starlette missing from deps |
+| Core Application | app.py, config.py, database.py, exceptions.py, models.py, schemas.py, orchestrator.py | Missing `os` import, in-memory state, no API auth, CORS anti-pattern |
+| Agents | base.py, scout.py, analyst.py | AnalystAgent uses ScoutReport instead of AnalystReport |
+| Intelligence | models.py, event_store.py, rules_engine.py, health.py, all adapters | Fully built but never called from orchestrator (dead code) |
+| RAG Pipeline | embeddings.py, chunking.py, vector_store.py, rag_pipeline.py | Complete stack built but never wired into production |
+| Scrapers | civicclerk_scraper.py, firecrawl_client.py, srwmd_scraper.py, florida_notices_scraper.py | Well-tested (39 tests), URL validation good |
+| Tools | tools.py, tools/__init__.py, resource_cache.py, gemini_research.py | Fragile importlib hack for tools.py/tools/ collision |
+| Workflows | graphs.py | LangGraph workflows exist but disconnected from pipeline |
+| Tasks | celery_app.py, scout_tasks.py | 4 AM scheduling works, but no Celery health visibility |
+| Tests | All test files | 78 real tests (scrapers + intelligence), 0 agent tests (all empty stubs) |
+| UI | ui/app.py | sys.path manipulation, different version string |
+| Infrastructure | start-all.ps1, .pre-commit-config.yaml, migrations/ | No stop script, no Redis/Celery start, migration gaps |
+
+---
+
+### Critical Findings (P0)
+
+1. **CR-01: Intelligence layer is dead code** — Orchestrator never calls adapters, so CivicEvents, EventStore, RulesEngine, and watchdog alerts are never used. This is the single highest-impact fix.
+2. **CR-02: AnalystAgent uses wrong schema** — Outputs ScoutReport instead of AnalystReport, losing structured sections/recommendations.
+3. **CR-03: Missing imports/deps** — `os` not imported in app.py, `sse-starlette` not in requirements.txt.
+4. **CR-04: Zero agent test coverage** — All tests in test_agents.py are skip-decorated empty stubs.
+
+### High-Priority Findings (P1)
+
+5. **CR-05: tools.py/tools/ package collision** with importlib hack
+6. **CR-06: Fragile string-prefix agent routing** (`A*` = Scout, `B*` = Analyst)
+7. **CR-07: 4 different version strings** (pyproject=0.1.0, README=0.4.0, app=2.0.0, ui=0.2.0)
+8. **CR-08: In-memory run/approval state** lost on restart
+9. **CR-09: No API authentication** on any endpoint
+10. **CR-10: RAG pipeline built but never called**
+11. **CR-11: 12+ singletons with no thread safety**
+12. **CR-12: No LLM rate limiting or cost controls**
+13. **CR-13: No graceful shutdown or process management**
+
+### Key Architectural Insight
+
+Three major subsystems are **fully implemented in isolation** but **disconnected from production**:
+1. **Intelligence Layer** (EventStore + RulesEngine + Adapters) — never called
+2. **RAG Pipeline** (chunk + embed + store + retrieve) — never called
+3. **LangGraph Workflows** (Scout + Analyst graphs) — never called
+
+Connecting these provides more value than writing any new code.
+
+### Strength: Scraper & Intelligence Tests
+
+The scraper tests (39) and intelligence tests (39) are well-implemented with real assertions, mock data, and comprehensive coverage. This is the best-tested part of the codebase.
+
+---
+
+### Documents Updated
+
+| Document | Changes |
+|:---------|:--------|
+| `TODO.md` | Added 29 CR items organized by priority (P0/P1/P2/P3), marked Phase 3 items as complete |
+| `docs/PROJECT_PLAN.md` | Added Phase 3c: Code Review Remediation with 3 sprints, updated Gantt chart, expanded Phase 4 |
+| `docs/PROJECT_MANAGEMENT.md` | Added Epic E6 with 6 features (F6.1-F6.6), 40+ tasks, sprint backlog, decision log entries |
+| `WORK_NOTES.md` | This session entry |
+
+---
+
+### Recommended Work Order
+
+**Sprint 5 (Feb 6-12): P0 Critical Fixes**
+1. CR-03 — Fix missing imports/deps (30 min, quick wins)
+2. CR-02 — Fix AnalystAgent schema (2h)
+3. CR-01 — Bridge intelligence layer to orchestrator (8h, highest impact)
+4. CR-04 — Implement real agent tests (6h)
+
+**Sprint 6 (Feb 13-20): P1 High Priority**
+5. CR-05 — Eliminate tools.py collision (2h)
+6. CR-07 — Unify version numbers (1h)
+7. CR-06 — Agent registry/factory (4h)
+8. CR-10 — Wire RAG pipeline (8h)
+9. CR-09 — API authentication (2h)
+10. CR-08 — Redis-backed state (4h)
+11. CR-11 — Thread-safe singletons (4h)
+12. CR-12 — LLM rate limiting (4h)
+13. CR-13 — Graceful shutdown (4h)
+
+**Sprint 7 (Feb 21-28): P2 Medium Priority**
+14. CR-14 through CR-25 — Data integrity, testing, hardening
+
+---
+
+### Next Steps
+
+1. Start Sprint 5: Begin with CR-03 (quick import fixes)
+2. Then CR-02 (AnalystAgent schema fix)
+3. Then CR-01 (bridge intelligence layer — the big one)
+
+---
+---
+
 ## Session: 2026-02-05 - Two-Layer Agent Architecture & Gemini Deep Research
 
 **Session Focus:** Integrate Gemini Deep Research, implement two-layer agent architecture, scheduled pipeline runs

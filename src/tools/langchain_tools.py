@@ -1,7 +1,7 @@
 """
-Tools module for Open Sousveillance Studio System.
+LangChain tools for Open Sousveillance Studio System.
 
-Provides LangChain tools for:
+Provides LangChain-compatible tools for:
 - Web scraping via Firecrawl
 - Deep research via Tavily
 """
@@ -12,18 +12,24 @@ from langchain_core.tools import tool
 from tavily import TavilyClient
 from firecrawl import FirecrawlApp
 
+import threading
+
 # Initialize clients lazily to avoid import-time crashes
 _tavily_client: Optional[TavilyClient] = None
 _firecrawl_client: Optional[FirecrawlApp] = None
+_tavily_lock = threading.Lock()
+_firecrawl_lock = threading.Lock()
 
 
 def get_tavily_client() -> Optional[TavilyClient]:
     """Get or create Tavily client."""
     global _tavily_client
     if _tavily_client is None:
-        api_key = os.getenv("TAVILY_API_KEY")
-        if api_key:
-            _tavily_client = TavilyClient(api_key=api_key)
+        with _tavily_lock:
+            if _tavily_client is None:
+                api_key = os.getenv("TAVILY_API_KEY")
+                if api_key:
+                    _tavily_client = TavilyClient(api_key=api_key)
     return _tavily_client
 
 
@@ -31,9 +37,11 @@ def get_firecrawl_client() -> Optional[FirecrawlApp]:
     """Get or create Firecrawl client."""
     global _firecrawl_client
     if _firecrawl_client is None:
-        api_key = os.getenv("FIRECRAWL_API_KEY")
-        if api_key:
-            _firecrawl_client = FirecrawlApp(api_key=api_key)
+        with _firecrawl_lock:
+            if _firecrawl_client is None:
+                api_key = os.getenv("FIRECRAWL_API_KEY")
+                if api_key:
+                    _firecrawl_client = FirecrawlApp(api_key=api_key)
     return _firecrawl_client
 
 

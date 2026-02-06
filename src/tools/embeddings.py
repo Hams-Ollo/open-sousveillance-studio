@@ -133,6 +133,9 @@ class EmbeddingService:
 _embedding_service: Optional[EmbeddingService] = None
 
 
+import threading
+_embedding_lock = threading.Lock()
+
 def get_embedding_service(dimension: int = DEFAULT_DIMENSION) -> EmbeddingService:
     """
     Get or create the embedding service singleton.
@@ -145,5 +148,7 @@ def get_embedding_service(dimension: int = DEFAULT_DIMENSION) -> EmbeddingServic
     """
     global _embedding_service
     if _embedding_service is None:
-        _embedding_service = EmbeddingService(dimension=dimension)
+        with _embedding_lock:
+            if _embedding_service is None:
+                _embedding_service = EmbeddingService(dimension=dimension)
     return _embedding_service

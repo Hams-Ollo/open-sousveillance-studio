@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 
 from src.agents.base import BaseAgent
-from src.schemas import ScoutReport
+from src.schemas import AnalystReport, AnalysisSection
 from src.models import get_gemini_pro
 from src.tools import deep_research
 from src.prompts import get_alachua_context
@@ -35,7 +35,7 @@ class AnalystAgent(BaseAgent):
     ):
         super().__init__(name, role="Analyst")
         self.llm = get_gemini_pro()
-        self.structured_llm = self.llm.with_structured_output(ScoutReport)
+        self.structured_llm = self.llm.with_structured_output(AnalystReport)
         self.context = get_alachua_context()
         self.research_provider = research_provider
 
@@ -69,13 +69,21 @@ class AnalystAgent(BaseAgent):
 
 ## INSTRUCTIONS
 
-Analyze the research findings and generate a comprehensive Intelligence Report:
+Analyze the research findings and generate a comprehensive AnalystReport:
 
 1. **report_id**: Format as "{agent_id}-{date}-001"
 2. **period_covered**: The date range covered by this research
 3. **executive_summary**: Key findings and their implications for citizens
 4. **alerts**: UrgencyAlerts for any time-sensitive findings
-5. **items**: Key topics identified with related entities
+5. **topic**: The primary research topic being analyzed
+6. **scout_report_ids**: IDs of any scout reports that informed this analysis (use [] if none)
+7. **sections**: List of AnalysisSection objects, each with:
+   - **title**: Section heading (e.g. "Development Activity", "Environmental Impact")
+   - **content**: Detailed analysis text
+   - **sources**: List of source URLs or references
+   - **confidence**: Confidence score 0.0-1.0
+8. **recommendations**: List of actionable recommendations for citizens
+9. **entities_mentioned**: List of key entities (people, organizations, projects) referenced
 
 **Analysis Focus:**
 - New development activity and permit applications
@@ -149,7 +157,7 @@ Entities of Interest: {self.context.get_entities_string()}"""
 
         return "\n\n---\n\n".join(results)
 
-    def _execute(self, input_data: Dict[str, Any]) -> ScoutReport:
+    def _execute(self, input_data: Dict[str, Any]) -> AnalystReport:
         """
         1. Formulate search queries based on topic.
         2. Execute Deep Research (Tavily and/or Gemini).
@@ -183,12 +191,14 @@ Entities of Interest: {self.context.get_entities_string()}"""
         )
 
         # 3. Execute with structured output
-        result: ScoutReport = self.structured_llm.invoke(prompt)
+        result: AnalystReport = self.structured_llm.invoke(prompt)
 
         self.logger.info(
             "Analysis complete",
             alerts_count=len(result.alerts),
-            items_count=len(result.items)
+            sections_count=len(result.sections),
+            recommendations_count=len(result.recommendations),
+            entities_count=len(result.entities_mentioned)
         )
 
         return result

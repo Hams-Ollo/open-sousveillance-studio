@@ -8,20 +8,38 @@ Provides REST API endpoints for:
 - SSE streaming for real-time updates
 """
 
+import json
+import os
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
+from src import __version__
 from src.config import build_app_config
 from src.logging_config import configure_logging, get_logger, bind_context, clear_context
 from src.intelligence.health import get_health_service, HealthStatus
+
+
+# =============================================================================
+# API KEY AUTHENTICATION
+# =============================================================================
+
+_API_KEY = os.getenv("API_KEY", "")
+
+
+async def verify_api_key(x_api_key: str = Header(default=None)):
+    """Verify API key for protected endpoints. Skipped if API_KEY is not configured."""
+    if not _API_KEY:
+        return  # Auth disabled — no key configured
+    if x_api_key != _API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
 # =============================================================================
@@ -71,11 +89,12 @@ class ApprovalItem(BaseModel):
 
 
 # =============================================================================
-# IN-MEMORY STATE (Replace with Redis/DB in production)
+# STATE STORE (Redis-backed with in-memory fallback)
 # =============================================================================
 
-runs: dict[str, RunStatus] = {}
-pending_approvals: dict[str, ApprovalItem] = {}
+from src.state import get_state_store
+
+state = get_state_store()
 
 
 # =============================================================================
@@ -116,7 +135,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Open Sousveillance Studio API",
     description="AI-powered civic monitoring for Alachua County, Florida",
-    version="2.0.0",
+    version=__version__,
     lifespan=lifespan
 )
 
@@ -289,49 +308,48 @@ async def info():
 
 def run_agent_task(run_id: str, agent: str, url: Optional[str], topic: Optional[str], save: bool):
     """Background task to run an agent."""
-    runs[run_id].status = "running"
-    runs[run_id].started_at = datetime.now()
+    state.update_run(run_id, status="running", started_at=datetime.now())
 
     try:
-        if agent.startswith("A"):
-            from src.agents.scout import ScoutAgent
-            agent_instance = ScoutAgent(name=agent, prompt_template="Standard Scout Prompt")
+        from src.agents import get_agent, get_agent_info
 
+        info = get_agent_info(agent)
+        agent_instance = get_agent(agent, prompt_template="Standard Scout Prompt") if info["layer"] == 1 else get_agent(agent)
+
+        if info["layer"] == 1:
+            # Scout agents require a URL
             if not url:
                 raise ValueError("URL required for Scout agents")
 
             report = agent_instance.run({"url": url})
 
-            runs[run_id].result = {
+            state.update_run(run_id, result={
                 "report_id": report.report_id,
                 "summary": report.executive_summary,
                 "alerts_count": len(report.alerts)
-            }
+            })
 
-        elif agent.startswith("B"):
-            from src.agents.analyst import AnalystAgent
-            agent_instance = AnalystAgent(name=agent)
-
+        elif info["layer"] == 2:
+            # Analyst agents require a topic
             topic = topic or "Tara Forest Development"
             report = agent_instance.run({"topic": topic})
 
-            runs[run_id].result = {
+            state.update_run(run_id, result={
                 "report_id": report.report_id,
                 "summary": report.executive_summary
-            }
+            })
 
             # Analysts require approval
             approval_id = str(uuid4())
-            pending_approvals[approval_id] = ApprovalItem(
-                id=approval_id,
-                agent=agent,
-                created_at=datetime.now(),
-                summary=report.executive_summary,
-                data=report.model_dump()
-            )
+            state.save_approval(approval_id, {
+                "id": approval_id,
+                "agent": agent,
+                "created_at": datetime.now().isoformat(),
+                "summary": report.executive_summary,
+                "data": report.model_dump()
+            })
 
-        runs[run_id].status = "completed"
-        runs[run_id].completed_at = datetime.now()
+        state.update_run(run_id, status="completed", completed_at=datetime.now())
 
         if save:
             try:
@@ -341,12 +359,10 @@ def run_agent_task(run_id: str, agent: str, url: Optional[str], topic: Optional[
                 print(f"Warning: Failed to save report: {e}")
 
     except Exception as e:
-        runs[run_id].status = "failed"
-        runs[run_id].error = str(e)
-        runs[run_id].completed_at = datetime.now()
+        state.update_run(run_id, status="failed", error=str(e), completed_at=datetime.now())
 
 
-@app.post("/run", response_model=RunResponse)
+@app.post("/run", response_model=RunResponse, dependencies=[Depends(verify_api_key)])
 async def run_agent(request: RunRequest, background_tasks: BackgroundTasks):
     """
     Start an agent run.
@@ -358,12 +374,16 @@ async def run_agent(request: RunRequest, background_tasks: BackgroundTasks):
     """
     run_id = str(uuid4())
 
-    # Initialize run status
-    runs[run_id] = RunStatus(
-        run_id=run_id,
-        agent=request.agent,
-        status="pending"
-    )
+    # Initialize run status in state store
+    state.save_run(run_id, {
+        "run_id": run_id,
+        "agent": request.agent,
+        "status": "pending",
+        "started_at": None,
+        "completed_at": None,
+        "result": None,
+        "error": None
+    })
 
     # Start background task
     background_tasks.add_task(
@@ -383,46 +403,43 @@ async def run_agent(request: RunRequest, background_tasks: BackgroundTasks):
     )
 
 
-@app.get("/status/{run_id}", response_model=RunStatus)
+@app.get("/status/{run_id}")
 async def get_run_status(run_id: str):
     """Get the status of an agent run."""
-    if run_id not in runs:
+    data = state.get_run(run_id)
+    if data is None:
         raise HTTPException(status_code=404, detail="Run not found")
-    return runs[run_id]
+    return data
 
 
-@app.get("/runs")
+@app.get("/runs", dependencies=[Depends(verify_api_key)])
 async def list_runs(limit: int = 10):
     """List recent agent runs."""
-    sorted_runs = sorted(
-        runs.values(),
-        key=lambda r: r.started_at or datetime.min,
-        reverse=True
-    )
-    return {"runs": [r.model_dump() for r in sorted_runs[:limit]]}
+    return {"runs": state.list_runs(limit=limit)}
 
 
 # =============================================================================
 # ROUTES: Approvals
 # =============================================================================
 
-@app.get("/approvals/pending")
+@app.get("/approvals/pending", dependencies=[Depends(verify_api_key)])
 async def list_pending_approvals():
     """List all pending approval items."""
     return {
-        "pending": [item.model_dump() for item in pending_approvals.values()]
+        "pending": state.list_approvals()
     }
 
 
-@app.get("/approvals/{approval_id}")
+@app.get("/approvals/{approval_id}", dependencies=[Depends(verify_api_key)])
 async def get_approval(approval_id: str):
     """Get details of a pending approval."""
-    if approval_id not in pending_approvals:
+    data = state.get_approval(approval_id)
+    if data is None:
         raise HTTPException(status_code=404, detail="Approval not found")
-    return pending_approvals[approval_id]
+    return data
 
 
-@app.post("/approvals/{approval_id}/decide")
+@app.post("/approvals/{approval_id}/decide", dependencies=[Depends(verify_api_key)])
 async def decide_approval(approval_id: str, request: ApprovalRequest):
     """
     Approve or reject a pending item.
@@ -430,17 +447,38 @@ async def decide_approval(approval_id: str, request: ApprovalRequest):
     - **decision**: "approved" or "rejected"
     - **comments**: Optional reviewer comments
     """
-    if approval_id not in pending_approvals:
+    item = state.remove_approval(approval_id)
+    if item is None:
         raise HTTPException(status_code=404, detail="Approval not found")
-
-    item = pending_approvals.pop(approval_id)
 
     return {
         "approval_id": approval_id,
         "decision": request.decision,
         "comments": request.comments,
-        "item_summary": item.summary
+        "item_summary": item.get("summary", "")
     }
+
+
+# =============================================================================
+# ROUTES: Cost Tracking
+# =============================================================================
+
+@app.get("/costs", dependencies=[Depends(verify_api_key)])
+async def get_llm_costs():
+    """Get daily LLM usage and cost summary."""
+    from src.llm_cost import get_cost_tracker
+    return get_cost_tracker().get_daily_summary()
+
+
+# =============================================================================
+# ROUTES: Agent Registry
+# =============================================================================
+
+@app.get("/agents")
+async def list_registered_agents():
+    """List all registered agents with metadata."""
+    from src.agents import list_agents
+    return {"agents": list_agents()}
 
 
 # =============================================================================
@@ -452,14 +490,14 @@ async def event_generator(run_id: str):
     import asyncio
 
     while True:
-        if run_id in runs:
-            status = runs[run_id]
+        data = state.get_run(run_id)
+        if data is not None:
             yield {
                 "event": "status",
-                "data": status.model_dump_json()
+                "data": json.dumps(data, default=str)
             }
 
-            if status.status in ["completed", "failed"]:
+            if data.get("status") in ["completed", "failed"]:
                 break
 
         await asyncio.sleep(1)
@@ -468,7 +506,7 @@ async def event_generator(run_id: str):
 @app.get("/stream/{run_id}")
 async def stream_run(run_id: str):
     """Stream real-time updates for an agent run via SSE."""
-    if run_id not in runs:
+    if state.get_run(run_id) is None:
         raise HTTPException(status_code=404, detail="Run not found")
 
     return EventSourceResponse(event_generator(run_id))

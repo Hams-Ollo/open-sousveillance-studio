@@ -30,8 +30,11 @@ def mock_env_vars(monkeypatch):
 @pytest.fixture
 def sample_scout_report():
     """Create a sample ScoutReport for testing."""
-    from src.schemas import ScoutReport, UrgencyAlert, UrgencyLevel, MeetingItem
-    
+    from src.schemas import (
+        ScoutReport, UrgencyAlert, UrgencyLevel, MeetingItem,
+        CivicCategory, Significance,
+    )
+
     return ScoutReport(
         report_id="A1-2026-01-30",
         period_covered="2026-01-30",
@@ -46,8 +49,14 @@ def sample_scout_report():
         items=[
             MeetingItem(
                 topic="Zoning Amendment Discussion",
+                summary="Discussion of proposed zoning amendment for Tara Forest area.",
+                category=CivicCategory.LAND_USE,
+                significance=Significance.NOTABLE,
                 related_to=["Tara Forest", "Development"],
-                outcome=None
+                outcome=None,
+                priority_flag=True,
+                priority_reason="Matches watchlist keyword: Tara Forest",
+                watchlist_matches=["Tara Forest"],
             )
         ]
     )
@@ -57,7 +66,7 @@ def sample_scout_report():
 def sample_analyst_report():
     """Create a sample AnalystReport for testing."""
     from src.schemas import AnalystReport, AnalysisSection, UrgencyAlert, UrgencyLevel
-    
+
     return AnalystReport(
         report_id="B1-2026-01-30",
         period_covered="2026-01-25 to 2026-01-30",
@@ -112,7 +121,7 @@ def config_dir(tmp_path):
     """Create temporary config directory with test YAML files."""
     config_path = tmp_path / "config"
     config_path.mkdir()
-    
+
     # Create instance.yaml
     instance_yaml = """
 instance:
@@ -138,7 +147,7 @@ schedule:
     cron: "0 10 1 * *"
 """
     (config_path / "instance.yaml").write_text(instance_yaml)
-    
+
     # Create sources.yaml
     sources_yaml = """
 sources:
@@ -154,7 +163,7 @@ sources:
       requires_javascript: false
 """
     (config_path / "sources.yaml").write_text(sources_yaml)
-    
+
     # Create entities.yaml
     entities_yaml = """
 projects:
@@ -167,7 +176,7 @@ projects:
       - development
 """
     (config_path / "entities.yaml").write_text(entities_yaml)
-    
+
     return config_path
 
 
@@ -176,5 +185,5 @@ def app_client():
     """Create FastAPI test client."""
     from fastapi.testclient import TestClient
     from src.app import app
-    
+
     return TestClient(app)

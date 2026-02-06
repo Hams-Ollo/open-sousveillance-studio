@@ -143,12 +143,13 @@ srwmd-applications:
   - 253434-3
   - 253436-1
 srwmd-issuances:
-  last_updated: '2026-02-04T19:13:32.126298'
+  last_updated: '2026-02-05T15:24:31.056753'
   base_url: https://www.mysuwanneeriver.com/1617/Notice-of-Permit-Issuance
   document_pattern: https://www.mysuwanneeriver.com/ImageRepository/Document?documentID={id}
   document_ids:
   - 15266
   - 15268
+  - 15269
   - 17942
   - 13351
   permit_ids:

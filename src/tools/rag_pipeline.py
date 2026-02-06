@@ -179,6 +179,9 @@ class RAGPipeline:
 _rag_pipeline: Optional[RAGPipeline] = None
 
 
+import threading
+_rag_lock = threading.Lock()
+
 def get_rag_pipeline() -> RAGPipeline:
     """
     Get or create the RAG pipeline singleton.
@@ -188,5 +191,7 @@ def get_rag_pipeline() -> RAGPipeline:
     """
     global _rag_pipeline
     if _rag_pipeline is None:
-        _rag_pipeline = RAGPipeline()
+        with _rag_lock:
+            if _rag_pipeline is None:
+                _rag_pipeline = RAGPipeline()
     return _rag_pipeline

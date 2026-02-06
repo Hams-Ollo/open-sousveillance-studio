@@ -224,6 +224,9 @@ class VectorStore:
 _vector_store: Optional[VectorStore] = None
 
 
+import threading
+_vector_lock = threading.Lock()
+
 def get_vector_store() -> VectorStore:
     """
     Get or create the vector store singleton.
@@ -233,5 +236,7 @@ def get_vector_store() -> VectorStore:
     """
     global _vector_store
     if _vector_store is None:
-        _vector_store = VectorStore()
+        with _vector_lock:
+            if _vector_store is None:
+                _vector_store = VectorStore()
     return _vector_store

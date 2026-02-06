@@ -228,18 +228,23 @@ class GeminiResearchClient:
 
 
 # Singleton instance
+import threading
+
 _gemini_research_client: Optional[GeminiResearchClient] = None
+_gemini_lock = threading.Lock()
 
 
 def get_gemini_research_client() -> Optional[GeminiResearchClient]:
     """Get or create the Gemini Research client singleton."""
     global _gemini_research_client
     if _gemini_research_client is None:
-        try:
-            _gemini_research_client = GeminiResearchClient()
-        except (ValueError, ImportError) as e:
-            logger.warning("Could not initialize Gemini Research client", error=str(e))
-            return None
+        with _gemini_lock:
+            if _gemini_research_client is None:
+                try:
+                    _gemini_research_client = GeminiResearchClient()
+                except (ValueError, ImportError) as e:
+                    logger.warning("Could not initialize Gemini Research client", error=str(e))
+                    return None
     return _gemini_research_client
 
 

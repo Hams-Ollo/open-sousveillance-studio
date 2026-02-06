@@ -886,7 +886,8 @@ class SRWMDScraper:
         results = {
             'source_id': 'srwmd-permits',
             'phase1_discovery': {},
-            'permits_ready_for_analysis': []
+            'permits_ready_for_analysis': [],
+            'raw_notices': []
         }
 
         # Phase 1: Discovery
@@ -911,6 +912,7 @@ class SRWMDScraper:
         }
 
         results['permits_ready_for_analysis'] = sync_result['new']
+        results['raw_notices'] = notices
 
         logger.info("SRWMD hybrid pipeline complete", results=results)
         return results

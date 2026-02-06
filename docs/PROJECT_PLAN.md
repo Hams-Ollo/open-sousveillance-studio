@@ -1,6 +1,6 @@
 # 📅 Project Plan: Open Sousveillance Studio
 
-**Version:** 1.2
+**Version:** 1.3
 **Last Updated:** 2026-02-05
 **Project Lead:** Hans
 **Target Release:** v1.0.0
@@ -41,14 +41,19 @@ gantt
     Foundation ✅           :done, p1, 2026-01-01, 2026-01-20
 
     section Phase 2
-    Scout Layer 🚧          :active, p2, 2026-01-21, 2026-02-15
-    Note over p2: Scouts run daily at 4am and can be manually triggered via API or Dev Console
+    Scout Layer ✅          :done, p2, 2026-01-21, 2026-02-02
 
     section Phase 3
-    Analyst Layer           :p3, 2026-02-16, 2026-03-15
+    Intelligence Layer ✅   :done, p3, 2026-02-02, 2026-02-05
+
+    section Phase 3b
+    Analyst Layer ✅        :done, p3b, 2026-02-02, 2026-02-05
+
+    section Phase 3c
+    Code Review Remediation :active, p3c, 2026-02-06, 2026-02-28
 
     section Phase 4
-    Integration & Polish    :p4, 2026-03-16, 2026-04-01
+    Integration & Polish    :p4, 2026-03-01, 2026-04-01
 
     section Release
     v1.0 Release 🚀         :milestone, 2026-04-01, 0d
@@ -243,9 +248,74 @@ flowchart TB
 
 ---
 
+### Phase 3c: Code Review Remediation 🚧 (Active)
+
+**Duration:** Feb 6 - Feb 28, 2026
+**Status:** In Progress
+
+**Approach:** Address all findings from comprehensive code review in priority order. Each sprint tackles one priority tier.
+
+#### Goals
+
+- Connect all built-but-disconnected subsystems (intelligence layer, RAG pipeline, LangGraph)
+- Fix critical bugs, missing imports, and schema mismatches
+- Harden the system for production (thread safety, rate limiting, authentication)
+- Achieve meaningful test coverage for agents and orchestrator
+
+#### Sprint 1: P0 Critical Fixes (Feb 6-12) ✅
+
+| Deliverable | ID | Status | Completed |
+|:------------|:---|:-------|:----------|
+| Bridge intelligence layer to orchestrator | CR-01 | ✅ | Feb 5 |
+| Fix AnalystAgent schema (ScoutReport → AnalystReport) | CR-02 | ✅ | Feb 5 |
+| Fix missing imports and dependency bugs | CR-03 | ✅ | Feb 5 |
+| Implement real agent tests (replace empty stubs) | CR-04 | ✅ | Feb 5 |
+| Fix Pydantic 2.x Optional field defaults in schemas | Bonus | ✅ | Feb 5 |
+| Fix test_schemas.py failures | Bonus | ✅ | Feb 5 |
+
+#### Sprint 2: P1 High-Priority Fixes (Feb 13-20)
+
+| Deliverable | ID | Status | Target Date |
+|:------------|:---|:-------|:------------|
+| Eliminate `src/tools.py` / package collision | CR-05 | ✅ | Feb 5 |
+| Create agent registry/factory pattern | CR-06 | ✅ | Feb 6 |
+| Unify version numbers across codebase | CR-07 | ✅ | Feb 5 |
+| Move run state to Redis | CR-08 | ✅ | Feb 6 |
+| Add API authentication | CR-09 | ✅ | Feb 6 |
+| Wire RAG pipeline into production | CR-10 | ✅ | Feb 6 |
+| Fix thread safety for singletons | CR-11 | ✅ | Feb 6 |
+| Add LLM rate limiting and cost controls | CR-12 | ✅ | Feb 6 |
+| Add graceful shutdown / process management | CR-13 | ✅ | Feb 6 |
+
+#### Sprint 3: P2 Medium-Priority Fixes (Feb 21-28)
+
+| Deliverable | ID | Status | Target Date |
+|:------------|:---|:-------|:------------|
+| Fix CORS configuration | CR-14 | 🔲 | Feb 21 |
+| Move runtime state files out of `config/` | CR-15 | 🔲 | Feb 21 |
+| Fix `lru_cache` mutable return values | CR-16 | 🔲 | Feb 22 |
+| Consolidate persistence layer | CR-17 | 🔲 | Feb 24 |
+| Add orchestrator tests | CR-18 | 🔲 | Feb 25 |
+| Add LangGraph workflow tests | CR-19 | 🔲 | Feb 26 |
+| Fix EventStore concurrency issues | CR-20 | 🔲 | Feb 22 |
+| Fix sequential `embed_batch` | CR-21 | 🔲 | Feb 23 |
+| Extract hardcoded Alachua logic to config | CR-22 | 🔲 | Feb 27 |
+| Add Celery worker health endpoint | CR-23 | 🔲 | Feb 25 |
+| Fix database migration gaps | CR-24 | 🔲 | Feb 24 |
+| Fix custom TimeoutError shadowing builtin | CR-25 | 🔲 | Feb 21 |
+
+#### Key Milestones
+
+- **Feb 5:** ✅ Intelligence layer connected to orchestrator (CR-01) — watchdog alerts functional
+- **Feb 5:** ✅ All P0 items resolved, agent tests passing (156 tests, 0 failures)
+- **Feb 20:** All P1 items resolved, RAG pipeline operational, API secured
+- **Feb 28:** All P2 items resolved, production-ready hardening complete
+
+---
+
 ### Phase 4: Integration & Polish
 
-**Duration:** Mar 16 - Apr 1, 2026
+**Duration:** Mar 1 - Apr 1, 2026
 **Status:** Planned
 
 #### Goals
@@ -254,21 +324,29 @@ flowchart TB
 - Docker deployment configuration
 - Documentation completion
 - Performance optimization
+- P3 polish items from code review
 
 #### Deliverables
 
 | Deliverable | Status | Target Date |
 |:------------|:-------|:------------|
-| Docker Compose configuration | 🔲 | Mar 18 |
-| Environment setup documentation | 🔲 | Mar 20 |
-| Integration test suite | 🔲 | Mar 25 |
-| Performance benchmarking | 🔲 | Mar 28 |
-| Security review | 🔲 | Mar 30 |
+| Docker Compose deployment testing | 🔲 | Mar 5 |
+| Environment setup documentation | 🔲 | Mar 7 |
+| Integration test suite (E2E) | 🔲 | Mar 15 |
+| Performance benchmarking | 🔲 | Mar 20 |
+| Security review (API auth, CORS, secrets) | 🔲 | Mar 22 |
+| Evaluate LangChain/LangGraph necessity (CR-26) | 🔲 | Mar 10 |
+| Replace print() with structured logging (CR-27) | 🔲 | Mar 5 |
+| Fix sys.path manipulation in UI (CR-28) | 🔲 | Mar 5 |
+| Resolve Docling dependency conflict (CR-29) | 🔲 | Mar 12 |
+| Async/parallel scraping in orchestrator | 🔲 | Mar 18 |
+| Supabase integration testing | 🔲 | Mar 20 |
 | v1.0 release preparation | 🔲 | Apr 1 |
 
 #### Key Milestones
 
-- **Mar 25:** All integration tests passing
+- **Mar 15:** All integration tests passing
+- **Mar 22:** Security review complete
 - **Apr 1:** v1.0.0 release
 
 ---
@@ -719,3 +797,4 @@ flowchart TB
 | 2026-01-30 | 1.1 | Added future agents roadmap, high-value features roadmap |
 | 2026-01-30 | 1.2 | Added community, analytics, proactive, accessibility features; Added Epics, Features, User Stories, Tasks |
 | 2026-02-02 | 1.3 | Phase 2 complete; Added Phase 3 Intelligent Evolution with event-driven architecture |
+| 2026-02-05 | 1.4 | Added Phase 3c Code Review Remediation (29 items: CR-01 to CR-29); Updated Phase 4 with P3 items and expanded deliverables; Updated Gantt chart |

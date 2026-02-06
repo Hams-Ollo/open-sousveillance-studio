@@ -1,7 +1,7 @@
 # TODO: Alachua Civic Intelligence Reporting Studio
 
 **Last Updated:** 2026-02-05
-**Status:** Phase 3 Complete - Two-Layer Agent Architecture Operational
+**Status:** P0 Remediation Complete - P1 Sprint Next
 
 ---
 
@@ -554,12 +554,268 @@ def get_db():
 
 ---
 
-## 🔜 Next Priority Items
+## ✅ P0 - Critical: Code Review Findings (Completed 2026-02-05)
 
-### [ ] Add Database FK Constraints (P2)
+### [x] CR-01: Bridge Intelligence Layer to Orchestrator
 
-- Add foreign key from `documents.meeting_id` to `scraped_meetings`
-- Update migration file
+**Completed:** 2026-02-05
+**Impact:** The entire intelligence layer (EventStore, RulesEngine, watchdog alerts) was dead code
+**Fix Applied:**
+- [x] Modified 3 scrapers to expose raw items in pipeline results (`raw_meetings`, `raw_notices`)
+- [x] Added `_process_intelligence()` method to orchestrator
+- [x] Initialized adapters, EventStore, and RulesEngine in orchestrator `__init__`
+- [x] Wired intelligence processing into all 3 job runners
+- [x] Added `events_created` and `alerts_generated` fields to `JobResult`
+- [x] Updated `generate_summary()` with event/alert stats and alert details
+
+### [x] CR-02: Fix AnalystAgent Schema (Uses ScoutReport Instead of AnalystReport)
+
+**Completed:** 2026-02-05
+**Fix Applied:**
+- [x] Changed `self.structured_llm = self.llm.with_structured_output(AnalystReport)`
+- [x] Updated prompt to reference AnalystReport fields (topic, sections, recommendations, entities_mentioned)
+- [x] Updated `database.py` `save_deep_research_report` to accept AnalystReport
+
+### [x] CR-03: Fix Missing Import and Dependency Bugs
+
+**Completed:** 2026-02-05
+**Fix Applied:**
+- [x] Added `import os` to `src/app.py`
+- [x] Added `sse-starlette==2.2.1` to `requirements.txt`
+- [x] Fixed `any` → `Any` type annotation in `src/exceptions.py`
+- [x] Removed duplicate `import json` inside `src/database.py`
+- [x] Removed unused `field_validator` import in `src/config.py`
+
+### [x] CR-04: Implement Real Agent Tests
+
+**Completed:** 2026-02-05
+**Fix Applied:**
+- [x] 11 real agent tests replacing 7 skipped stubs
+- [x] BaseAgent: init, run returns report, error propagation
+- [x] ScoutAgent: init, validation, PDF analysis mode, metadata-only mode
+- [x] AnalystAgent: init, validation, Tavily research flow, Tavily failure handling
+- [x] Fixed `MeetingItem` fixture in `conftest.py` (missing required fields)
+- [x] Fixed all `Optional` fields in `src/schemas.py` for Pydantic 2.x (`default=None`)
+- [x] Fixed `test_schemas.py` failures (MeetingItem, UrgencyAlert, ApprovalRequest)
+
+---
+
+## 🟠 P1 - High Priority: Code Review Findings
+
+### [x] CR-05: Eliminate `src/tools.py` / `src/tools/` Package Collision
+
+**Completed:** 2026-02-05
+**Fix Applied:**
+- [x] Moved `src/tools.py` contents to `src/tools/langchain_tools.py`
+- [x] Replaced `importlib` hack in `src/tools/__init__.py` with clean import
+- [x] Deleted `src/tools.py`
+- [x] Updated comment in `src/agents/scout.py`
+
+### [x] CR-06: Create Agent Registry/Factory Pattern
+
+**Completed:** 2026-02-06
+**Fix Applied:**
+- [x] Created `AGENT_REGISTRY` dict in `src/agents/__init__.py` mapping all 6 agent IDs to classes
+- [x] Created `get_agent()`, `get_agent_info()`, `list_agents()` factory functions
+- [x] Replaced string-prefix checks in `src/app.py` and `src/main.py` with layer-based routing
+- [x] Added `--list-agents` and `--topic` CLI flags to `src/main.py`
+- [x] Added `/agents` API endpoint
+
+### [x] CR-07: Unify Version Numbers
+
+**Completed:** 2026-02-05
+**Fix Applied:**
+- [x] Created `src/__init__.py` with `__version__ = "0.4.0-alpha"`
+- [x] Updated `pyproject.toml` version to `0.4.0-alpha`
+- [x] Updated `src/app.py` to import `__version__` from `src`
+- [x] Updated `src/ui/app.py` to import `__version__` from `src`
+
+### [x] CR-08: Move Run State to Redis
+
+**Completed:** 2026-02-06
+**Fix Applied:**
+- [x] Created `src/state.py` with `RedisStateStore` class (in-memory fallback if Redis unavailable)
+- [x] Replaced all `runs: dict` and `pending_approvals: dict` in `src/app.py` with `state` store
+- [x] Updated SSE event generator and all route handlers to use state store
+- [x] Added TTL (24h for runs, 7d for approvals)
+
+### [x] CR-09: Add API Authentication
+
+**Completed:** 2026-02-06
+**Fix Applied:**
+- [x] Created `verify_api_key` dependency in `src/app.py` checking `X-API-Key` header
+- [x] Protected `/run`, `/runs`, `/approvals/*`, `/costs` endpoints
+- [x] `/health`, `/info`, `/status`, `/agents`, `/stream` remain public
+- [x] Added `API_KEY` to `.env.example` (blank = auth disabled for dev)
+
+### [x] CR-10: Wire RAG Pipeline Into Production
+
+**Completed:** 2026-02-06
+**Fix Applied:**
+- [x] Added `_get_rag()`, `_ingest_to_rag()`, `_retrieve_rag_context()` to `src/orchestrator.py`
+- [x] Wired ingestion into `_run_analysis()` — ingests PDF content before Scout analysis
+- [x] Wired retrieval into both `_run_analysis()` and `_run_deep_research()` for cross-document context
+- [x] All RAG calls wrapped in try/except — failures are non-blocking
+
+### [x] CR-11: Fix Thread Safety for Singletons
+
+**Completed:** 2026-02-06
+**Fix Applied:**
+- [x] Added `threading.Lock()` with double-checked locking to all 12 singleton getters:
+  - `database.py`, `state.py`, `langchain_tools.py`, `resource_cache.py`, `gemini_research.py`
+  - `embeddings.py`, `vector_store.py`, `chunking.py`, `rag_pipeline.py`
+  - `event_store.py`, `rules_engine.py`, `health.py`
+- [x] `reset_health_service()` also uses lock for safe test teardown
+
+### [x] CR-12: Add LLM Rate Limiting and Cost Controls
+
+**Completed:** 2026-02-06
+**Fix Applied:**
+- [x] Created `src/llm_cost.py` with `CostTracker`, model pricing table, `BudgetExceededError`
+- [x] Wired into `GeminiModel.invoke()` and `StructuredGeminiModel.invoke()` in `src/models.py`
+- [x] Tracks input/output tokens per model from `usage_metadata`
+- [x] Enforces configurable daily budget (`LLM_DAILY_BUDGET_USD`), warns at 80%
+- [x] Added `/costs` API endpoint for daily summary
+- [x] Added `LLM_DAILY_BUDGET_USD` to `.env.example`
+
+### [x] CR-13: Add Graceful Shutdown and Process Management
+
+**Completed:** 2026-02-06
+**Fix Applied:**
+- [x] Created `stop-all.ps1` — reads PIDs from `.pids/`, stops processes + children
+- [x] Updated `start-all.ps1` — writes PIDs to `.pids/`, checks for existing processes
+- [x] Added `.pids/` to `.gitignore`
+
+---
+
+## 🟡 P2 - Medium Priority: Code Review Findings
+
+### [ ] CR-14: Fix CORS Configuration
+
+**File:** `src/app.py` lines 124-130
+**Impact:** `allow_origins=["*"]` + `allow_credentials=True` is an anti-pattern
+**Fix:** Configure explicit allowed origins from environment variable
+
+### [ ] CR-15: Move Runtime State Files Out of `config/`
+
+**Impact:** `config/events.json`, `config/scraper_health.json`, `config/discovered_resources.yaml` conflate config with runtime state
+**Fix:**
+- [ ] Move to `data/state/` directory
+- [ ] Update all paths in `EventStore`, `HealthService`, `ResourceCache`
+- [ ] Add `data/state/` to `.gitignore`
+
+### [ ] CR-16: Fix `lru_cache` Mutable Return Values
+
+**File:** `src/config.py` lines 96-99
+**Impact:** Cached dicts can be mutated by callers, corrupting cache
+**Fix:** Return deep copies or use frozen/immutable structures
+
+### [ ] CR-17: Consolidate Persistence Layer
+
+**Impact:** Two overlapping stores — file-based `EventStore` and Supabase `Database`
+**Fix:**
+- [ ] Decide primary persistence (Supabase for production)
+- [ ] Add Supabase backend to EventStore (replace JSON file)
+- [ ] Ensure single source of truth for event data
+
+### [ ] CR-18: Add Orchestrator Tests
+
+**Impact:** Most complex component has zero test coverage
+**Fix:**
+- [ ] Create `test/test_orchestrator.py`
+- [ ] Test source routing logic
+- [ ] Test pipeline run with mocked scrapers
+- [ ] Test error handling (one source fails, others continue)
+- [ ] Test deep research triggering on high-relevance items
+
+### [ ] CR-19: Add LangGraph Workflow Tests
+
+**Impact:** `src/workflows/graphs.py` has no test coverage
+**Fix:**
+- [ ] Create `test/test_workflows.py`
+- [ ] Test Scout workflow state transitions
+- [ ] Test Analyst workflow with approval checkpoint
+- [ ] Test error handling in workflow nodes
+
+### [ ] CR-20: Fix EventStore Concurrency Issues
+
+**Impact:** Full JSON rewrite per event, no file locking, batch save calls `_save()` per event
+**Fix:**
+- [ ] Implement atomic writes (write to temp file + rename)
+- [ ] Defer `_save()` in `save_events()` batch method to end
+- [ ] Add file locking for multi-process safety
+
+### [ ] CR-21: Fix Sequential `embed_batch` in Embeddings Service
+
+**File:** `src/tools/embeddings.py` lines 124-128
+**Impact:** Individual API calls in a loop; slow and expensive for large documents
+**Fix:** Use Gemini batch embedding API
+
+### [ ] CR-22: Extract Hardcoded Alachua-Specific Logic to Config
+
+**Impact:** Project claims location-agnostic but has hardcoded Alachua entities, domains, keywords
+**Fix:**
+- [ ] Move `ALLOWED_DOMAINS` in `firecrawl_client.py` to config
+- [ ] Move hardcoded entities in `src/prompts/context.py` to `entities.yaml`
+- [ ] Move Alachua-specific keywords in `base_adapter.py` to config
+- [ ] Make `civicclerk_scraper.py` source_id dynamic from config
+
+### [ ] CR-23: Add Celery Worker Health Endpoint
+
+**Impact:** No visibility into whether Celery workers/beat are running
+**Fix:**
+- [ ] Add `/health/celery` endpoint that pings Celery
+- [ ] Add health checks for Celery containers in `docker-compose.yml`
+
+### [ ] CR-24: Fix Database Migration Gaps
+
+**Impact:** `deep_research_reports` table referenced but never created; duplicate migration numbering
+**Fix:**
+- [ ] Create `002_deep_research_reports.sql` migration
+- [ ] Rename `001_vector_schema.sql` to `002_vector_schema.sql`
+- [ ] Add FK constraints (documents → scraped_meetings, etc.)
+- [ ] Consider migration runner tool (dbmate, Alembic)
+
+### [ ] CR-25: Fix Custom `TimeoutError` Shadowing Builtin
+
+**File:** `src/exceptions.py` line 87
+**Fix:** Rename to `OperationTimeoutError` or similar
+
+---
+
+## 🟢 P3 - Low Priority: Code Review Findings
+
+### [ ] CR-26: Evaluate LangChain/LangGraph Necessity
+
+**Impact:** Heavy deps (`langchain`, `langgraph`) barely used in production pipeline
+**Analysis:**
+- LangChain only used for `@tool` decorators and `RecursiveCharacterTextSplitter`
+- LangGraph only used in disconnected `src/workflows/graphs.py`
+- Native `google.genai` SDK handles all LLM calls
+**Decision needed:** Keep if planning to activate LangGraph workflows, remove if staying procedural
+
+### [ ] CR-27: Replace `print()` Statements With Structured Logging
+
+- [ ] Replace `print()` calls in `src/main.py` with `structlog` logger
+- [ ] Replace `print()` in `src/app.py` line 341 with logger
+- [ ] Replace `print()` in `src/tools/firecrawl_client.py` line 280 with logger
+
+### [ ] CR-28: Fix `sys.path` Manipulation in Streamlit UI
+
+**File:** `src/ui/app.py` lines 14-15
+**Fix:** Use proper package installation (`pip install -e .`) instead of `sys.path.insert`
+
+### [ ] CR-29: Remove Docling Dependency Conflict
+
+**Impact:** Docling pulls in PyTorch/transformers causing NumPy conflicts, all agent tests skipped
+**Options:**
+- Make docling an optional dependency
+- Remove docling if Firecrawl handles PDF extraction sufficiently
+- Pin compatible NumPy version
+
+---
+
+## 🔜 Previously Identified Items (Carried Forward)
 
 ### [ ] Implement Async/Parallel Scraping (P2)
 
@@ -581,154 +837,21 @@ def get_db():
 
 ---
 
-## 🚀 Phase 3: Intelligent Evolution
+## ✅ Phase 3: Intelligent Evolution (Complete)
 
 **Approach:** Event-driven + User-centric (Option C hybrid)
-**Primary Use Case:** Grassroots civic watchdog monitoring for concerning activity
+**Status:** Built but not yet wired into production pipeline (see CR-01)
 
-### Phase 3.1: CivicEvent Unified Model + Adapters
+### [x] Phase 3.1: CivicEvent Unified Model + Adapters ✅
+### [x] Phase 3.2: Event Persistence + Basic Queries ✅
+### [x] Phase 3.3: Watchdog Rules Engine ✅
+### [x] Phase 3.4: Health Metrics in Scrapers ✅
 
-**Status:** 🔲 Pending
-**Priority:** Critical
-**Effort:** Medium
-
-Create a unified event model that normalizes all scraper output:
-
-```python
-@dataclass
-class CivicEvent:
-    event_id: str
-    event_type: str          # "meeting", "permit_application", "permit_issued", "public_notice"
-    source_id: str
-    timestamp: datetime
-    discovered_at: datetime
-    title: str
-    description: Optional[str]
-    location: Optional[GeoLocation]
-    entities: List[Entity]   # People, orgs, addresses
-    documents: List[Document]
-    tags: List[str]          # For filtering
-    raw_data: Dict
-```
-
-Tasks:
-- [ ] Create `src/intelligence/models.py` with CivicEvent dataclass
-- [ ] Create `src/intelligence/adapters/civicclerk_adapter.py`
-- [ ] Create `src/intelligence/adapters/srwmd_adapter.py`
-- [ ] Create `src/intelligence/adapters/florida_notices_adapter.py`
-- [ ] Add entity extraction (basic: names, addresses, orgs)
-- [ ] Add automatic tagging based on content
-
-### Phase 3.2: Event Persistence + Basic Queries
-
-**Status:** 🔲 Pending
-**Priority:** Critical
-**Effort:** Low
-
-Store events and enable simple queries:
-
-- [ ] Create `src/intelligence/event_store.py`
-- [ ] Implement `save_event()`, `get_events()`, `get_by_id()`
-- [ ] Add "what's new" query (events from last N hours)
-- [ ] Add tag-based filtering
-- [ ] Add source-based filtering
-- [ ] Detect new vs updated events at scrape time
-
-### Phase 3.3: Watchdog Rules Engine
-
-**Status:** 🔲 Pending
-**Priority:** High
-**Effort:** Medium
-
-Rule-based alerts for civic watchdog use cases:
-
-```yaml
-# config/watchdog_rules.yaml
-rules:
-  - name: "Late Agenda Warning"
-    condition: "agenda posted <24hrs before meeting"
-    severity: "warning"
-
-  - name: "New Alachua Permit"
-    condition: "permit_application AND county=Alachua"
-    severity: "info"
-
-  - name: "Rezoning Alert"
-    condition: "tags contains 'rezoning'"
-    severity: "notable"
-```
-
-Tasks:
-- [ ] Create `config/watchdog_rules.yaml` with initial rules
-- [ ] Create `src/intelligence/rules_engine.py`
-- [ ] Implement rule parsing and evaluation
-- [ ] Add alert generation with severity levels
-- [ ] Integrate with event persistence (evaluate on save)
-
-### Phase 3.4: Health Metrics in Scrapers
-
-**Status:** 🔲 Pending
-**Priority:** High
-**Effort:** Low
-
-Embed health tracking directly in scrapers (self-healing foundation):
-
-- [ ] Create `src/intelligence/health.py` with ScraperHealth mixin
-- [ ] Add `record_attempt()` method to track success/failure
-- [ ] Add `health_status` property (healthy/degraded/failing)
-- [ ] Add `needs_attention` property for alerting
-- [ ] Integrate into CivicClerk, SRWMD, Florida Notices scrapers
-- [ ] Add health dashboard endpoint
-
-### Phase 3.5: User Watchlists
-
-**Status:** 🔲 Pending
-**Priority:** Medium
-**Effort:** Medium
-
-Allow users to subscribe to topics, areas, keywords:
-
-- [ ] Create `src/intelligence/watchlist.py`
-- [ ] Define watchlist schema (keywords, tags, entities, locations)
-- [ ] Implement matching against CivicEvents
-- [ ] Add "alert me when..." functionality
-- [ ] Store watchlists in database
-- [ ] Add Streamlit UI for managing watchlists
-
-### Phase 3.6: Entity Extraction for Linking
-
-**Status:** 🔲 Pending
-**Priority:** Medium
-**Effort:** High
-
-Extract entities to enable cross-source linking:
-
-- [ ] Create `src/intelligence/entity_extractor.py`
-- [ ] Extract person names (applicants, owners, officials)
-- [ ] Extract organization names (developers, consultants)
-- [ ] Extract addresses and parcels
-- [ ] Normalize entity names (fuzzy matching)
-- [ ] Store entity → event relationships
-
-### Phase 3.7: Cross-Source Search
-
-**Status:** 🔲 Pending
-**Priority:** Medium
-**Effort:** Medium
-
-Enable investigation across sources:
-
-- [ ] Create `src/intelligence/search.py`
-- [ ] Implement entity-based search ("show me everything about ABC Development")
-- [ ] Implement semantic search using embeddings
-- [ ] Add timeline view for entity history
-- [ ] Add Streamlit investigation UI
+### [ ] Phase 3.5: User Watchlists (Deferred to v1.1)
+### [ ] Phase 3.6: Entity Extraction Enhancement (Deferred to v1.1)
+### [ ] Phase 3.7: Cross-Source Search (Deferred to v1.1)
 
 ### Future: Anomaly Detection
-
-**Status:** 🔲 Future
-**Priority:** Medium
-**Effort:** High
 
 Detect unusual patterns (after sufficient historical data):
 
@@ -740,26 +863,19 @@ Detect unusual patterns (after sufficient historical data):
 
 ### Future: Intelligent Scheduling
 
-**Status:** 🔲 Future
-**Priority:** Low
-**Effort:** Medium
-
-Optimize scrape timing based on learned patterns:
-
-- Learn when sources typically update
-- Increase frequency before known meeting dates
-- Reduce unnecessary scrapes during quiet periods
+Optimize scrape timing based on learned patterns
 
 ---
 
 ## Notes
 
-- **Current State:** Phase 3 complete - Two-layer agent architecture operational
+- **Current State:** P0 remediation complete - Intelligence layer bridged to orchestrator
 - **LLM:** Using native `google.genai` SDK (not LangChain) to avoid PyTorch dependency issues
-- **Testing:** 78 tests passing (39 scraper + 39 intelligence), 7 skipped (docling/NumPy)
-- **Orchestrator:** Runs daily at 4 AM EST via Celery Beat
+- **Testing:** 156 tests passing, 0 failures (11 agent + 39 scraper + 39 intelligence + 67 other)
+- **Orchestrator:** Runs daily at 4 AM EST via Celery Beat, now with intelligence layer integration
 - **Research Providers:** Dual providers (Tavily + Gemini Deep Research) for Layer 2
 - **Architecture Decision:** Two-layer agent system (Scout + Analyst) with Orchestrator coordination
+- **Intelligence Layer:** Now wired into orchestrator — adapters, EventStore, RulesEngine all active
 
 ---
 
@@ -775,7 +891,7 @@ Optimize scrape timing based on learned patterns:
 | `src/database.py` | ✅ Working | Meeting state tracking |
 | `src/schemas.py` | ✅ Working | All report types |
 | `src/exceptions.py` | ✅ Working | Custom exception classes |
-| `src/orchestrator.py` | ✅ Working | Pipeline orchestrator (630 lines) |
+| `src/orchestrator.py` | ✅ Working | Pipeline orchestrator with intelligence bridge |
 
 ### Agents
 
@@ -832,4 +948,6 @@ Optimize scrape timing based on learned patterns:
 | File | Status | Notes |
 |:-----|:-------|:------|
 | `test/test_scrapers.py` | ✅ Working | 39 tests passing |
-| `test/test_intelligence.py` | ✅ New | 39 tests passing |
+| `test/test_intelligence.py` | ✅ Working | 39 tests passing |
+| `test/test_agents.py` | ✅ Updated | 11 real tests (was 7 skipped stubs) |
+| `test/test_schemas.py` | ✅ Fixed | 9 tests passing (Pydantic 2.x compat) |

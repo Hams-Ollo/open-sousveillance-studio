@@ -773,7 +773,8 @@ class FloridaNoticesScraper:
             'source_id': source_id,
             'phase1_discovery': {},
             'phase2_detail': {},
-            'notices_ready_for_analysis': []
+            'notices_ready_for_analysis': [],
+            'raw_notices': []
         }
 
         # Phase 1: Discovery
@@ -794,6 +795,7 @@ class FloridaNoticesScraper:
             'new': len(sync_result['new']),
             'unchanged': len(sync_result['unchanged'])
         }
+        results['raw_notices'] = notices
 
         # Phase 2: PDF downloads for new notices
         if download_pdfs:

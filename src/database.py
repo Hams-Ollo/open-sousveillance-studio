@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional, List
 from supabase import create_client, Client
 from src.config import SUPABASE_URL, SUPABASE_KEY
-from src.schemas import ScoutReport
+from src.schemas import ScoutReport, AnalystReport
 from src.logging_config import get_logger
 
 logger = get_logger("database")
@@ -261,20 +261,18 @@ class Database:
             logger.error("Error fetching high relevance reports", source_id=source_id, error=str(e))
             return []
 
-    def save_deep_research_report(self, original_report_id: str, deep_report: "ScoutReport") -> bool:
+    def save_deep_research_report(self, original_report_id: str, deep_report: "AnalystReport") -> bool:
         """
         Save a deep research report and link it to the original Scout report.
 
         Args:
             original_report_id: ID of the original Scout report
-            deep_report: The deep research ScoutReport
+            deep_report: The deep research AnalystReport
 
         Returns:
             True if successful
         """
         try:
-            import json
-
             # Save the deep research report
             data = json.loads(deep_report.model_dump_json())
             deep_report_id = f"deep-{deep_report.report_id}"
@@ -308,7 +306,10 @@ class Database:
             )
             return False
 
+import threading
+
 _db: Database | None = None
+_db_lock = threading.Lock()
 
 def get_db() -> Database:
     """Lazy initialization of Database singleton.
@@ -321,5 +322,7 @@ def get_db() -> Database:
     """
     global _db
     if _db is None:
-        _db = Database()
+        with _db_lock:
+            if _db is None:
+                _db = Database()
     return _db

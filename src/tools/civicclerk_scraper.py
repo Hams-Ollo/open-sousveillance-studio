@@ -845,7 +845,8 @@ class CivicClerkScraper:
             'source_id': source_id,
             'phase1_discovery': {},
             'phase2_detail': {},
-            'meetings_ready_for_analysis': []
+            'meetings_ready_for_analysis': [],
+            'raw_meetings': []
         }
 
         # Phase 1: Discovery
@@ -867,6 +868,7 @@ class CivicClerkScraper:
             'updated': len(sync_result['updated']),
             'unchanged': len(sync_result['unchanged'])
         }
+        results['raw_meetings'] = meetings
 
         # Phase 2: Detail (PDF downloads)
         if download_pdfs:

@@ -42,6 +42,14 @@ class GeminiModel:
 
     def invoke(self, prompt: str) -> str:
         """Send a prompt and get a text response."""
+        from src.llm_cost import get_cost_tracker, BudgetExceededError
+        tracker = get_cost_tracker()
+
+        if not tracker.check_budget(model=self.model_name):
+            raise BudgetExceededError(
+                f"Daily LLM budget exceeded. Summary: {tracker.get_daily_summary()}"
+            )
+
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=prompt,
@@ -50,6 +58,16 @@ class GeminiModel:
                 max_output_tokens=self.max_output_tokens
             )
         )
+
+        # Track token usage from response metadata
+        usage = getattr(response, 'usage_metadata', None)
+        if usage:
+            tracker.record_call(
+                model=self.model_name,
+                input_tokens=getattr(usage, 'prompt_token_count', 0),
+                output_tokens=getattr(usage, 'candidates_token_count', 0)
+            )
+
         return response.text
 
     def with_structured_output(self, schema: Type[T]) -> "StructuredGeminiModel[T]":
@@ -67,6 +85,13 @@ class StructuredGeminiModel[T]:
     def invoke(self, prompt: str) -> T:
         """Send a prompt and get a structured response."""
         import json
+        from src.llm_cost import get_cost_tracker, BudgetExceededError
+        tracker = get_cost_tracker()
+
+        if not tracker.check_budget(model=self.base_model.model_name):
+            raise BudgetExceededError(
+                f"Daily LLM budget exceeded. Summary: {tracker.get_daily_summary()}"
+            )
 
         response = self.base_model.client.models.generate_content(
             model=self.base_model.model_name,
@@ -78,6 +103,15 @@ class StructuredGeminiModel[T]:
                 response_schema=self.schema
             )
         )
+
+        # Track token usage from response metadata
+        usage = getattr(response, 'usage_metadata', None)
+        if usage:
+            tracker.record_call(
+                model=self.base_model.model_name,
+                input_tokens=getattr(usage, 'prompt_token_count', 0),
+                output_tokens=getattr(usage, 'candidates_token_count', 0)
+            )
 
         # Parse JSON response into Pydantic model
         try:

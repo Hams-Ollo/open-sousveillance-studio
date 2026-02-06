@@ -142,6 +142,9 @@ class ChunkingPipeline:
 _chunking_pipeline: Optional[ChunkingPipeline] = None
 
 
+import threading
+_chunking_lock = threading.Lock()
+
 def get_chunking_pipeline(
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     chunk_overlap: int = DEFAULT_CHUNK_OVERLAP
@@ -158,8 +161,10 @@ def get_chunking_pipeline(
     """
     global _chunking_pipeline
     if _chunking_pipeline is None:
-        _chunking_pipeline = ChunkingPipeline(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap
-        )
+        with _chunking_lock:
+            if _chunking_pipeline is None:
+                _chunking_pipeline = ChunkingPipeline(
+                    chunk_size=chunk_size,
+                    chunk_overlap=chunk_overlap
+                )
     return _chunking_pipeline
