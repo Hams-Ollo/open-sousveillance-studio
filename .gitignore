@@ -17,6 +17,9 @@ Thumbs.db
 # Process ID files
 .pids/
 
+# Runtime state files
+data/state/
+
 # Logs
 *.log
 logs/

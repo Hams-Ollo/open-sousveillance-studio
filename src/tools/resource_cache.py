@@ -34,16 +34,25 @@ logger = get_logger(__name__)
 class ResourceCache:
     """Manages discovered resources cache for scrapers."""
 
-    DEFAULT_PATH = Path(__file__).parent.parent.parent / "config" / "discovered_resources.yaml"
+    DEFAULT_PATH = Path(__file__).parent.parent.parent / "data" / "state" / "discovered_resources.yaml"
+    _OLD_PATH = Path(__file__).parent.parent.parent / "config" / "discovered_resources.yaml"
 
     def __init__(self, cache_path: Optional[Path] = None):
         """
         Initialize resource cache.
 
         Args:
-            cache_path: Path to cache file (defaults to config/discovered_resources.yaml)
+            cache_path: Path to cache file (defaults to data/state/discovered_resources.yaml)
         """
         self.cache_path = cache_path or self.DEFAULT_PATH
+
+        # Auto-migrate from old location
+        if cache_path is None and self._OLD_PATH.exists() and not self.cache_path.exists():
+            self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+            import shutil
+            shutil.move(str(self._OLD_PATH), str(self.cache_path))
+            logger.info("Migrated discovered_resources.yaml from config/ to data/state/")
+
         self._data: Dict[str, Any] = {}
         self._dirty = False
         self._load()

@@ -46,7 +46,7 @@ This document tracks all work items in a format similar to Azure DevOps boards:
 | E3 | Analyst Layer (Intelligence) | ✅ Done | 100% |
 | E4 | Synthesizer Layer (Output) | 📋 Backlog | 0% |
 | E5 | Integration & Deployment | 🟡 In Progress | 40% |
-| E6 | Code Review Remediation | 🟡 In Progress | 75% |
+| E6 | Code Review Remediation | 🟡 In Progress | 90% |
 
 ### Epic Progress Chart
 
@@ -57,7 +57,7 @@ pie title Epic Progress
     "E3 Analyst Layer" : 100
     "E4 Synthesizer" : 0
     "E5 Integration" : 40
-    "E6 CR Remediation" : 75
+    "E6 CR Remediation" : 90
 ```
 
 ### Epic Dependencies
@@ -710,6 +710,18 @@ flowchart TB
 | T6.1.5 | Wire RAGPipeline.ingest_document() in orchestrator | F6.1 | ✅ Done | Hans |
 | T6.1.6 | Wire RAGPipeline.retrieve_context() in agents | F6.1 | ✅ Done | Hans |
 
+### Sprint 7 (Feb 6) — P2 Medium Priority (Batch 1)
+
+**Focus: Security, state management, cache safety, persistence consolidation, test coverage**
+
+| ID | Task | Feature | Status | Assignee |
+|:---|:-----|:--------|:-------|:---------|
+| T7.1.1 | Env-var driven CORS_ORIGINS | F7.1 | ✅ Done | Hans |
+| T7.1.2 | Move state files to data/state/ with auto-migration | F7.1 | ✅ Done | Hans |
+| T7.1.3 | deepcopy wrapper on lru_cache config functions | F7.1 | ✅ Done | Hans |
+| T7.1.4 | Supabase dual-write for EventStore | F7.1 | ✅ Done | Hans |
+| T7.1.5 | Orchestrator unit tests (48 tests) | F7.1 | ✅ Done | Hans |
+
 ### Sprint Velocity
 
 | Sprint | Planned | Completed | Velocity |
@@ -720,6 +732,7 @@ flowchart TB
 | Sprint 4 | 32h | 32h | 100% |
 | Sprint 5 | 20h | 20h | 100% |
 | Sprint 6 | 30h | 30h | 100% |
+| Sprint 7 | 12h | 12h | 100% |
 
 ---
 

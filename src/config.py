@@ -18,6 +18,7 @@ Environment Variables:
 - DISCORD_WEBHOOK_URL   : Optional - Discord notifications
 """
 
+import copy
 import os
 from pathlib import Path
 from typing import Any, Optional
@@ -94,21 +95,36 @@ def load_yaml_file(filename: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
-def load_instance_config() -> dict[str, Any]:
-    """Load instance configuration (cached)."""
+def _load_instance_config() -> dict[str, Any]:
+    """Load instance configuration (cached, internal)."""
     return load_yaml_file("instance.yaml")
 
 
+def load_instance_config() -> dict[str, Any]:
+    """Load instance configuration. Returns a safe copy."""
+    return copy.deepcopy(_load_instance_config())
+
+
 @lru_cache(maxsize=1)
-def load_sources_config() -> dict[str, Any]:
-    """Load sources configuration (cached)."""
+def _load_sources_config() -> dict[str, Any]:
+    """Load sources configuration (cached, internal)."""
     return load_yaml_file("sources.yaml")
 
 
+def load_sources_config() -> dict[str, Any]:
+    """Load sources configuration. Returns a safe copy."""
+    return copy.deepcopy(_load_sources_config())
+
+
 @lru_cache(maxsize=1)
-def load_entities_config() -> dict[str, Any]:
-    """Load entities configuration (cached)."""
+def _load_entities_config() -> dict[str, Any]:
+    """Load entities configuration (cached, internal)."""
     return load_yaml_file("entities.yaml")
+
+
+def load_entities_config() -> dict[str, Any]:
+    """Load entities configuration. Returns a safe copy."""
+    return copy.deepcopy(_load_entities_config())
 
 
 # =============================================================================

@@ -291,11 +291,11 @@ flowchart TB
 
 | Deliverable | ID | Status | Target Date |
 |:------------|:---|:-------|:------------|
-| Fix CORS configuration | CR-14 | 🔲 | Feb 21 |
-| Move runtime state files out of `config/` | CR-15 | 🔲 | Feb 21 |
-| Fix `lru_cache` mutable return values | CR-16 | 🔲 | Feb 22 |
-| Consolidate persistence layer | CR-17 | 🔲 | Feb 24 |
-| Add orchestrator tests | CR-18 | 🔲 | Feb 25 |
+| Fix CORS configuration | CR-14 | ✅ | Feb 6 |
+| Move runtime state files out of `config/` | CR-15 | ✅ | Feb 6 |
+| Fix `lru_cache` mutable return values | CR-16 | ✅ | Feb 6 |
+| Consolidate persistence layer | CR-17 | ✅ | Feb 6 |
+| Add orchestrator tests | CR-18 | ✅ | Feb 6 |
 | Add LangGraph workflow tests | CR-19 | 🔲 | Feb 26 |
 | Fix EventStore concurrency issues | CR-20 | 🔲 | Feb 22 |
 | Fix sequential `embed_batch` | CR-21 | 🔲 | Feb 23 |

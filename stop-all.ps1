@@ -21,24 +21,24 @@ $notFound = 0
 
 foreach ($pidFile in $pidFiles) {
     $serviceName = $pidFile.BaseName
-    $pid = (Get-Content $pidFile.FullName).Trim()
+    $savedPid = (Get-Content $pidFile.FullName).Trim()
 
-    if (-not $pid) {
+    if (-not $savedPid) {
         Write-Host "  [$serviceName] Empty PID file, removing." -ForegroundColor Gray
         Remove-Item $pidFile.FullName -Force
         continue
     }
 
     try {
-        $proc = Get-Process -Id $pid -ErrorAction Stop
+        $proc = Get-Process -Id $savedPid -ErrorAction Stop
 
         # Stop the process tree (terminal + child processes)
-        Write-Host "  [$serviceName] Stopping PID $pid ($($proc.ProcessName))..." -ForegroundColor Cyan
-        Stop-Process -Id $pid -Force -ErrorAction Stop
+        Write-Host "  [$serviceName] Stopping PID $savedPid ($($proc.ProcessName))..." -ForegroundColor Cyan
+        Stop-Process -Id $savedPid -Force -ErrorAction Stop
 
         # Also try to stop child processes
         try {
-            Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $pid } | ForEach-Object {
+            Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $savedPid } | ForEach-Object {
                 Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
             }
         } catch {
@@ -48,10 +48,10 @@ foreach ($pidFile in $pidFiles) {
         $stopped++
         Write-Host "  [$serviceName] Stopped." -ForegroundColor Green
     } catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
-        Write-Host "  [$serviceName] Process $pid not found (already stopped)." -ForegroundColor Gray
+        Write-Host "  [$serviceName] Process $savedPid not found (already stopped)." -ForegroundColor Gray
         $notFound++
     } catch {
-        Write-Host "  [$serviceName] Error stopping PID $pid : $_" -ForegroundColor Red
+        Write-Host "  [$serviceName] Error stopping PID $savedPid : $_" -ForegroundColor Red
     }
 
     # Clean up PID file

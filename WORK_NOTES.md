@@ -2,6 +2,45 @@
 
 ---
 
+## Session: 2026-02-06 (Late Morning) - P2 Sprint: CR-14 through CR-18
+
+**Session Focus:** Implement first batch of P2 medium-priority code review fixes
+
+---
+
+### Completed Items
+
+| CR | Fix | Files Modified/Created |
+|:---|:----|:-----------------------|
+| **CR-14** | Env-var driven CORS origins | `src/app.py`, `.env.example` |
+| **CR-15** | Move state files to `data/state/` with auto-migration | `src/intelligence/event_store.py`, `src/intelligence/health.py`, `src/tools/resource_cache.py`, `.gitignore` |
+| **CR-16** | `deepcopy` wrapper on `lru_cache` config functions | `src/config.py` |
+| **CR-17** | Supabase dual-write for EventStore | `src/intelligence/event_store.py`, `migrations/002_civic_events.sql` |
+| **CR-18** | Orchestrator unit tests (48 tests) | `test/test_orchestrator.py` |
+
+### Key Design Decisions
+
+- **CR-14:** `CORS_ORIGINS` env var with comma-separated origins, defaults to `localhost:8501,localhost:8000`
+- **CR-15:** Auto-migration via `shutil.move()` — old files in `config/` auto-move to `data/state/` on first run
+- **CR-16:** Private `_load_*` functions get `@lru_cache`, public wrappers return `copy.deepcopy()` — safe for callers
+- **CR-17:** Dual-write pattern: file always writes, Supabase writes when available (non-blocking failures)
+- **CR-18:** 48 tests across 10 test classes covering all orchestrator methods with fully mocked dependencies
+
+### New Files
+
+- `migrations/002_civic_events.sql` — Supabase table for civic events with indexes + RLS
+- `test/test_orchestrator.py` — 48 unit tests for the orchestrator module
+
+### New Environment Variables
+
+- `CORS_ORIGINS` — Comma-separated allowed CORS origins
+
+### Test Results
+
+- **200 passed**, 0 failures (152 existing + 48 new orchestrator tests)
+
+---
+
 ## Session: 2026-02-06 (Morning) - P1 Sprint Complete: CR-06 through CR-13
 
 **Session Focus:** Complete all remaining P1 high-priority code review fixes

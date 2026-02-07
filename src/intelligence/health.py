@@ -32,7 +32,7 @@ logger = get_logger("intelligence.health")
 # CONFIGURATION
 # =============================================================================
 
-DEFAULT_HEALTH_FILE = Path("config/scraper_health.json")
+DEFAULT_HEALTH_FILE = Path("data/state/scraper_health.json")
 HEALTH_WINDOW_HOURS = 24
 HEALTH_WINDOW_ATTEMPTS = 20
 
@@ -217,6 +217,16 @@ class HealthService:
                         Defaults to config/scraper_health.json
         """
         self.health_file = Path(health_file) if health_file else DEFAULT_HEALTH_FILE
+
+        # Auto-migrate from old location
+        if health_file is None:
+            old_path = Path("config/scraper_health.json")
+            if old_path.exists() and not self.health_file.exists():
+                self.health_file.parent.mkdir(parents=True, exist_ok=True)
+                import shutil
+                shutil.move(str(old_path), str(self.health_file))
+                logger.info("Migrated scraper_health.json from config/ to data/state/")
+
         self._health_data: dict[str, ScraperHealth] = {}
         self._alerts: list[HealthAlert] = []
         self._load()

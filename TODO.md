@@ -690,43 +690,45 @@ def get_db():
 
 ## 🟡 P2 - Medium Priority: Code Review Findings
 
-### [ ] CR-14: Fix CORS Configuration
+### [x] CR-14: Fix CORS Configuration ✅ (Feb 6)
 
-**File:** `src/app.py` lines 124-130
+**File:** `src/app.py` lines 142-154
 **Impact:** `allow_origins=["*"]` + `allow_credentials=True` is an anti-pattern
-**Fix:** Configure explicit allowed origins from environment variable
+**Fix:** Env-var driven `CORS_ORIGINS` (comma-separated), defaults to `localhost:8501,localhost:8000`
+**New env var:** `CORS_ORIGINS`
 
-### [ ] CR-15: Move Runtime State Files Out of `config/`
+### [x] CR-15: Move Runtime State Files Out of `config/` ✅ (Feb 6)
 
 **Impact:** `config/events.json`, `config/scraper_health.json`, `config/discovered_resources.yaml` conflate config with runtime state
 **Fix:**
-- [ ] Move to `data/state/` directory
-- [ ] Update all paths in `EventStore`, `HealthService`, `ResourceCache`
-- [ ] Add `data/state/` to `.gitignore`
+- [x] Moved defaults to `data/state/` directory
+- [x] Updated all paths in `EventStore`, `HealthService`, `ResourceCache`
+- [x] Added auto-migration from old `config/` locations
+- [x] Added `data/state/` to `.gitignore`
 
-### [ ] CR-16: Fix `lru_cache` Mutable Return Values
+### [x] CR-16: Fix `lru_cache` Mutable Return Values ✅ (Feb 6)
 
-**File:** `src/config.py` lines 96-99
+**File:** `src/config.py` lines 97-127
 **Impact:** Cached dicts can be mutated by callers, corrupting cache
-**Fix:** Return deep copies or use frozen/immutable structures
+**Fix:** `@lru_cache` on private `_load_*` functions, public wrappers return `copy.deepcopy()`
 
-### [ ] CR-17: Consolidate Persistence Layer
+### [x] CR-17: Consolidate Persistence Layer ✅ (Feb 6)
 
 **Impact:** Two overlapping stores — file-based `EventStore` and Supabase `Database`
 **Fix:**
-- [ ] Decide primary persistence (Supabase for production)
-- [ ] Add Supabase backend to EventStore (replace JSON file)
-- [ ] Ensure single source of truth for event data
+- [x] Added Supabase dual-write to EventStore (file + DB)
+- [x] File store remains primary for offline/dev; Supabase enables SQL queries
+- [x] Created `migrations/002_civic_events.sql` for `civic_events` table
+- [x] Non-blocking: Supabase failures don't affect file persistence
 
-### [ ] CR-18: Add Orchestrator Tests
+### [x] CR-18: Add Orchestrator Tests ✅ (Feb 6)
 
 **Impact:** Most complex component has zero test coverage
 **Fix:**
-- [ ] Create `test/test_orchestrator.py`
-- [ ] Test source routing logic
-- [ ] Test pipeline run with mocked scrapers
-- [ ] Test error handling (one source fails, others continue)
-- [ ] Test deep research triggering on high-relevance items
+- [x] Created `test/test_orchestrator.py` with 48 unit tests
+- [x] Covers: init, source routing, job runners, pipeline, intelligence bridge, RAG, watchlist, deep research, summary generation, scheduling
+- [x] All dependencies mocked (DB, scrapers, agents, EventStore, RulesEngine)
+- [x] Total test count: 200 (152 existing + 48 new)
 
 ### [ ] CR-19: Add LangGraph Workflow Tests
 

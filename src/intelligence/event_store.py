@@ -21,8 +21,9 @@ class EventStore:
     """
     Persistent storage for CivicEvents.
 
-    Currently uses file-based JSON storage for simplicity.
-    Can be extended to use Supabase/PostgreSQL for production.
+    Dual-write: file-based JSON (always) + Supabase (when available).
+    File store is the primary source of truth for offline/dev.
+    Supabase enables SQL queries and joins with reports.
 
     Features:
     - Save and retrieve events by ID
@@ -31,17 +32,32 @@ class EventStore:
     - "What's new" queries
     """
 
-    def __init__(self, storage_path: Optional[str] = None):
+    def __init__(self, storage_path: Optional[str] = None, enable_supabase: bool = True):
         """
         Initialize the event store.
 
         Args:
             storage_path: Path to JSON storage file. Defaults to
-                         config/events.json
+                         data/state/events.json
+            enable_supabase: Whether to attempt Supabase dual-write
         """
+        self._supabase = None
+        self._supabase_available = False
+        if enable_supabase:
+            self._init_supabase()
+
         if storage_path is None:
             project_root = Path(__file__).parent.parent.parent
-            storage_path = project_root / "config" / "events.json"
+            storage_path = project_root / "data" / "state" / "events.json"
+
+            # Auto-migrate from old location
+            old_path = project_root / "config" / "events.json"
+            new_path = Path(storage_path)
+            if old_path.exists() and not new_path.exists():
+                new_path.parent.mkdir(parents=True, exist_ok=True)
+                import shutil
+                shutil.move(str(old_path), str(new_path))
+                logger.info("Migrated events.json from config/ to data/state/")
 
         self.storage_path = Path(storage_path)
         self._events: Dict[str, CivicEvent] = {}
@@ -76,6 +92,20 @@ class EventStore:
         else:
             logger.debug("No existing event store found, starting fresh")
 
+    def _init_supabase(self) -> None:
+        """Attempt to connect to Supabase for dual-write."""
+        try:
+            supabase_url = os.getenv("SUPABASE_URL", "")
+            supabase_key = os.getenv("SUPABASE_KEY", "")
+            if supabase_url and supabase_key:
+                from supabase import create_client
+                self._supabase = create_client(supabase_url, supabase_key)
+                self._supabase_available = True
+                logger.info("EventStore Supabase dual-write enabled")
+        except Exception as e:
+            logger.warning("EventStore Supabase unavailable, file-only mode", error=str(e))
+            self._supabase_available = False
+
     def _save(self) -> None:
         """Save events to storage file."""
         try:
@@ -93,6 +123,45 @@ class EventStore:
             logger.debug("Saved events to storage", count=len(self._events))
         except Exception as e:
             logger.error("Failed to save event store", error=str(e))
+
+    def _save_event_to_supabase(self, event: CivicEvent) -> None:
+        """Write a single event to Supabase (non-blocking on failure)."""
+        if not self._supabase_available or not self._supabase:
+            return
+        try:
+            payload = {
+                "event_id": event.event_id,
+                "event_type": event.event_type.value,
+                "source_id": event.source_id,
+                "timestamp": event.timestamp.isoformat(),
+                "discovered_at": event.discovered_at.isoformat(),
+                "updated_at": event.updated_at.isoformat(),
+                "title": event.title,
+                "description": event.description,
+                "content_hash": event.content_hash,
+                "tags": event.tags,
+                "location": event.location.to_dict() if event.location else None,
+                "entities": [e.to_dict() for e in event.entities],
+                "documents": [d.to_dict() for d in event.documents],
+                "raw_data": event.raw_data,
+                "metadata": event.metadata,
+            }
+            self._supabase.table("civic_events").upsert(payload).execute()
+        except Exception as e:
+            logger.warning(
+                "Supabase dual-write failed (non-blocking)",
+                event_id=event.event_id,
+                error=str(e)
+            )
+
+    def _delete_event_from_supabase(self, event_id: str) -> None:
+        """Delete an event from Supabase (non-blocking on failure)."""
+        if not self._supabase_available or not self._supabase:
+            return
+        try:
+            self._supabase.table("civic_events").delete().eq("event_id", event_id).execute()
+        except Exception as e:
+            logger.warning("Supabase delete failed (non-blocking)", event_id=event_id, error=str(e))
 
     def save_event(self, event: CivicEvent) -> tuple[bool, str]:
         """
@@ -112,6 +181,7 @@ class EventStore:
             # New event
             self._events[event.event_id] = event
             self._save()
+            self._save_event_to_supabase(event)
             logger.info(
                 "Saved new event",
                 event_id=event.event_id,
@@ -125,6 +195,7 @@ class EventStore:
             event.updated_at = datetime.now()
             self._events[event.event_id] = event
             self._save()
+            self._save_event_to_supabase(event)
             logger.info(
                 "Updated existing event",
                 event_id=event.event_id,
@@ -388,6 +459,7 @@ class EventStore:
         if event_id in self._events:
             del self._events[event_id]
             self._save()
+            self._delete_event_from_supabase(event_id)
             return True
         return False
 
